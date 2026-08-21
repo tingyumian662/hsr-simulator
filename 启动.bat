@@ -44,6 +44,8 @@ if errorlevel 1 (
 REM  Start server, open browser shortly after
 echo Starting http://127.0.0.1:8000 ...
 start "" cmd /c "timeout /t 2 /nobreak >nul & start http://127.0.0.1:8000"
-%PYTHON_CMD% -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+REM 用 main.py 入口（脚本方式 sys.path 含脚本目录, 任何 Python 版本稳定;
+REM python -m uvicorn 方式在 Python 3.14 下 cwd 不进 sys.path → No module named 'web'）
+%PYTHON_CMD% main.py
 
 pause
