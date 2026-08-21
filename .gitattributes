@@ -1,0 +1,3 @@
+# Windows 批处理必须 CRLF——LF-only bat 在 cmd.exe 下会行错位导致命令解析失败
+*.bat text eol=crlf
+*.cmd text eol=crlf
