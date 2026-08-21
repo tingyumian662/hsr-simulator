@@ -1,5 +1,12 @@
 """崩坏：星穹铁道 伤害及配队模拟器 - 启动入口"""
+import sys
+import pathlib
 import uvicorn
+
+# v6.11.1: 显式把本文件目录放进 sys.path——即使从其他目录/方式启动,
+# web 包也能被找到（任何 Python 版本稳定）
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
 from web.app import app
 
 if __name__ == "__main__":
