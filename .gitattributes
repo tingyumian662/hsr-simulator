@@ -1,3 +1,4 @@
-# Windows 批处理必须 CRLF——LF-only bat 在 cmd.exe 下会行错位导致命令解析失败
-*.bat text eol=crlf
-*.cmd text eol=crlf
+# Windows 批处理禁用换行规范化——仓库内保持 CRLF
+# （eol=crlf 只影响 checkout, 仓库内仍是 LF; GitHub zip 用仓库字节, 必须 -text）
+*.bat -text
+*.cmd -text
