@@ -1,0 +1,26 @@
+{
+  "name": "回到大地的飞行",
+  "rarity": 5,
+  "rank": 1,
+  "path": "同谐",
+  "base_HP": 1164,
+  "base_ATK": 476,
+  "base_DEF": 529,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "对我方单体角色施放战技或终结技后，装备者恢复6点能量，同时使技能目标获得1层【圣咏】(持续3回合，最多3层)",
+      "attributes": {},
+      "condition_code": "event_skill_after",
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "对我方单体角色施放战技或终结技后，装备者恢复6点能量，同时使技能目标获得1层【圣咏】(持续3回合，最多3层)",
+      "attributes": {},
+      "condition_code": "event_ult_after",
+      "target": "self"
+    }
+  ],
+  "id": "a_grounded_ascent"
+}

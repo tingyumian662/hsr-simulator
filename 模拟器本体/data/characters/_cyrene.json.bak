@@ -1,0 +1,24 @@
+{
+  "id": "cyrene",
+  "name": "昔涟",
+  "element": "冰",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1397,
+  "base_ATK": 446,
+  "base_DEF": 582,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 24,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "SPD_percent": 9.0,
+    "CRIT_DMG": 37.3
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

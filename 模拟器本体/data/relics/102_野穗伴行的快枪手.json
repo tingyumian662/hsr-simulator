@@ -1,0 +1,21 @@
+{
+  "name": "野穗伴行的快枪手",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases ATK by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "The wearer's SPD increases by 6% and DMG dealt by Basic ATK increases by 10%.",
+      "attributes": {
+        "DMG_BONUS_BASIC": 10.0
+      },
+      "condition": ""
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "千星荟萃之城",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "When the wearer uses Follow-Up ATK, increases ATK by 24% for 2 turns.",
+      "attributes": {},
+      "condition": "on_fua_atk_buff"
+    },
+    {
+      "pieces_required": 4,
+      "description": "When an enemy target gets defeated, increases CRIT DMG for all allies by 12% in the current battle. This effect cannot stack.",
+      "attributes": {},
+      "condition": "on_kill_team_cd"
+    }
+  ]
+}

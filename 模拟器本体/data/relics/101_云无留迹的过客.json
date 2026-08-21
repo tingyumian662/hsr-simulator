@@ -1,0 +1,19 @@
+{
+  "name": "云无留迹的过客",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Outgoing Healing by 10%.",
+      "attributes": {
+        "HEAL_BONUS": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "At the start of the battle, immediately regenerates 1 Skill Point.",
+      "attributes": {},
+      "condition": "enter_combat_sp_recovery"
+    }
+  ]
+}

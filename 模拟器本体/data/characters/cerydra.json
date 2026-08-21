@@ -1,0 +1,182 @@
+{
+  "id": "cerydra",
+  "name": "刻律德菈",
+  "element": "风",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 620,
+  "base_DEF": 485,
+  "base_SPD": 99,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "DMG_BONUS_WIND": 22.4,
+    "ATK_percent": 18.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "易位，兵贵神速",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK风; 削韧10"
+    },
+    "skill": {
+      "name": "升变，士皆可帅",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "paramId": "cerydra_jungong",
+          "value": 1.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "【军功】+充能1(上限8); 充能≥6升【爵位】解控+战技CD+72%+全抗穿透10%+奇袭(引擎handler)"
+    },
+    "ultimate": {
+      "name": "世事如棋，四步堪杀",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 240.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "充能+2; 240%ATK风群伤; 无军功者→队伍第一位获军功(引擎handler)"
+    },
+    "talent": {
+      "name": "荣光属于凯撒",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "军功者ATK+24%刻律德菈ATK; 其普攻/战技→刻律德菈充能+1(奇袭期除外); 其攻击后刻律德菈60%ATK风附加(20次/终结技重置); 换目标充能归零(引擎handler)"
+    },
+    "technique": {
+      "name": "先手优势",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 获得【军功】+开战自动对军功者施放1次战技(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "来者",
+      "description": "ATK>2000每超100点暴伤+18%上限360%",
+      "hook_name": "cerydra_trace1"
+    },
+    {
+      "name": "见者",
+      "description": "暴击率+100%; 军功者终结技时充能+1(1次/场)",
+      "hook_name": "cerydra_trace2"
+    },
+    {
+      "name": "征服者",
+      "description": "战技后自身+军功者SPD+20 3回合; 军功者攻击回5能",
+      "hook_name": "cerydra_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "风伤+22.4%/攻击+18%/生命+10%",
+      "hook_name": "cerydra_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "夺走一切王冠",
+      "description": "军功者无视16%防御(爵位战技+20%); 战技回2能",
+      "hook_name": "cerydra_e1"
+    },
+    {
+      "rank": 2,
+      "name": "凝聚万众宏愿",
+      "description": "军功者伤害+40%; 有军功队友时刻律德菈伤害+160%",
+      "hook_name": "cerydra_e2"
+    },
+    {
+      "rank": 3,
+      "name": "燃尽旧日律法",
+      "description": "战技+2; 普攻+1",
+      "hook_name": "cerydra_e3"
+    },
+    {
+      "rank": 4,
+      "name": "重塑天地人间",
+      "description": "终结技倍率+240%",
+      "hook_name": "cerydra_e4"
+    },
+    {
+      "rank": 5,
+      "name": "帮助与加害，全数奉还",
+      "description": "终结技+2; 天赋+2",
+      "hook_name": "cerydra_e5"
+    },
+    {
+      "rank": 6,
+      "name": "征途只在，星辰大海",
+      "description": "军功者全抗穿透20%+附加倍率+300%; 有军功队友时刻律德菈全抗穿透20%",
+      "hook_name": "cerydra_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

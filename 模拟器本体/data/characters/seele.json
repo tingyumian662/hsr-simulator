@@ -1,0 +1,205 @@
+{
+  "id": "seele",
+  "name": "希儿",
+  "element": "量子",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 931,
+  "base_ATK": 640,
+  "base_DEF": 363,
+  "base_SPD": 115,
+  "taunt": 75,
+  "max_energy": 120,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "ATK_percent": 28.0,
+    "CRIT_DMG": 24.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·强袭",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于希儿100%攻击力的量子属性伤害。"
+    },
+    "skill": {
+      "name": "战技·归刃",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 220.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "seele_speed_buff"
+        }
+      ],
+      "_description": "希儿进入增幅状态，对指定敌方单体造成等同于希儿220%攻击力的量子属性伤害。增幅状态下希儿速度提高25%，持续2回合。"
+    },
+    "ultimate": {
+      "name": "终结技·乱蝶",
+      "type": "ultimate",
+      "cost": {
+        "energy": 120
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 425.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 30.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "seele_buffed_state"
+        }
+      ],
+      "_description": "立即进入增幅状态，对指定敌方单体造成等同于希儿425%攻击力的量子属性伤害。"
+    },
+    "talent": {
+      "name": "天赋·再现",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "trigger": "消灭敌方目标后",
+        "effect": "立即获得1个额外回合，并进入增幅状态。增幅状态下伤害提高80%。",
+        "duration": "额外回合结束后解除增幅状态"
+      }
+    },
+    "technique": {
+      "name": "秘技·幻身",
+      "type": "technique",
+      "technique_category": "battle_start",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "seele_stealth"
+        }
+      ],
+      "_description": "使用秘技后进入持续20秒的隐身状态。隐身状态下不会被敌方发现，主动攻击进入战斗时立即进入增幅状态。",
+      "_mechanism": "进战(希儿.txt 标\"进战\"): 隐身→主动攻击进战立即增幅(seele_amplify_pending, 引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "斩尽",
+      "description": "对当前生命值百分比≤80%的敌方目标造成伤害时，暴击率提高15%，且无视目标20%的防御力。",
+      "hook_name": "seele_crit_and_defpen_vs_lowhp"
+    },
+    {
+      "name": "涟漪",
+      "description": "施放普攻后，希儿的下一次行动提前20%。",
+      "hook_name": "seele_ripple_action_advance"
+    },
+    {
+      "name": "离析",
+      "description": "施放终结技攻击后使受到攻击的敌方单体陷入【乱蝶】状态，持续3回合。【乱蝶】状态下敌方目标受到攻击后，额外受到1次等同于希儿终结技伤害30%的真实伤害。处于【乱蝶】状态下的敌人被任意单位消灭时，也会触发希儿的天赋。",
+      "hook_name": "seele_lysis_butterfly_debuff"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "斩尽",
+      "description": "对当前生命值百分比小于等于80%的敌方目标造成伤害时，暴击率提高15%且无视目标20%的防御力。",
+      "hook_name": "seele_e1"
+    },
+    {
+      "rank": 2,
+      "name": "蝶舞",
+      "description": "战技的加速效果可以叠加，最多叠加2层。",
+      "hook_name": "seele_e2"
+    },
+    {
+      "rank": 3,
+      "name": "缭乱",
+      "description": "战技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "seele_e3"
+    },
+    {
+      "rank": 4,
+      "name": "掠影",
+      "description": "希儿消灭敌方目标时，自身恢复15点能量。",
+      "hook_name": "seele_e4"
+    },
+    {
+      "rank": 5,
+      "name": "锋锐",
+      "description": "终结技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "seele_e5"
+    },
+    {
+      "rank": 6,
+      "name": "离析",
+      "description": "施放终结技攻击后使受到攻击的敌方单体陷入【乱蝶】状态，持续3回合。【乱蝶】状态下的敌方目标受到攻击后，额外受到1次等同于希儿终结技伤害30%的真实伤害。处于【乱蝶】状态下的敌人被任意单位消灭时，也会触发希儿的天赋。当希儿陷入无法战斗状态时，敌方目标的【乱蝶】状态被解除。",
+      "hook_name": "seele_e6"
+    }
+  ],
+  "_source": "bilibili Wiki API verified"
+}

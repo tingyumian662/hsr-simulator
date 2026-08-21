@@ -1,0 +1,283 @@
+{
+  "id": "mydei",
+  "name": "万敌",
+  "element": "虚数",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1552,
+  "base_ATK": 426,
+  "base_DEF": 194,
+  "base_SPD": 95,
+  "taunt": 125,
+  "max_energy": 160,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "CRIT_DMG": 37.3,
+    "HP_percent": 18.0
+  },
+  "gold_offspring": true,
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·踏破征途的誓言",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ]
+    },
+    "skill": {
+      "name": "战技·万死无悔",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1,
+        "hp_percent_self": 50.0
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 90.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "消耗50%当前生命值，不足则降至1点"
+    },
+    "skill_enhanced": {
+      "name": "弑王成王",
+      "type": "skill",
+      "cost": {
+        "hp_percent_self": 35.0
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 110.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 66.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "消耗35%当前生命，自动施放(血仇状态回合开始)"
+    },
+    "skill_shenshen": {
+      "name": "弑神登神",
+      "type": "skill",
+      "cost": {
+        "_mydei_charge": 150
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 280.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 168.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 30.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "消耗150点充能，自动施放，期间无法积攒充能"
+    },
+    "ultimate": {
+      "name": "终结技·诛天焚骨的王座",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "heal",
+          "target": "self",
+          "paramId": "20|0"
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "回复20%生命上限+积攒20充能+嘲讽2回合"
+    },
+    "talent": {
+      "name": "天赋·以血还血",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "每损失1%生命=1充能(最多200)。充能100→进入血仇+回血+行动提前100%。血仇:生命上限+50%,防御0,回合开始自动弑王成王。充能150→额外回合+弑神登神。致命攻击不清空血仇但退出+回50%生命。"
+    },
+    "technique": {
+      "name": "秘技·折戟臣服的监牢",
+      "type": "technique",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 80.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "非进战: 全敌80%生命上限虚数伤+嘲讽1回合+充能+50(引擎handler; 用户2026-08-14确认txt未标进战)",
+      "technique_category": "support"
+    }
+  },
+  "traces": [
+    {
+      "name": "血祥罩衫",
+      "description": "战斗开始时，若万敌的生命上限高于4000点，每超过100点生命值可使自身暴击率提高1.2%，万敌受到来自敌方目标伤害造成的充能比例提高2.5%，受到治疗时的回复量提高0.75%，超出部分最多计入4000点生命值。",
+      "hook_name": "mydei_trace1_blood_armor"
+    },
+    {
+      "name": "水与泥土",
+      "description": "【血仇】状态下万敌受到致命攻击时不会退出【血仇】状态。该效果单场战斗中可以触发3次。",
+      "hook_name": "mydei_trace2_debt_retain"
+    },
+    {
+      "name": "三十僭主",
+      "description": "【血仇】状态下万敌免疫控制类负面状态。",
+      "hook_name": "mydei_trace3_control_immune"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "寒风雕琢不屈的脊梁",
+      "description": "【弑神登神】对主目标造成的伤害倍率提高30%，且变成对敌方全体造成等同于主目标伤害倍率的虚数属性伤害。",
+      "hook_name": "mydei_e1"
+    },
+    {
+      "rank": 2,
+      "name": "纷争见证尸骸的喉鸣",
+      "description": "【血仇】状态期间，万敌造成的伤害无视敌方目标15%的防御力，且接受治疗后会将40%的治疗数值转化为充能，累计转化的充能不超过40点。任意单位行动后重置可累计的充能。",
+      "hook_name": "mydei_e2"
+    },
+    {
+      "rank": 3,
+      "name": "荣耀辉映不渝的筵宴",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "mydei_e3"
+    },
+    {
+      "rank": 4,
+      "name": "号角惊觉缄默的狂狮",
+      "description": "【血仇】状态期间暴击伤害提高30%，且受到来自敌方目标的攻击后回复等同于自身10%生命上限的生命值。",
+      "hook_name": "mydei_e4"
+    },
+    {
+      "rank": 5,
+      "name": "兵戈雕刻躯身的烈焰",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "mydei_e5"
+    },
+    {
+      "rank": 6,
+      "name": "往日攀陟沉积的血山",
+      "description": "进入战斗时立刻进入【血仇】状态且【弑神登神】所需的充能值降低至100点。",
+      "hook_name": "mydei_e6"
+    }
+  ]
+}

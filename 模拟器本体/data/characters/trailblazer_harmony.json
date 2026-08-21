@@ -1,0 +1,185 @@
+{
+  "id": "trailblazer_harmony",
+  "name": "开拓者·同谐",
+  "element": "虚数",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1086,
+  "base_ATK": 446,
+  "base_DEF": 679,
+  "base_SPD": 105,
+  "taunt": 100,
+  "max_energy": 140,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "BREAK_EFFECT": 37.3,
+    "DMG_BONUS_IMAGINARY": 14.4
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "摇摆的礼仪",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK, 削韧10"
+    },
+    "skill": {
+      "name": "中场馈赠的雨",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "bounce",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 50.0,
+          "damageType": "direct",
+          "_hits": 5
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "bounce",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "弹射1+4次×50%ATK; E6额外伤害次数+2→7跳; 行迹2首跳削韧+100%"
+    },
+    "ultimate": {
+      "name": "喧嚣的舞灯巡游",
+      "type": "ultimate",
+      "cost": {
+        "energy": 140
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "paramId": "tbh_band_dance",
+          "value": 1.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "纯辅助: 我方全体【伴舞】3回合(BE+30%+超击破源), 无伤害无削韧(实机)"
+    },
+    "talent": {
+      "name": "全屏段的高空踏歌",
+      "type": "talent",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "敌方弱点被击破时恢复10能量（on_any_weakness_break hook）"
+    },
+    "technique": {
+      "name": "即刻！独奏团",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "秘技: 战斗开始全队击破特攻+30%持续2回合（resolve_techniques 未接线, 记录不实现）"
+    }
+  },
+  "traces": [
+    {
+      "name": "为我起舞",
+      "description": "场上敌方目标数量为5/4/3/2/1名时，伴舞超击破伤害提高20%/30%/40%/50%/60%",
+      "hook_name": "tbh_harmony_trace1_ult_mult"
+    },
+    {
+      "name": "随波逐流",
+      "description": "施放战技时，第一次伤害的削韧值额外提高100%",
+      "hook_name": "tbh_harmony_trace2_skill_break"
+    },
+    {
+      "name": "剧院之帽",
+      "description": "我方目标造成弱点击破后额外使敌方目标行动延后30%",
+      "hook_name": "tbh_harmony_trace3_break_delay"
+    },
+    {
+      "name": "全屏段的高空踏歌（天赋）",
+      "description": "当有敌方目标的弱点被击破时，开拓者立即恢复10点能量",
+      "hook_name": "tbh_harmony_talent_energy"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "您的最佳观众席",
+      "description": "施放首次战技后立即回复1点战技点",
+      "hook_name": "tbh_harmony_e1"
+    },
+    {
+      "rank": 2,
+      "name": "越狱的跨洋彩虹",
+      "description": "战斗开始时，开拓者的能量恢复效率提高25%，持续3回合",
+      "hook_name": "tbh_harmony_e2"
+    },
+    {
+      "rank": 3,
+      "name": "休止符的疗养院",
+      "description": "战技等级+2，最多不超过15级；天赋等级+2，最多不超过15级",
+      "hook_name": "tbh_harmony_e3"
+    },
+    {
+      "rank": 4,
+      "name": "袒护白鸽的冠冕",
+      "description": "开拓者在场时，使除自身以外的队友击破特攻提高，提高数值等同于开拓者15%的击破特攻",
+      "hook_name": "tbh_harmony_e4"
+    },
+    {
+      "rank": 4,
+      "name": "袒护白鸽的冠冕·刷新",
+      "description": "回合开始按当前有效击破特攻刷新队友加成(v5.7)",
+      "hook_name": "tbh_harmony_e4_refresh"
+    },
+    {
+      "rank": 5,
+      "name": "包庇旧节拍的诗",
+      "description": "终结技等级+2，最多不超过15级；普攻等级+1，最多不超过10级",
+      "hook_name": "tbh_harmony_e5"
+    },
+    {
+      "rank": 6,
+      "name": "明天，栖息聚光之下",
+      "description": "战技的额外伤害次数增加2次",
+      "hook_name": "tbh_harmony_e6"
+    }
+  ],
+  "_source": "fribbels + 角色技能介绍/开拓者·同谐.txt (2026-08-10 录入)"
+}

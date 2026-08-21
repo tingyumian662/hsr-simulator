@@ -1,0 +1,13 @@
+{
+  "name": "无主荒星茨冈尼亚",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT Rate by 4%. When an enemy target gets defeated, the wearer's CRIT DMG increases by 4%, stacking up to 10 times.",
+      "attributes": {
+        "CRIT_RATE": 4.0
+      },
+      "condition": ""
+    }
+  ]
+}

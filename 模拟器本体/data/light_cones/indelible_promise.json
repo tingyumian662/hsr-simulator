@@ -1,0 +1,20 @@
+{
+ "id": "indelible_promise",
+ "name": "铭记于心的约定",
+ "rarity": 4,
+ "rank": 5,
+ "path": "毁灭",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 28.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

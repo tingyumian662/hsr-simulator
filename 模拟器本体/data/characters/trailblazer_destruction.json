@@ -1,0 +1,24 @@
+{
+  "id": "trailblazer_destruction",
+  "name": "开拓者·毁灭",
+  "element": "物理",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1087,
+  "base_ATK": 466,
+  "base_DEF": 631,
+  "base_SPD": 106,
+  "taunt": 125,
+  "max_energy": 120,
+  "trace_stats": {
+    "CRIT_DMG": 13.3,
+    "CRIT_RATE": 12.0,
+    "ATK_percent": 28.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

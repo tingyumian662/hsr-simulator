@@ -1,0 +1,11 @@
+{
+  "name": "寰宇生研院",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "When entering combat, if the wearer's Max Energy is greater than or equal to 200, for every 1 excess point, increases the wearer's DMG dealt by 0.2%, up to a max increase of 32%.",
+      "attributes": {},
+      "condition": "enter_combat_energy_to_dmg"
+    }
+  ]
+}

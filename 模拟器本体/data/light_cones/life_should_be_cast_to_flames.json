@@ -1,0 +1,48 @@
+{
+  "id": "life_should_be_cast_to_flames",
+  "name": "生命当付之一炬",
+  "rarity": 5,
+  "rank": 1,
+  "path": "智识",
+  "base_HP": 952,
+  "base_ATK": 582,
+  "base_DEF": 529,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "装备者回合开始时，恢复10点能量",
+      "attributes": {},
+      "condition_code": "event_turn_start",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "若敌方目标拥有装备者添加的弱点，装备者对其造成的伤害提高60%",
+      "attributes": {},
+      "condition_code": "state:enemy_has_weakness",
+      "target": "self",
+      "values": [
+        60,
+        70,
+        80,
+        90,
+        100
+      ]
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "装备者攻击敌方目标时，使其防御力降低12/15/18/21/24%，持续2回合",
+      "attributes": {},
+      "condition_code": "event_self_attack",
+      "target": "self",
+      "values": [
+        12,
+        15,
+        18,
+        21,
+        24
+      ]
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

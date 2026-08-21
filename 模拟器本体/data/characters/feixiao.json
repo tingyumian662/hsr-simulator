@@ -1,0 +1,178 @@
+{
+  "id": "feixiao",
+  "name": "飞霄",
+  "element": "风",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 601,
+  "base_DEF": 388,
+  "base_SPD": 112,
+  "taunt": 75,
+  "max_energy": 12,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "ATK_percent": 28.0,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "闪裂",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK风; 削韧10"
+    },
+    "skill": {
+      "name": "钺贯",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "风",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "200%ATK+立即天赋FUA; 行迹3 ATK+48% 3回合(引擎handler)"
+    },
+    "ultimate": {
+      "name": "凿破大荒",
+      "type": "ultimate",
+      "cost": {
+        "_feixiao_fly": 6
+      },
+      "target": "single_enemy",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "耗6飞黄; 6×闪裂刃舞/钺贯天冲(60%ATK, 破韧+30%/未破韧+30%)+160%ATK末段; 无视弱点削韧+未破韧效率+100%; 行迹2视为FUA+FUA暴伤+36%; E1终结技伤害+10%×5层(引擎handler)"
+    },
+    "talent": {
+      "name": "雷狩",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 110.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "飞黄6激活终结技(上限12); 我方每2次攻击+1飞黄(终结技不计, 行迹1上回合未FUA计入1次); 队友攻击后立即FUA 110%ATK(每回合最多1次, 回合开始重置)+FUA时自身增伤60% 2回合(引擎handler)"
+    },
+    "technique": {
+      "name": "岚身",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 每波200%ATK必暴风伤(每多1敌+100%上限1000%)+1飞黄(_respawn_wave接线)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "天通",
+      "description": "开局3飞黄; 回合开始上回合未FUA计入1次攻击",
+      "hook_name": "feixiao_trace1"
+    },
+    {
+      "name": "解形",
+      "description": "终结技伤害视为FUA; FUA暴伤+36%",
+      "hook_name": "feixiao_trace2"
+    },
+    {
+      "name": "电举",
+      "description": "施放战技ATK+48% 3回合",
+      "hook_name": "feixiao_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击力+28%/暴击率+12%/防御力+12.5%",
+      "hook_name": "feixiao_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "镇绥天钧",
+      "description": "闪裂刃舞/钺贯天冲后终结技伤害+10%×5层(至终结技结束)",
+      "hook_name": "feixiao_e1"
+    },
+    {
+      "rank": 2,
+      "name": "礼辰祷月",
+      "description": "每FUA+1飞黄(每回合最多6次)",
+      "hook_name": "feixiao_e2"
+    },
+    {
+      "rank": 3,
+      "name": "景星出宿",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "feixiao_e3"
+    },
+    {
+      "rank": 4,
+      "name": "驱飓听冰",
+      "description": "FUA削韧+100%; 发动时自身速度+8% 2回合",
+      "hook_name": "feixiao_e4"
+    },
+    {
+      "rank": 5,
+      "name": "擢登霄汉",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "feixiao_e5"
+    },
+    {
+      "rank": 6,
+      "name": "惟首正丘",
+      "description": "终结技伤害全抗穿透20%; FUA视为终结技伤害+倍率+140%",
+      "hook_name": "feixiao_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "energy_type": "special"
+}

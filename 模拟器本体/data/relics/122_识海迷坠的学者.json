@@ -1,0 +1,22 @@
+{
+  "name": "识海迷坠的学者",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases CRIT Rate by 8%.",
+      "attributes": {
+        "CRIT_RATE": 8.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases DMG dealt by Skill and Ultimate by 20%. After using Ultimate, additionally increases the DMG dealt by the next Skill by 25%.",
+      "attributes": {
+        "DMG_BONUS_SKILL": 20.0,
+        "DMG_BONUS_ULTIMATE": 20.0
+      },
+      "condition": "on_ult_next_skill_dmg"
+    }
+  ]
+}

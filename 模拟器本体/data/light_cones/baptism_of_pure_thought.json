@@ -1,0 +1,53 @@
+{
+ "name": "纯粹思维的洗礼",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 952,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 20.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "敌方目标每承受1个负面效果，对其造成的暴击伤害额外提高8%，最多叠加3层（最高24%）",
+   "attributes": {
+    "CRIT_DMG": 24.0
+   },
+   "condition_code": "count:target_debuffs:3",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "施放终结技攻击敌方目标时，获得【论辩】，持续2回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_ult:lunbian:1:self:2:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【论辩】时，造成的伤害提高36%",
+   "attributes": {
+    "DMG_BONUS_ALL": 36.0
+   },
+   "condition_code": "stack:lunbian:1",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【论辩】时，追加攻击无视目标24%防御力",
+   "attributes": {
+    "DEF_PEN_ATK_FOLLOW_UP": 24.0
+   },
+   "condition_code": "event_followup",
+   "target": "self"
+  }
+ ],
+ "id": "baptism_of_pure_thought"
+}

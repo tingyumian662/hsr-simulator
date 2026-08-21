@@ -1,0 +1,217 @@
+{
+  "id": "qianye",
+  "name": "千冶•刃",
+  "element": "火",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 543,
+  "base_DEF": 485,
+  "base_SPD": 107,
+  "taunt": 100,
+  "max_energy": 160,
+  "trace_stats": {
+    "DMG_BONUS_FIRE": 21.2,
+    "CRIT_RATE": 12.0,
+    "HP_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "残锋，掠尽",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "50%生命上限火伤+嘲讽1回合; 无量忿怒期强化为淬锋断魄100%HP(引擎handler)"
+    },
+    "basic_attack_enhanced": {
+      "name": "淬锋，断魄",
+      "type": "basic_attack_enhanced",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "无量忿怒强化普攻: 100%生命上限火伤+嘲讽1回合"
+    },
+    "skill": {
+      "name": "刃下，归葬",
+      "type": "skill",
+      "cost": {
+        "skill_points": 0
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 72.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "all_enemies"
+        },
+        {
+          "stat": "HP",
+          "scale": 24.0,
+          "damageType": "direct",
+          "element": "火",
+          "_target": "bounce",
+          "_hits": 4
+        }
+      ],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "耗10%生命上限; 72%HP全体+4×24%HP弹射; 不耗SP; 生命≤1或非无量忿怒不可用; 天赋充能9→额外战技(视为FUA)(引擎handler)"
+    },
+    "ultimate": {
+      "name": "骸骨当炉，血肉即薪",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "all_enemies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "全敌【煞火缠身】DEF-30%+受伤+50% 2回合; 耗20%生命上限开结界【无量忿怒】(CR+20%/CD+60%/普攻强化/解放战技/新终结技/致命不死回50%HP/70速倒计时)(引擎handler)"
+    },
+    "skill_enhanced": {
+      "name": "千冶铸一，万劫烬灭",
+      "type": "ultimate",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 300.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "无量忿怒新终结技; E6倍率×150%(统一技能/伤害/击杀管线)"
+    },
+    "talent": {
+      "name": "因果尽偿",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "结界期我方每次攻击→目标煞火缠身+1充能; 9点(上限, E2:7)→回25能+额外战技(视为FUA)(引擎handler)"
+    },
+    "technique": {
+      "name": "十方无赦",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 全敌嘲讽1回合+自身受伤-90% 2回合(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "百炼骨",
+      "description": "溢出能量最多80(终结技后恢复); 开局/结界解除能量<75%补至75%; 满能解除负面",
+      "hook_name": "qianye_trace1"
+    },
+    {
+      "name": "千锻魂",
+      "description": "结界期受击概率+200%+受伤-50%+治疗+50%+受击目标煞火缠身+1充能",
+      "hook_name": "qianye_trace2"
+    },
+    {
+      "name": "万淬心",
+      "description": "结界期全队伤害+50%; 有虚无队友→终结技+75% 否则自身+75%",
+      "hook_name": "qianye_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "火伤+21.2%/暴击率+12%/生命上限+10%",
+      "hook_name": "qianye_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "我殁之前，我仍未成形",
+      "description": "结界期全敌全抗-20%; 额外战技后无量忿怒倒计时延后15%",
+      "hook_name": "qianye_e1"
+    },
+    {
+      "rank": 2,
+      "name": "心若死灰，而炉火未熄",
+      "description": "我方终结技视为FUA+全队FUA伤害+75%; 充能上限降至7",
+      "hook_name": "qianye_e2"
+    },
+    {
+      "rank": 3,
+      "name": "身渡彼岸，现忿怒本相",
+      "description": "终结技+2; 天赋+2",
+      "hook_name": "qianye_e3"
+    },
+    {
+      "rank": 4,
+      "name": "锻打遗恨，后剑骨自成",
+      "description": "万淬心使我方目标伤害额外+50%",
+      "hook_name": "qianye_e4"
+    },
+    {
+      "rank": 5,
+      "name": "自断苦己，知死所由生",
+      "description": "战技+2; 普攻+1",
+      "hook_name": "qianye_e5"
+    },
+    {
+      "rank": 6,
+      "name": "神若当殒，自誓弑寿瘟",
+      "description": "结界期受伤害/耗血+1充能(任意目标回合结束后可再触发); 千冶铸一万劫烬灭倍率×150%",
+      "hook_name": "qianye_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "用户txt 2026-08-18 (base stats)"
+}

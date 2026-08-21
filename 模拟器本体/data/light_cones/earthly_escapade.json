@@ -1,0 +1,43 @@
+{
+  "name": "游戏尘寰",
+  "rarity": 5,
+  "rank": 1,
+  "path": "同谐",
+  "base_HP": 1164,
+  "base_ATK": 529,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "CRIT_DMG": 32.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "战斗开始时，获得【假面】，持续3回合",
+      "attributes": {},
+      "condition_code": "stack_gain:on_battle_start:jiamian:1:all_allies:3:",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "持有【假面】时，装备者的队友暴击率提高10%，暴击伤害提高28%（全队增益，不含自身）",
+      "attributes": {
+        "CRIT_RATE": 10.0,
+        "CRIT_DMG": 28.0
+      },
+      "condition_code": "stack:jiamian:1",
+      "target": "all_allies_except_self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "每恢复1个战技点（含溢出），获得1层【彩焰】。达到4层后移除全部【彩焰】并获得【假面】，持续4回合",
+      "attributes": {},
+      "condition_code": "event_sp_gain",
+      "target": "self"
+    }
+  ],
+  "id": "earthly_escapade"
+}

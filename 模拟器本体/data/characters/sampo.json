@@ -1,0 +1,24 @@
+{
+  "id": "sampo",
+  "name": "桑博",
+  "element": "风",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1023,
+  "base_ATK": 617,
+  "base_DEF": 397,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 120,
+  "trace_stats": {
+    "EFFECT_HIT_RATE": 18.0,
+    "EFFECT_RES": 10.0,
+    "ATK_percent": 28.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

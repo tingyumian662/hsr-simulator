@@ -1,0 +1,20 @@
+{
+ "id": "those_many_springs",
+ "name": "那无数个春天",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 953,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_HIT_RATE": 60.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

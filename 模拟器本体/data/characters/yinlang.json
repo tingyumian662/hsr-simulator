@@ -1,0 +1,225 @@
+{
+  "id": "yinlang",
+  "name": "银狼Lv.999",
+  "element": "虚数",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 388,
+  "base_DEF": 654,
+  "base_SPD": 110,
+  "taunt": 100,
+  "max_energy": 0,
+  "_energy_note": "银狼无常规能量维度，仅通过隐藏分≥60解锁终结技。",
+  "cast_number": 999,
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "ELATION_LEVEL": 18.0,
+    "SPD_percent": 9.0
+  },
+  "_trace_stats_note": "SPD_percent=9.0实际为速度+9(固定值)，非百分比加成。引擎需区分处理。欢愉度18%含基础+行迹。",
+  "elation_stats": {},
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·拳头硬了!",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ]
+    },
+    "skill": {
+      "name": "战技·Shoot属性大爆发",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0,
+          "_note": "获得5笑点"
+        }
+      ],
+      "_note": "无敌玩家状态下无法释放战技"
+    },
+    "ultimate": {
+      "name": "终结技·无敌玩家，启动!",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "action_advance",
+          "target": "self",
+          "value": 100.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "invincible_player"
+        }
+      ],
+      "_note": "进入无敌玩家状态+展开结界。结界内友方消耗战技点概率触发头号补给盲盒。隐藏分≥60才可释放。"
+    },
+    "talent": {
+      "name": "天赋·有我在，把把都是顺风局",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "hidden_score": {
+          "description": "隐藏分。获得笑点时等量获得。≥60分解锁终结技，上限可溢出240点。退出无敌玩家时清零。",
+          "buff_cr": "每点隐藏分+0.40%暴击率",
+          "buff_cd": "暴击率达100%后，每点隐藏分+0.80%暴击伤害",
+          "good_show_bonus": "持有好活当赏时，普攻/战技追加40%虚数欢愉伤害"
+        },
+        "invincible_player": {
+          "description": "无敌玩家状态。免疫控制，无法释放终结技和战技。3次强化普攻后退出。",
+          "enhanced_basic": "强化普攻: 奖励关·狼尊时刻(弹射,240%ATK分100段,触发盲盒3次)",
+          "enhanced_elation": "欢愉技切换为崩坏级伤害演示",
+          "on_exit": "退出时隐藏分清零"
+        }
+      }
+    },
+    "technique": {
+      "name": "秘技·朋友，这才是T0级秘技",
+      "type": "technique",
+      "technique_category": "battle_start",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_note": "召唤怪怪怪味豆辅助探索。进战后每波次触发1次盲盒(计入99点好活当赏)。",
+      "_mechanism": "进战(用户2026-08-14确认: SP银狼进战, 一般用她开怪); 开战及每个新波次固定触发1次99好活盲盒"
+    },
+    "elation_skill": {
+      "name": "欢愉技·殿堂级操作回放",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 0.0,
+          "damageType": "elation",
+          "element": "虚数",
+          "_note": "非无敌玩家: 无伤害, 仅+15隐藏分"
+        }
+      ],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 15.0,
+          "paramId": "hidden_score_gain"
+        }
+      ],
+      "_invincible_multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 90.0,
+          "damageType": "elation",
+          "element": "虚数",
+          "_target": "bounce",
+          "_hits": 6,
+          "_note": "无敌玩家: 6段弹射, 每段90%虚数欢愉伤害"
+        }
+      ],
+      "_note": "非无敌玩家: +15隐藏分。无敌玩家: 崩坏级伤害演示(6×90%弹射+重置盲盒概率)。参演编号999。"
+    }
+  },
+  "_pending": "",
+  "traces": [
+    {
+      "name": "速域扩张",
+      "description": "速度≥160→欢愉度+50%，超额每1点+2%，上限100点",
+      "hook_name": "yinlang_speed_to_elation"
+    },
+    {
+      "name": "笑点转化",
+      "description": "欢愉技笑点≥20→+20隐藏分; ≥40→再+20",
+      "hook_name": "yinlang_laugh_to_hidden"
+    },
+    {
+      "name": "隐藏分补给",
+      "description": "进无敌玩家→+20隐藏分",
+      "hook_name": "yinlang_invincible_hidden"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "以太编辑：星魂+1",
+      "description": "结界中的敌方目标受到的伤害提高20%。退出【无敌玩家】状态时不会清空【隐藏分】，改为保留20%的【隐藏分】。",
+      "hook_name": "yinlang_e1"
+    },
+    {
+      "rank": 2,
+      "name": "是机制，不是BUG",
+      "description": "进入【无敌玩家】状态后，使自身所有增益效果延长1回合。本次【无敌玩家】状态下每使【隐藏分】提高120点（含初始【隐藏分】），银狼Lv.999获得1个额外回合并恢复1次强化普攻的可施放次数。",
+      "hook_name": "yinlang_e2"
+    },
+    {
+      "rank": 3,
+      "name": "只有15级？谁填的",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级；欢愉技等级+1，最多不超过15级。",
+      "hook_name": "yinlang_e3"
+    },
+    {
+      "rank": 4,
+      "name": "我来，我见，我..秒了",
+      "description": "【崩坏级伤害演示】造成的欢愉伤害额外计入5倍的笑点。",
+      "hook_name": "yinlang_e4"
+    },
+    {
+      "rank": 5,
+      "name": "平A即是大招",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级；欢愉技等级+1，最多不超过15级。",
+      "hook_name": "yinlang_e5"
+    },
+    {
+      "rank": 6,
+      "name": "我独自满级！",
+      "description": "强化普攻期间造成的欢愉伤害增笑50%。敌方目标进入战斗时，会被植入【禁限弱点】：拥有全属性弱点并且全属性基础抗性降低至0（若基础抗性为0则改为对应属性抗性降低20%）。",
+      "hook_name": "yinlang_e6"
+    }
+  ],
+  "_eidolon_note": "当前0魂",
+  "energy_type": "special"
+}

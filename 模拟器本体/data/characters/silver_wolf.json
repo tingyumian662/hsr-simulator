@@ -1,0 +1,223 @@
+{
+  "id": "silver_wolf",
+  "name": "银狼",
+  "element": "量子",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 640,
+  "base_DEF": 460,
+  "base_SPD": 107,
+  "taunt": 75,
+  "max_energy": 110,
+  "trace_stats": {
+    "EFFECT_HIT_RATE": 18.0,
+    "DMG_BONUS_QUANTUM": 8.0,
+    "ATK_percent": 28.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "系统警告",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK量子; 削韧10; 回能20"
+    },
+    "skill": {
+      "name": "是否允许更改？",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 196.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "single_enemy",
+          "paramId": "silver_wolf_weakness",
+          "value": 1.0
+        },
+        {
+          "type": "debuff",
+          "target": "single_enemy",
+          "paramId": "silver_wolf_all_res_down",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "单攻196%ATK量子; 添加队友属性弱点(抗性-20% 3回合, 原属性弱点不降; 仅保留最新, 引擎handler silver_wolf_weakness); 全抗-13% 2回合(100%基础概率)"
+    },
+    "ultimate": {
+      "name": "|账号已封禁|",
+      "type": "ultimate",
+      "cost": {
+        "energy": 110
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 380.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "paramId": "silver_wolf_def_down",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "全体380%ATK量子; DEF-45% 3回合(满级120%基础概率必中)"
+    },
+    "talent": {
+      "name": "等待程序响应…",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "攻击后100%基础概率植入1随机缺陷(ATK-10%/DEF-12%/SPD-6%, 3回合+行迹1=4回合, 引擎handler); 目标被消灭时弱点转移(优先精英)"
+    },
+    "technique": {
+      "name": "秘技·强制结束进程",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 80.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "technique_category": "battle_start",
+      "_mechanism": "进战(银狼.txt 标\"进战\"): 全敌80%ATK量子伤+无视弱点削韧20, 击破触发量子击破(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "生成",
+      "description": "缺陷持续时间+1回合; 敌弱点被击破时100%概率植入1随机缺陷",
+      "hook_name": "silver_wolf_trace1_gen"
+    },
+    {
+      "name": "注入",
+      "description": "战斗开始回20能量; 回合开始回5能量",
+      "hook_name": "silver_wolf_trace2_inject"
+    },
+    {
+      "name": "旁注",
+      "description": "每10%效果命中→+10%攻击力, 最高+50%",
+      "hook_name": "silver_wolf_trace3_annotate"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击力+28%/效果命中+18%/量子增伤+8%",
+      "hook_name": "silver_wolf_base_trace"
+    },
+    {
+      "name": "注入·回合回能",
+      "description": "银狼回合开始时恢复5点能量",
+      "hook_name": "silver_wolf_trace2_turn"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "社会工程",
+      "description": "终结技后每负面回7能量(每次终结技最多5次)",
+      "hook_name": "silver_wolf_e1"
+    },
+    {
+      "rank": 2,
+      "name": "僵尸网络",
+      "description": "敌进战受伤+20%; 我方攻击时100%概率植入随机缺陷",
+      "hook_name": "silver_wolf_e2"
+    },
+    {
+      "rank": 3,
+      "name": "攻击载荷",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "silver_wolf_e3"
+    },
+    {
+      "rank": 4,
+      "name": "反弹端口",
+      "description": "终结技后每负面附加20%ATK量子伤(每目标最多5次)",
+      "hook_name": "silver_wolf_e4"
+    },
+    {
+      "rank": 5,
+      "name": "暴力破解",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "silver_wolf_e5"
+    },
+    {
+      "rank": 6,
+      "name": "重叠网络",
+      "description": "每负面伤害+20%, 最多+100%",
+      "hook_name": "silver_wolf_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "角色技能介绍/银狼.txt (2026-08-14 录入)"
+}

@@ -1,0 +1,29 @@
+{
+ "name": "到不了的彼岸",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 1270,
+ "base_ATK": 582,
+ "base_DEF": 330,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 18.0,
+    "HP_percent": 18.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "受到攻击或消耗自身生命值后，造成的伤害提高24%，施放攻击后解除",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "event_hit_taken",
+   "target": "self"
+  }
+ ],
+ "id": "the_unreachable_side"
+}

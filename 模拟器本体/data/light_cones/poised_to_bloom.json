@@ -1,0 +1,20 @@
+{
+ "id": "poised_to_bloom",
+ "name": "芳华待灼",
+ "rarity": 4,
+ "rank": 5,
+ "path": "同谐",
+ "base_HP": 953,
+ "base_ATK": 423,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

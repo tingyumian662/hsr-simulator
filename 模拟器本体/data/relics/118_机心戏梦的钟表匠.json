@@ -1,0 +1,19 @@
+{
+  "name": "机心戏梦的钟表匠",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Break Effect by 16%.",
+      "attributes": {
+        "BREAK_EFFECT": 16.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When the wearer uses their Ultimate on an ally, all allies' Break Effect increases by 30% for 2 turns. This effect cannot be stacked.",
+      "attributes": {},
+      "condition": "on_ult_team_be_buff"
+    }
+  ]
+}

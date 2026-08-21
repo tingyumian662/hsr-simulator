@@ -1,0 +1,20 @@
+{
+ "id": "before_the_tutorial_mission_starts",
+ "name": "新手任务开始前",
+ "rarity": 4,
+ "rank": 5,
+ "path": "虚无",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_HIT_RATE": 20.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

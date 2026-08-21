@@ -1,0 +1,24 @@
+{
+  "id": "march_7th_hunt",
+  "name": "三月七·巡猎",
+  "element": "虚数",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 564,
+  "base_DEF": 396,
+  "base_SPD": 107,
+  "taunt": 75,
+  "max_energy": 110,
+  "trace_stats": {
+    "CRIT_RATE": 12.0,
+    "ATK_percent": 10.0,
+    "SPD_percent": 5.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充",
+  "_note": "虚数巡猎四星角色"
+}

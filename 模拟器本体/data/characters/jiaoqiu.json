@@ -1,0 +1,24 @@
+{
+  "id": "jiaoqiu",
+  "name": "椒丘",
+  "element": "火",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 602,
+  "base_DEF": 509,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 100,
+  "trace_stats": {
+    "DMG_BONUS_FIRE": 14.4,
+    "SPD_percent": 5.0,
+    "EFFECT_HIT_RATE": 28.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

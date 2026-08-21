@@ -1,0 +1,20 @@
+{
+ "id": "the_birth_of_the_self",
+ "name": "「我」的诞生",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "trigger_effect",
+   "condition": "若该敌方目标当前生命值百分比小于等于50% ，则追加攻击造成的伤害额外提高{{DmgBuff}}%。",
+   "attributes": {},
+   "condition_code": "state_hp_below_50_target",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

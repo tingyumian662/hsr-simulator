@@ -1,0 +1,21 @@
+{
+ "name": "繁星璀璨的天才",
+ "effects": [
+  {
+   "pieces_required": 2,
+   "description": "量子属性伤害提高10%",
+   "attributes": {
+    "DMG_BONUS_QUANTUM": 10.0
+   },
+   "condition": ""
+  },
+  {
+   "pieces_required": 4,
+   "description": "攻击时无视目标10%防御。若目标有量子弱点，额外无视10%防御。",
+   "attributes": {
+    "DEF_PEN": 10.0
+   },
+   "condition": "defpen_vs_quantum"
+  }
+ ]
+}

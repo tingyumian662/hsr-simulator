@@ -1,0 +1,19 @@
+{
+  "name": "星如我见的领航员",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases ATK by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When the wearer enters combat or uses Skill, the DMG dealt by their Skill and Ultimate increases by 18%, stacking up to 3 times. At the start of the wearer's turn or after using Ultimate, removes 1 stack of this effect.",
+      "attributes": {},
+      "condition": "on_skill_ult_stack_dmg"
+    }
+  ]
+}

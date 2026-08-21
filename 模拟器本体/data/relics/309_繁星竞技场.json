@@ -1,0 +1,13 @@
+{
+  "name": "繁星竞技场",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT Rate by 8%. When the wearer's current CRIT Rate reaches 70% or higher, DMG dealt by Basic ATK and Skill increases by 20%.",
+      "attributes": {
+        "CRIT_RATE": 8.0
+      },
+      "condition": ""
+    }
+  ]
+}

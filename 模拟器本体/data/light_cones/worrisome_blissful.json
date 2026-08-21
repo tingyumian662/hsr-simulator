@@ -1,0 +1,35 @@
+{
+  "name": "烦恼着，幸福着",
+  "rarity": 5,
+  "rank": 1,
+  "path": "巡猎",
+  "base_HP": 1058,
+  "base_ATK": 582,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "CRIT_RATE": 18.0
+      }
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "追加攻击造成的伤害提高30%",
+      "attributes": {
+        "DMG_BONUS_ATK_FOLLOW_UP": 30.0
+      },
+      "condition_code": "typed_permanent",
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "施放追加攻击后，使目标陷入【温驯】状态，最多叠加2层",
+      "attributes": {},
+      "condition_code": "event_followup",
+      "target": "self"
+    }
+  ],
+  "id": "worrisome_blissful"
+}

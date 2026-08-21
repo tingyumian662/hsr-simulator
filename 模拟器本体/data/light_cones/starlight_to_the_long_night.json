@@ -1,0 +1,52 @@
+{
+  "name": "致长夜的星光",
+  "rarity": 5,
+  "rank": 1,
+  "path": "记忆",
+  "base_HP": 1164,
+  "base_ATK": 529,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "HP_percent": 30.0
+      },
+      "condition_code": "typed_permanent"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "忆灵施放技能时，装备者获得【夜色】",
+      "attributes": {},
+      "condition_code": "stack_gain:on_memsprite_skill:yese:1:self:",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "持有【夜色】时，我方全体忆灵造成的伤害无视目标20%防御力（仅忆灵伤害生效）",
+      "attributes": {
+        "DEF_PEN_MEMSPRITE": 20.0
+      },
+      "condition_code": "stack:yese:1",
+      "target": "all_allies"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "持有【夜色】时，装备者及装备者忆灵造成的伤害提高30%",
+      "attributes": {
+        "DMG_BONUS_ALL": 30.0
+      },
+      "condition_code": "stack:yese:1",
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "忆灵消失时，为装备者恢复8点能量。同类效果无法叠加",
+      "attributes": {},
+      "condition_code": "event_memsprite_despawn",
+      "target": "self"
+    }
+  ],
+  "id": "starlight_to_the_long_night"
+}

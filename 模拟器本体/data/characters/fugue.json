@@ -1,0 +1,248 @@
+{
+  "id": "fugue",
+  "name": "忘归人",
+  "element": "火",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1125,
+  "base_ATK": 582,
+  "base_DEF": 557,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "SPD_percent": 14.0,
+    "BREAK_EFFECT": 24.0,
+    "HP_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "焕焕辰尾",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK, 削韧10"
+    },
+    "basic_attack_enhanced": {
+      "name": "冉冉方炽",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 50.0,
+          "damageType": "direct",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "blast",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "炽灼状态下普攻强化: 扩散, 主目标100%ATK+相邻50%ATK"
+    },
+    "skill": {
+      "name": "有道祥见，衔书摇风",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "paramId": "fugue_foxian",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "paramId": "fugue_chizhuo",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "狐祈(最新目标生效): 击破特攻+30%+无视弱点削韧50%; 炽灼3回合(强化普攻); 狐祈者攻击→100%基础概率敌DEF-18% 2回合; E6炽灼时狐祈全队"
+    },
+    "ultimate": {
+      "name": "阳极照世，离火满缀",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "全敌200%ATK; 无视弱点削减全体韧性(引擎内联 _no_weakness_pen); 击破时触发火属性弱点击破"
+    },
+    "talent": {
+      "name": "盈后福，德气流布",
+      "type": "talent",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "云火昭(敌额外40%韧性上限, 二次击破, 引擎通用机制); 我方攻击击破状态敌人→削韧转化为超击破(超击破源光环, 满级100%)"
+    },
+    "technique": {
+      "name": "炤炤彻旷",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 行动提前40%+全敌DEF-18% 2回合(引擎handler; 用户2026-08-14确认txt未标进战)"
+    }
+  },
+  "traces": [
+    {
+      "name": "青丘重光",
+      "description": "我方目标造成弱点击破后额外使敌方目标行动延后15%",
+      "hook_name": "fugue_trace1_break_delay"
+    },
+    {
+      "name": "玑星太素",
+      "description": "敌方弱点被击破时, 队友击破特攻+6%(忘归人BE≥220%时+18%), 2回合, 最多2层",
+      "hook_name": "fugue_trace2_team_be"
+    },
+    {
+      "name": "涂山玄设",
+      "description": "自身击破特攻+30%",
+      "hook_name": "fugue_trace3_self_be"
+    },
+    {
+      "name": "涂山玄设·首次战技",
+      "description": "本场战斗中施放首次战技后立即恢复1点战技点",
+      "hook_name": "fugue_trace3_first_sp"
+    },
+    {
+      "name": "盈后福，德气流布（天赋·云火昭）",
+      "description": "忘归人在场时敌方被额外附上40%韧性上限的云火昭, 削至0再次击破",
+      "hook_name": "fugue_talent_cloudfire"
+    },
+    {
+      "name": "盈后福，德气流布（天赋·波次重挂）",
+      "description": "新波次敌人重挂云火昭",
+      "hook_name": "fugue_talent_cloudfire_wave"
+    },
+    {
+      "name": "盈后福，德气流布（天赋·失效）",
+      "description": "忘归人阵亡云火昭失效",
+      "hook_name": "fugue_talent_cloudfire_death"
+    },
+    {
+      "name": "盈后福，德气流布（天赋·狐祈减防）",
+      "description": "狐祈者攻击时100%基础概率使目标DEF-18% 2回合",
+      "hook_name": "fugue_talent_def_down"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "狐尘已去，云驾有期",
+      "description": "持有狐祈的我方目标，弱点击破效率提高50%",
+      "hook_name": "fugue_e1"
+    },
+    {
+      "rank": 2,
+      "name": "瑞应之來，必昭有德",
+      "description": "当有敌方目标的弱点被击破时，为忘归人恢复3点能量",
+      "hook_name": "fugue_e2"
+    },
+    {
+      "rank": 2,
+      "name": "瑞应之來，必昭有德·终技",
+      "description": "施放终结技后，我方全体行动提前24%",
+      "hook_name": "fugue_e2_ult"
+    },
+    {
+      "rank": 3,
+      "name": "正色鸿焘，神思化伐",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级",
+      "hook_name": "fugue_e3"
+    },
+    {
+      "rank": 4,
+      "name": "自我离形，而今几姓",
+      "description": "持有狐祈的我方目标，造成的击破伤害提高20%",
+      "hook_name": "fugue_e4"
+    },
+    {
+      "rank": 5,
+      "name": "五色云生，穹施后承",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级",
+      "hook_name": "fugue_e5"
+    },
+    {
+      "rank": 6,
+      "name": "肇素未来，晦明兴灭",
+      "description": "忘归人的弱点击破效率提高50%; 炽灼状态下狐祈效果对我方全体生效",
+      "hook_name": "fugue_e6"
+    }
+  ],
+  "_source": "fribbels + 角色技能介绍/忘归人.txt (2026-08-10 录入)"
+}

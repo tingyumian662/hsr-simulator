@@ -1,0 +1,20 @@
+{
+ "id": "eyes_of_the_prey",
+ "name": "猎物的视线",
+ "rarity": 4,
+ "rank": 5,
+ "path": "虚无",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_HIT_RATE": 20.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

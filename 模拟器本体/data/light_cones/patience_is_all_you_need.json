@@ -1,0 +1,20 @@
+{
+ "id": "patience_is_all_you_need",
+ "name": "只需等待",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,37 @@
+{
+ "id": "but_the_battle_isnt_over",
+ "name": "但战斗还未结束",
+ "rarity": 5,
+ "rank": 1,
+ "path": "同谐",
+ "base_HP": 1164,
+ "base_ATK": 529,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ENERGY_REGEN": 10.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "对我方目标施放终结技时，恢复1个战技点。每2次终结技可触发1次",
+   "attributes": {},
+   "paramId": "lc_but_the_battle_isnt_over_sp",
+   "condition_code": "event_ult_after",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放战技后，下一个行动的我方其他目标造成的伤害提高30%，持续1回合",
+   "attributes": {
+    "DMG_BONUS_ALL": 30.0
+   },
+   "paramId": "lc_but_the_battle_isnt_over_dmg",
+   "condition_code": "event_skill_after",
+   "target": "self"
+  }
+ ]
+}

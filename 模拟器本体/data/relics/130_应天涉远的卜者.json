@@ -1,0 +1,19 @@
+{
+  "name": "应天涉远的卜者",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases SPD by 6%. Before entering combat, if the wearer's SPD is greater than or equal to 120/160, increases the wearer's CRIT Rate by 10%/18%.",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": "spd_cr_threshold_and_first_elation"
+    },
+    {
+      "pieces_required": 4,
+      "description": "When the wearer uses Elation Skill for the first time in each battle, increases all allies' Elation by 10%. This effect cannot stack.",
+      "attributes": {},
+      "condition": "first_elation_skill_buff"
+    }
+  ]
+}

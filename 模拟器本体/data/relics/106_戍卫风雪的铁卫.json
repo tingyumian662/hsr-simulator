@@ -1,0 +1,19 @@
+{
+  "name": "戍卫风雪的铁卫",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Reduces DMG taken by 8%.",
+      "attributes": {
+        "DMG_REDUCTION": 8.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "At the beginning of the turn, if the wearer's HP percentage is equal to or less than 50%, restores HP equal to 8% of their Max HP and regenerates 5 Energy.",
+      "attributes": {},
+      "condition": "hp_threshold_heal"
+    }
+  ]
+}

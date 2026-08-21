@@ -1,0 +1,24 @@
+{
+  "id": "aventurine_waveflair",
+  "name": "砂金•戏浪",
+  "element": "量子",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1242,
+  "base_ATK": 427,
+  "base_DEF": 752,
+  "base_SPD": 103,
+  "taunt": 100,
+  "max_energy": 140,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "SPD_percent": 9.0,
+    "CRIT_RATE": 18.7
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

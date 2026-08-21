@@ -1,0 +1,22 @@
+{
+ "id": "we_are_wildfire",
+ "name": "我们是地火",
+ "rarity": 4,
+ "rank": 5,
+ "path": "存护",
+ "base_HP": 741,
+ "base_ATK": 476,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "战斗开始时，使我方全体受到的伤害降低{{DmgReduction}}%，持续5回合。同时立即为我方全体回复等同于各自已损失生命值50.0%%的生命值。",
+   "attributes": {
+    "HEAL_BONUS": 50.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "all_allies"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

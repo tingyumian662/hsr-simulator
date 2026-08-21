@@ -1,0 +1,239 @@
+{
+  "id": "trailblazer_elation",
+  "name": "开拓者·欢愉",
+  "element": "雷",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1086,
+  "base_ATK": 465,
+  "base_DEF": 630,
+  "base_SPD": 106,
+  "taunt": 100,
+  "max_energy": 160,
+  "cast_number": 120,
+  "trace_stats": {
+    "CRIT_RATE": 12.0,
+    "CRIT_DMG": 13.3,
+    "ATK_percent": 28.0
+  },
+  "_trace_stats_note": "基础欢愉度=0，行迹不提供欢愉度。SPD无额外加成。",
+  "elation_stats": {},
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·此即应援",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ]
+    },
+    "skill": {
+      "name": "战技·风暴甚是喧嚣",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 60.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": {
+        "good_show_gain": "获得20点好活当赏",
+        "talent_bonus": "持有好活当赏时，战技额外造成30%雷属性欢愉伤害(用全队最高好活当赏层数计算)"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·放心飞，开拓永相随!",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "value": 50.0,
+          "paramId": "cd_buff"
+        },
+        {
+          "type": "cleanse",
+          "target": "single_ally",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 5.0,
+          "paramId": "laugh_gain_5"
+        }
+      ],
+      "_mechanism": {
+        "cd_buff": "指定单体暴击伤害+50%, 3回合",
+        "cleanse": "解除控制类负面状态",
+        "elation_ally": "目标拥有欢愉技→+10好活当赏 + 立即释放1次欢愉技(固定计入20笑点)",
+        "non_elation_ally": "目标无欢愉技→行动提前50%"
+      }
+    },
+    "talent": {
+      "name": "天赋·英雄一笑，生死难料",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "attack_reward": "施放攻击后: 固定回10能量 + 获得3笑点",
+        "good_show_boost": "持有好活当赏时: 战技额外30%雷欢愉伤害(使用全队最高好活当赏层数)"
+      }
+    },
+    "technique": {
+      "name": "秘技·燃起来了!",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 30.0,
+          "paramId": "elation_buff_30"
+        }
+      ],
+      "_note": "默认使用开怀大笑(欢愉度+30%)。进战后全队欢愉度+30%，持续3回合。",
+      "_mechanism": "非进战: 随机20%/30%欢愉度→开战我方全体3回合 (v6.10.3 引擎init_battle)"
+    },
+    "elation_skill": {
+      "name": "欢愉技·我说欢愉，你耳朵聋吗?",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 20.0,
+          "damageType": "elation",
+          "element": "雷",
+          "_target": "bounce",
+          "_hits": 8
+        },
+        {
+          "stat": "NONE",
+          "scale": 60.0,
+          "damageType": "elation",
+          "element": "雷",
+          "_target": "all_enemies",
+          "_split": true
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "_note": "参演编号120。8段弹射20%+全体均分60%。"
+    }
+  },
+  "traces": [
+    {
+      "name": "力量转化",
+      "description": "ATK>1000时，每超200→欢愉度+10%，最多+60%(需ATK≥2200)",
+      "hook_name": "trailblazer_atk_to_elation"
+    },
+    {
+      "name": "暴击精通",
+      "description": "自身暴击率+15%。施放终结技后回1战技点",
+      "hook_name": "trailblazer_cr_and_sp"
+    },
+    {
+      "name": "喝彩共鸣",
+      "description": "我方欢愉技后，开拓者下次战技额外+2好活当赏",
+      "hook_name": "trailblazer_goodshow_boost"
+    }
+  ],
+  "_special_trace_details": {
+    "trace1": {
+      "atk_threshold": 1000,
+      "per_200_atk_pct": 10.0,
+      "max_pct": 60.0
+    },
+    "trace2": {
+      "cr_bonus": 15.0,
+      "sp_recovery": "施放终结技后回1战技点"
+    },
+    "trace3": {
+      "trigger": "我方欢愉技后",
+      "effect": "下次战技+2好活当赏"
+    }
+  },
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "相信光的时间",
+      "description": "战技后下次终结技好活当赏+2，最多叠3层",
+      "hook_name": "trailblazer_elation_e1"
+    },
+    {
+      "rank": 2,
+      "name": "名场面酝酿中……",
+      "description": "终结技额外使指定单体欢愉度+12%，持续2回合",
+      "hook_name": "trailblazer_elation_e2"
+    },
+    {
+      "rank": 3,
+      "name": "来吧，镜头的焦点",
+      "description": "战技+2/天赋+2/欢愉技+1",
+      "hook_name": "trailblazer_elation_e3"
+    },
+    {
+      "rank": 4,
+      "name": "拯救世界，无需理由",
+      "description": "欢愉技使敌方受到伤害+10%，持续2回合",
+      "hook_name": "trailblazer_elation_e4"
+    },
+    {
+      "rank": 5,
+      "name": "爱与勇气，永不过时",
+      "description": "终结技+2/普攻+1/欢愉技+1",
+      "hook_name": "trailblazer_elation_e5"
+    },
+    {
+      "rank": 6,
+      "name": "银河传奇，登场！",
+      "description": "施放欢愉技时，自身暴击伤害+100%，持续3回合",
+      "hook_name": "trailblazer_elation_e6"
+    }
+  ],
+  "_pending": ""
+}

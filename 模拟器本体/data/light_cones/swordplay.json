@@ -1,0 +1,27 @@
+{
+  "id": "swordplay",
+  "name": "论剑",
+  "rarity": 4,
+  "rank": 1,
+  "path": "巡猎",
+  "base_HP": 952,
+  "base_ATK": 476,
+  "base_DEF": 330,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "当装备者多次击中同一敌方目标时，每次造成的伤害提高8/10/12/14/16%，该效果最多叠加5层。若攻击目标发生变化，立即解除当前的增益效果。",
+      "attributes": {},
+      "condition_code": "event_self_attack",
+      "target": "self",
+      "values": [
+        8,
+        10,
+        12,
+        14,
+        16
+      ]
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

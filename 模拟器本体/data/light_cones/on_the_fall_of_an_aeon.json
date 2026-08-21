@@ -1,0 +1,42 @@
+{
+ "name": "记一位星神的陨落",
+ "rarity": 5,
+ "rank": 5,
+ "path": "毁灭",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "施放攻击时攻击力提高16%，最多叠加4层（最高64%）",
+   "attributes": {},
+   "condition_code": "stack_gain:on_self_attack:atk_stack:4:self:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放攻击时攻击力提高16%，最多叠加4层（最高64%）",
+   "attributes": {
+    "ATK_percent": 64.0
+   },
+   "condition_code": "stack:atk_stack:4"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "击破敌方目标弱点后，造成的伤害提高24%，持续2回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_weakness_break:pojia:1:self:2:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "击破敌方目标弱点后，造成的伤害提高24%，持续2回合",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "stack:pojia:1"
+  }
+ ],
+ "id": "on_the_fall_of_an_aeon"
+}

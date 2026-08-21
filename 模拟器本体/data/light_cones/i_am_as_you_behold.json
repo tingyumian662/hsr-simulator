@@ -1,0 +1,45 @@
+{
+ "name": "所见即我",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 952,
+ "base_ATK": 635,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 18.0,
+    "ENERGY_REGEN": 10.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放终结技时，每消耗1点能量值，本次终结技伤害提高0.20%，最多提高72%",
+   "attributes": {
+    "DMG_BONUS_ALL": 72.0
+   },
+   "condition_code": "event_ult_after",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗或施放终结技时，获得【王之娱乐】，持续3回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_battle_start|on_ult:wangzhiyule:1:all_allies:3:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【王之娱乐】时，我方全体暴击伤害提高24%。同类效果无法叠加",
+   "attributes": {
+    "CRIT_DMG": 24.0
+   },
+   "condition_code": "stack:wangzhiyule:1",
+   "target": "all_allies"
+  }
+ ],
+ "id": "i_am_as_you_behold"
+}

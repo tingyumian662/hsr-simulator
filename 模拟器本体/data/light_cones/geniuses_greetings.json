@@ -1,0 +1,20 @@
+{
+ "id": "geniuses_greetings",
+ "name": "天才们的问候",
+ "rarity": 4,
+ "rank": 5,
+ "path": "记忆",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

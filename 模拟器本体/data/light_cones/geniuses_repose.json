@@ -1,0 +1,20 @@
+{
+ "id": "geniuses_repose",
+ "name": "天才们的休憩",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

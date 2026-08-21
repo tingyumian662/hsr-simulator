@@ -1,0 +1,19 @@
+{
+  "name": "净庭教宗的圣骑士",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases DEF by 15%.",
+      "attributes": {
+        "DEF_percent": 15.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases the max DMG that can be absorbed by the Shield created by the wearer by 20%.",
+      "attributes": {"SHIELD_BONUS": 20.0},
+      "condition": ""
+    }
+  ]
+}

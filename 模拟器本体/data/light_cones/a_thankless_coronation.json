@@ -1,0 +1,35 @@
+{
+ "name": "没有回报的加冕",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 952,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 36.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放终结技时，攻击力提高40%。若能量上限>=300点，攻击力额外再提高40%（合计80%），持续2回合",
+   "attributes": {
+    "ATK_percent": 80.0
+   },
+   "condition_code": "state_energy_cap_ge_300",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "若能量上限>=300点，施放终结技时固定恢复等同于装备者能量上限10%的能量",
+   "attributes": {},
+   "condition_code": "state_energy_cap_ge_300",
+   "target": "self"
+  }
+ ],
+ "id": "a_thankless_coronation"
+}

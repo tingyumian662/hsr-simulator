@@ -1,0 +1,194 @@
+{
+  "id": "dan_heng_permansor_terrae",
+  "name": "丹恒•腾荒",
+  "element": "物理",
+  "path": "存护",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 582,
+  "base_DEF": 776,
+  "base_SPD": 97,
+  "taunt": 150,
+  "max_energy": 135,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "ATK_percent": 28.0,
+    "DEF_percent": 22.5
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "镇恶护生",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK物理; 削韧10"
+    },
+    "skill": {
+      "name": "渊渟岳峙，地载八荒",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "paramId": "dht_tongpao",
+          "value": 1.0
+        },
+        {
+          "type": "shield",
+          "target": "all_allies",
+          "paramId": "dht_shield",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "【同袍】+全队护盾20%ATK+400 3回合(叠加上限300%, 引擎handler)"
+    },
+    "ultimate": {
+      "name": "亢龙无悔，移山辟世",
+      "type": "ultimate",
+      "cost": {
+        "energy": 135
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 300.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "shield",
+          "target": "all_allies",
+          "paramId": "dht_shield",
+          "value": 20.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "300%ATK物理群伤+全队护盾; 【龙灵】强化2次行动(追加攻击80%ATK+同袍80%附加, 引擎handler)"
+    },
+    "talent": {
+      "name": "生生之德，品物流形",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "同袍→召唤【龙灵】165速(行动=解控+护盾10%ATK+200 3回合); 丹恒或同袍阵亡龙灵消失(引擎handler)"
+    },
+    "technique": {
+      "name": "地坼",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 获得【同袍】+开战自动对同袍施放1次战技(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "神秀",
+      "description": "战技使同袍ATK+15%丹恒ATK",
+      "hook_name": "dht_trace1"
+    },
+    {
+      "name": "葳蕤",
+      "description": "开局行动提前40%; 同袍攻击回6能+龙灵提前15%",
+      "hook_name": "dht_trace2"
+    },
+    {
+      "name": "峥嵘",
+      "description": "龙灵行动给最低护盾者5%ATK+100盾; 强化龙灵对最高HP敌40%附加",
+      "hook_name": "dht_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击+28%/防御+22.5%/速度+5",
+      "hook_name": "dht_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "蜕却旧鳞的荒龙",
+      "description": "终结技回SP+同袍全抗穿透18% 3回合",
+      "hook_name": "dht_e1"
+    },
+    {
+      "rank": 2,
+      "name": "守望开拓的赤子",
+      "description": "强化+2次+龙灵提前100%; 强化龙灵附加×2+盾×2",
+      "hook_name": "dht_e2"
+    },
+    {
+      "rank": 3,
+      "name": "日月山河的托付",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "dht_e3"
+    },
+    {
+      "rank": 4,
+      "name": "金石立誓，此身为舟",
+      "description": "同袍减伤20%",
+      "hook_name": "dht_e4"
+    },
+    {
+      "rank": 5,
+      "name": "不朽之途万里绵延",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "dht_e5"
+    },
+    {
+      "rank": 6,
+      "name": "草木微尘皆入梦中",
+      "description": "有同袍敌受伤+20%; 同袍无视12%防御; 终结技后同袍330%群攻附加",
+      "hook_name": "dht_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

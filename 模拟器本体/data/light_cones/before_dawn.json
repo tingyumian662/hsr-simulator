@@ -1,0 +1,20 @@
+{
+ "id": "before_dawn",
+ "name": "拂晓之前",
+ "rarity": 5,
+ "rank": 1,
+ "path": "智识",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 36.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,20 @@
+{
+ "id": "though_worlds_apart",
+ "name": "纵然山河万程",
+ "rarity": 5,
+ "rank": 1,
+ "path": "存护",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 64.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

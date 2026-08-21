@@ -1,0 +1,20 @@
+{
+ "id": "reforged_remembrance",
+ "name": "重塑时光之忆",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_HIT_RATE": 40.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

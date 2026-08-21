@@ -1,0 +1,24 @@
+{
+  "id": "arlan",
+  "name": "阿兰",
+  "element": "雷",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1200,
+  "base_ATK": 600,
+  "base_DEF": 331,
+  "base_SPD": 102,
+  "taunt": 125,
+  "max_energy": 110,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "ATK_percent": 28.0,
+    "EFFECT_RES": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

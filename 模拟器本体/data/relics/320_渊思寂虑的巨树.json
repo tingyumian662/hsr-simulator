@@ -1,0 +1,13 @@
+{
+  "name": "渊思寂虑的巨树",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's SPD by 6%. When the wearer's SPD is 135/180 or higher, the wearer and their memosprite's Outgoing Healing increases by 12%/20%.",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": ""
+    }
+  ]
+}

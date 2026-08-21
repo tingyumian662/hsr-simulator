@@ -1,0 +1,20 @@
+{
+ "id": "after_the_charmony_fall",
+ "name": "谐乐静默之后",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 28.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "风举云飞的勇烈",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases ATK by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases the wearer's CRIT Rate by 6%. After the wearer uses a Follow-Up ATK, increases DMG dealt by Ultimate by 36%, lasting for 1 turn.",
+      "attributes": {
+        "CRIT_RATE": 6.0
+      },
+      "condition": ""
+    }
+  ]
+}

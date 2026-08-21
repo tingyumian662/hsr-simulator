@@ -1,0 +1,24 @@
+{
+  "id": "hanya",
+  "name": "寒鸦",
+  "element": "物理",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 564,
+  "base_DEF": 353,
+  "base_SPD": 110,
+  "taunt": 100,
+  "max_energy": 140,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "ATK_percent": 28.0,
+    "SPD_percent": 9.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

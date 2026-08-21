@@ -1,0 +1,35 @@
+{
+ "name": "比阳光更明亮的",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 1058,
+ "base_ATK": 635,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 18.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放普攻时获得1层【龙吟】(持续2回合，最多2层)，每层攻击力提高18%、能量恢复效率提高6%",
+   "attributes": {},
+   "condition_code": "stack_gain:on_basic_attack:longyin:2:self:2:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放普攻时获得1层【龙吟】(持续2回合，最多2层)，每层攻击力提高18%、能量恢复效率提高6%",
+   "attributes": {
+    "ATK_percent": 36.0,
+    "ENERGY_REGEN": 12.0
+   },
+   "condition_code": "stack:longyin:2"
+  }
+ ],
+ "id": "brighter_than_the_sun"
+}

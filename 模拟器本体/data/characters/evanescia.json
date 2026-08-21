@@ -1,0 +1,263 @@
+{
+  "id": "evanescia",
+  "name": "绯英",
+  "element": "物理",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 737,
+  "base_DEF": 460,
+  "base_SPD": 104,
+  "taunt": 100,
+  "max_energy": 480,
+  "cast_number": 146,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "ELATION_LEVEL": 18.0,
+    "CRIT_RATE": 18.7
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "课业•突击检查",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK物理; 削韧10"
+    },
+    "skill": {
+      "name": "风纪•尺出缭判",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 300.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 150.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "adjacent",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "扩散300%/150%ATK物理; 额外+10笑点(引擎handler); 削韧20+10*2"
+    },
+    "ultimate": {
+      "name": "剑歌•神鬼无赦",
+      "type": "ultimate",
+      "cost": {
+        "energy": 240
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "all_enemies"
+        },
+        {
+          "stat": "ATK",
+          "scale": 120.0,
+          "damageType": "direct",
+          "element": "物理",
+          "_target": "bounce",
+          "_hits": 5
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 5.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "100%ATK全体+5次×120%ATK随机单体; 削韧20+5*5; 行迹3弹射+1/2/4(引擎handler)"
+    },
+    "talent": {
+      "name": "青春•韶华无限",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "elation",
+          "element": "物理"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "能量↔好活当赏互转(单次≤100); 累计240能→狐狸老师FUA 100%ATK全体+回10能; 持好活: 战技16%/终结技23%+28%/狐狸老师25%追加欢愉伤害(引擎handler)"
+    },
+    "technique": {
+      "name": "落英•散者皆忆",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 全敌100%ATK物理伤+20好活当赏(引擎handler)"
+    },
+    "elation_skill": {
+      "name": "绯色•不乐即斩",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 110.0,
+          "damageType": "elation",
+          "element": "物理",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "参演编号146: 全体110%欢愉伤害+5好活当赏(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "青春•韶华无限（天赋）",
+      "description": "能量↔好活当赏互转(单次≤100); 累计240能量→狐狸老师FUA",
+      "hook_name": "evanescia_energy_convert"
+    },
+    {
+      "name": "行裁断",
+      "description": "狐狸老师施放攻击时额外对目标施加易伤12% 3回合",
+      "hook_name": "evanescia_trace1"
+    },
+    {
+      "name": "开不败",
+      "description": "队友好活当赏结束时50%转为自身好活当赏",
+      "hook_name": "evanescia_trace2"
+    },
+    {
+      "name": "瞰众乐",
+      "description": "暴击率+30%; 终结技弹射按敌数≥3/2/1 +1/2/4次; 参演编号<146队友好活50%转自身",
+      "hook_name": "evanescia_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "速度+5/欢愉度+18%/暴击率+18.7%",
+      "hook_name": "evanescia_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "故乡，为祈福起舞",
+      "description": "全属性抗性穿透+20%; 狐狸老师攻击后额外触发1次欢愉技+10好活当赏",
+      "hook_name": "evanescia_e1"
+    },
+    {
+      "rank": 2,
+      "name": "遥途，求长开不谢",
+      "description": "暴击伤害+36%; 获得好活当赏额外50%/100%",
+      "hook_name": "evanescia_e2"
+    },
+    {
+      "rank": 3,
+      "name": "尺剑，吞赤月妖邪",
+      "description": "终结技+2; 普攻+1; 欢愉技+1",
+      "hook_name": "evanescia_e3"
+    },
+    {
+      "rank": 4,
+      "name": "花田，遭恶徒摘落",
+      "description": "绯英造成的伤害无视敌方15%防御力",
+      "hook_name": "evanescia_e4"
+    },
+    {
+      "rank": 5,
+      "name": "乐园，见悲喜苦乐",
+      "description": "战技+2; 天赋+2; 欢愉技+1",
+      "hook_name": "evanescia_e5"
+    },
+    {
+      "rank": 6,
+      "name": "少女，见浮生入梦",
+      "description": "好活当赏持续+1回合; 欢愉伤害+15%+每100好活+2%(上限1000); 首终结技回120能量(每4次触发1次)",
+      "hook_name": "evanescia_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified; 基础属性按用户txt 2026-08-15 回改)"
+}

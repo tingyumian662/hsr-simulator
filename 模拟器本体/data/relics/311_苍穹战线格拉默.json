@@ -1,0 +1,13 @@
+{
+  "name": "苍穹战线格拉默",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's ATK by 12%. When the wearer's SPD is equal to or higher than 135/160, the wearer deals 12%/18% more DMG.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    }
+  ]
+}

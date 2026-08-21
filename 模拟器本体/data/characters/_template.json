@@ -1,0 +1,126 @@
+{
+  "id": "character_id",
+  "name": "角色名",
+  "element": "冰",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 679,
+  "base_DEF": 460,
+  "base_SPD": 100,
+  "taunt": 125,
+  "max_energy": 130,
+  "_cast_number_doc": "参演编号（仅欢愉角色，0表示非欢愉角色）。啊哈时刻按此编号升序释放欢愉技。",
+  "cast_number": 0,
+  "_elation_stats_doc": "欢愉角色额外属性（非欢愉角色留空）。字段名使用StatType枚举值。",
+  "elation_stats": {},
+  "trace_stats": {
+    "CRIT_RATE": 12.0,
+    "HP_percent": 10.0,
+    "ATK_percent": 6.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·XX",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        { "stat": "ATK", "scale": 100.0, "damageType": "direct" }
+      ],
+      "effects": [
+        { "type": "toughness_reduction", "target": "single_enemy", "value": 1.0 }
+      ]
+    },
+    "skill": {
+      "name": "战技·XX",
+      "type": "skill",
+      "cost": { "skill_points": 1 },
+      "target": "blast",
+      "multipliers": [
+        { "stat": "ATK", "scale": 200.0, "damageType": "direct" }
+      ],
+      "effects": [
+        { "type": "toughness_reduction", "target": "blast", "value": 2.0 }
+      ]
+    },
+    "ultimate": {
+      "name": "终结技·XX",
+      "type": "ultimate",
+      "cost": { "energy": 130 },
+      "target": "all_enemies",
+      "multipliers": [
+        { "stat": "ATK", "scale": 300.0, "damageType": "direct" }
+      ],
+      "effects": [
+        { "type": "toughness_reduction", "target": "all_enemies", "value": 3.0 }
+      ]
+    },
+    "talent": {
+      "name": "天赋·XX",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": []
+    },
+    "technique": {
+      "_doc": "秘技。technique_category: battle_start(开战秘技，进战后触发) / support(辅助秘技，大地图使用不进战)",
+      "name": "秘技·XX",
+      "type": "technique",
+      "technique_category": "battle_start",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": []
+    },
+    "_elation_skill_doc": "欢愉技（仅欢愉角色填写，非欢愉角色删除此键）。damageType须为elation。",
+    "elation_skill": {
+      "name": "欢愉技·XX",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        { "stat": "NONE", "scale": 100.0, "damageType": "elation" }
+      ],
+      "effects": []
+    }
+  },
+  "traces": [
+    { "name": "行迹1", "description": "描述", "hook_name": "" },
+    { "name": "行迹2", "description": "描述", "hook_name": "" },
+    { "name": "行迹3", "description": "描述", "hook_name": "" }
+  ],
+  "eidolons": [],
+  "_memsprite_doc": "忆灵（仅记忆命途角色填写，非记忆角色删除此键）。包含忆灵面板、忆灵技、属性继承比例、站位偏移。",
+  "memsprite": {
+    "name": "忆灵名",
+    "element": "冰",
+    "base_HP": 2000,
+    "base_ATK": 500,
+    "base_DEF": 300,
+    "base_SPD": 90,
+    "max_taunt": 100,
+    "inherit_ratios": {
+      "_doc": "继承比例：忆灵实际属性 = 角色属性 × 比例。未列出的属性默认为1.0。",
+      "HP": 0.5,
+      "ATK": 0.8,
+      "DEF": 0.6
+    },
+    "position_offset": -1,
+    "_position_offset_doc": "站位偏移：-1=召唤者左侧（默认），1=右侧",
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵普攻",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "single_enemy",
+        "multipliers": [
+          { "stat": "ATK", "scale": 100.0, "damageType": "direct" }
+        ],
+        "effects": []
+      }
+    }
+  }
+}

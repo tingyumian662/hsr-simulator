@@ -1,0 +1,13 @@
+{
+  "name": "零号关卡朋克洛德",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Elation by 8%. When Elation reaches 40%/80% for the first time in combat, increases the wearer's CRIT DMG by 20%/32%.",
+      "attributes": {
+        "ELATION_LEVEL": 8.0
+      },
+      "condition": "elation_level_40_80_cd"
+    }
+  ]
+}

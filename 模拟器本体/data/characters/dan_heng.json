@@ -1,0 +1,24 @@
+{
+  "id": "dan_heng",
+  "name": "丹恒",
+  "element": "风",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 882,
+  "base_ATK": 547,
+  "base_DEF": 397,
+  "base_SPD": 110,
+  "taunt": 75,
+  "max_energy": 100,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "DMG_BONUS_WIND": 22.4,
+    "ATK_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

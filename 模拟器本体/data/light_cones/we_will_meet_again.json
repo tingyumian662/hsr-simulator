@@ -1,0 +1,41 @@
+{
+  "id": "we_will_meet_again",
+  "name": "后会有期",
+  "rarity": 4,
+  "rank": 1,
+  "path": "虚无",
+  "base_HP": 846,
+  "base_ATK": 529,
+  "base_DEF": 330,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放普攻或战技后，对随机1个受到攻击的敌方目标造成等同于自身48/60/72/84/96%攻击力的附加伤害。",
+      "attributes": {},
+      "condition_code": "event_basic_after",
+      "target": "self",
+      "values": [
+        48,
+        60,
+        72,
+        84,
+        96
+      ]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放普攻或战技后，对随机1个受到攻击的敌方目标造成等同于自身48/60/72/84/96%攻击力的附加伤害。",
+      "attributes": {},
+      "condition_code": "event_skill_after",
+      "target": "self",
+      "values": [
+        48,
+        60,
+        72,
+        84,
+        96
+      ]
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

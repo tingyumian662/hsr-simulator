@@ -1,0 +1,43 @@
+{
+ "name": "不息的演算",
+ "rarity": 5,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 12.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放攻击后，每击中1名敌方目标，攻击力额外提高8%，最多叠加5层（最高40%），持续至下次攻击后",
+   "attributes": {},
+   "condition_code": "stack_gain:on_self_attack:yansuan:5:self:0:per_target:clear_on:attack",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放攻击后，每击中1名敌方目标，攻击力额外提高8%，最多叠加5层（最高40%），持续至下次攻击后",
+   "attributes": {
+    "ATK_percent": 40.0
+   },
+   "condition_code": "stack:yansuan:5"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "当场上存在>=3名敌方目标时，速度提高16%，持续1回合",
+   "attributes": {
+    "SPD_percent": 16.0
+   },
+   "condition_code": "state_enemies_ge_3",
+   "target": "self"
+  }
+ ],
+ "id": "eternal_calculus"
+}

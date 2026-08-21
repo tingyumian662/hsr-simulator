@@ -1,0 +1,20 @@
+{
+ "id": "the_moles_welcome_you",
+ "name": "鼹鼠党欢迎你",
+ "rarity": 4,
+ "rank": 5,
+ "path": "毁灭",
+ "base_HP": 1058,
+ "base_ATK": 476,
+ "base_DEF": 265,
+ "effects": [
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放普攻、战技或终结技攻击敌方目标后，分别获取一层【淘气值】。每层使装备者的攻击力提高{{AtkBuff}}%。",
+   "attributes": {},
+   "condition_code": "event_basic_after",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

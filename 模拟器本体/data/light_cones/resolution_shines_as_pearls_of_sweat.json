@@ -1,0 +1,20 @@
+{
+  "id": "resolution_shines_as_pearls_of_sweat",
+  "name": "决心如汗珠般闪耀",
+  "rarity": 4,
+  "rank": 5,
+  "path": "虚无",
+  "base_HP": 953,
+  "base_ATK": 476,
+  "base_DEF": 331,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "当装备者击中敌方目标时，如果该目标不处于【攻陷】状态，则有100.0%%的基础概率使其陷入【攻陷】状态（精1~精5: 60%%~100%%，每精一层+10%%）。【攻陷】状态下的敌方目标防御力降低16.0%%（精1~精5: 12%%~16%%，每精一层+1%%），持续1回合。",
+      "attributes": {},
+      "condition_code": "event_self_attack",
+      "target": "self"
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

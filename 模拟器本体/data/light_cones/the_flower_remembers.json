@@ -1,0 +1,20 @@
+{
+ "id": "the_flower_remembers",
+ "name": "花儿不会忘记",
+ "rarity": 4,
+ "rank": 5,
+ "path": "记忆",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 24.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,194 @@
+{
+  "id": "hysilens",
+  "name": "海瑟音",
+  "element": "物理",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1203,
+  "base_ATK": 601,
+  "base_DEF": 485,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 110,
+  "trace_stats": {
+    "ATK_percent": 18.0,
+    "EFFECT_HIT_RATE": 10.0,
+    "SPD_percent": 14
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "小调，止水中回响",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK物理; 削韧10"
+    },
+    "skill": {
+      "name": "泛音，暗流后齐鸣",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 140.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "paramId": "hysilens_vuln",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "全敌易伤+20% 3回合 + 140%ATK物理群伤"
+    },
+    "ultimate": {
+      "name": "绝海回涛，噬魂舞曲",
+      "type": "ultimate",
+      "cost": {
+        "energy": 110
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "结界3回合(敌ATK-15%/DEF-25% + DOT引爆80%ATK物理DOT 8次/回合上限) + 200%ATK群伤; 行迹2现存DOT立即结算150%(引擎handler)"
+    },
+    "talent": {
+      "name": "海妖在欢唱",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "我方攻击时100%概率挂随机DOT(风化/裂伤/灼烧/触电, 2回合, 优先不同; 裂伤按敌HP20%封顶25%ATK)(引擎handler)"
+    },
+    "technique": {
+      "name": "于海的栖息地",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 领域(醉心) 进战后全敌2种随机DOT(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "征服的剑旗",
+      "description": "开局展开结界3回合+展开回1SP",
+      "hook_name": "hysilens_trace1"
+    },
+    {
+      "name": "盛会的泡沫",
+      "description": "终结技时现存DOT立即结算150%",
+      "hook_name": "hysilens_trace2"
+    },
+    {
+      "name": "珍珠的琴弦",
+      "description": "EHR>60%每10%增伤15%上限90%",
+      "hook_name": "hysilens_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "速度+14/攻击+18%/命中+10%",
+      "hook_name": "hysilens_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "你问我心为何悲伤",
+      "description": "我方DOT×116%; 天赋挂DOT时额外双挂",
+      "hook_name": "hysilens_e1"
+    },
+    {
+      "rank": 2,
+      "name": "你说浪花为何喧响",
+      "description": "行迹3效果对全队",
+      "hook_name": "hysilens_e2"
+    },
+    {
+      "rank": 3,
+      "name": "可知灯火为何遗忘",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "hysilens_e3"
+    },
+    {
+      "rank": 4,
+      "name": "看呀，时间为何流淌",
+      "description": "结界期敌全抗-20%",
+      "hook_name": "hysilens_e4"
+    },
+    {
+      "rank": 5,
+      "name": "于梳洗中，我轻吟浅唱",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "hysilens_e5"
+    },
+    {
+      "rank": 6,
+      "name": "沉没的你，何日返乡",
+      "description": "引爆上限12次+倍率+20%",
+      "hook_name": "hysilens_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

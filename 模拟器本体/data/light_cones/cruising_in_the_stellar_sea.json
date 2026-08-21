@@ -1,0 +1,37 @@
+{
+ "name": "星海巡航",
+ "rarity": 5,
+ "rank": 5,
+ "path": "巡猎",
+ "base_HP": 952,
+ "base_ATK": 529,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 16.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "对生命值<=50%的敌方目标，暴击率额外提高16%",
+   "attributes": {
+    "CRIT_RATE": 16.0
+   },
+   "condition_code": "state_hp_below_50_target",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "消灭敌方目标后，攻击力提高40%，持续2回合",
+   "attributes": {
+    "ATK_percent": 40.0
+   },
+   "condition_code": "event_kill",
+   "target": "self"
+  }
+ ],
+ "id": "cruising_in_the_stellar_sea"
+}

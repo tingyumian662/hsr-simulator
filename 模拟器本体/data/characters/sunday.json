@@ -1,0 +1,151 @@
+{
+  "id": "sunday",
+  "name": "星期日",
+  "element": "虚数",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1241,
+  "base_ATK": 640,
+  "base_DEF": 533,
+  "base_SPD": 96,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "CRIT_DMG": 37.3,
+    "EFFECT_RES": 18.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "闪烁的劝诫",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK虚数; 削韧10"
+    },
+    "skill": {
+      "name": "纸与仪典的恩赐",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "单体+召唤物立即行动(同谐目标不触发)+增伤30%(有召唤物50%)2回合; 天赋CR+20%3回合(E6叠3层); 蒙福者回1SP; 行迹3净化; E1无视16%防御+召唤物40%(引擎handler)"
+    },
+    "ultimate": {
+      "name": "轻与伤痕的赞颂",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "目标回20%能量上限(行迹1不足40补至40)+【蒙福者】CD+30%×星期日CD+12% 3回合(仅最新目标, 星期日回合开始-1, 星期日死亡解除); E2首终结技+2SP+蒙福者伤害+30%(引擎handler)"
+    },
+    "talent": {
+      "name": "倾诉之肉身",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "战技目标暴击率+20% 3回合(E6可叠3层+持续+1+终结技也可添加+溢出暴击率1%→2%暴伤)(引擎handler)"
+    },
+    "technique": {
+      "name": "荣光之秘",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 下次战斗星期日首次施放技能目标增伤50% 2回合(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "主日渴慕",
+      "description": "终结技为目标恢复能量不足40时提高至40",
+      "hook_name": "sunday_trace1"
+    },
+    {
+      "name": "崇高拂尘",
+      "description": "战斗开始恢复25点能量",
+      "hook_name": "sunday_trace2"
+    },
+    {
+      "name": "掌中安港",
+      "description": "施放战技时解除目标1个负面效果",
+      "hook_name": "sunday_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "暴击伤害+37.3%/效果抵抗+18%/防御力+12.5%",
+      "hook_name": "sunday_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "千纪沉寂之末",
+      "description": "战技目标无视16%防御+召唤物40% 2回合",
+      "hook_name": "sunday_e1"
+    },
+    {
+      "rank": 2,
+      "name": "笃信补完微缺",
+      "description": "首终结技+2战技点; 蒙福者伤害+30%",
+      "hook_name": "sunday_e2"
+    },
+    {
+      "rank": 3,
+      "name": "荆棘的静修所",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "sunday_e3"
+    },
+    {
+      "rank": 4,
+      "name": "雕塑的卷首语",
+      "description": "回合开始恢复8点能量",
+      "hook_name": "sunday_e4"
+    },
+    {
+      "rank": 5,
+      "name": "纸筏漂流银湾",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "sunday_e5"
+    },
+    {
+      "rank": 6,
+      "name": "群星喧哗之始",
+      "description": "天赋CR可叠3层+持续+1+终结技也可添加+溢出暴击率1%→2%暴伤",
+      "hook_name": "sunday_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

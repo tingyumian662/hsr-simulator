@@ -1,0 +1,37 @@
+{
+ "name": "于夜色中",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 18.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "速度超过100时，每超过10点，普攻和战技伤害提高6%，最多叠加6层（最高36%）",
+   "attributes": {
+    "DMG_BONUS_ALL": 36.0
+   },
+   "condition_code": "state_spd_threshold",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "速度超过100时，每超过10点，终结技暴击伤害提高12%，最多叠加6层（最高72%）",
+   "attributes": {
+    "CRIT_DMG": 72.0
+   },
+   "condition_code": "state_spd_threshold",
+   "target": "self"
+  }
+ ],
+ "id": "in_the_night"
+}

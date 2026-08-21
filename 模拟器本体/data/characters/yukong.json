@@ -1,0 +1,24 @@
+{
+  "id": "yukong",
+  "name": "驭空",
+  "element": "虚数",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 600,
+  "base_DEF": 375,
+  "base_SPD": 107,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "ATK_percent": 10.0,
+    "DMG_BONUS_IMAGINARY": 22.4,
+    "HP_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

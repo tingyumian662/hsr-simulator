@@ -1,0 +1,13 @@
+{
+  "name": "天国@直播间",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT DMG by 16%. If 3 or more Skill Points are consumed in the same turn, additionally increases the wearer's CRIT DMG by 32%, lasting for 3 turns.",
+      "attributes": {
+        "CRIT_DMG": 16.0
+      },
+      "condition": ""
+    }
+  ]
+}

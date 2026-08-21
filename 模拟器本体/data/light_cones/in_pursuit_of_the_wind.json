@@ -1,0 +1,22 @@
+{
+ "id": "in_pursuit_of_the_wind",
+ "name": "追逐风的时候",
+ "rarity": 4,
+ "rank": 5,
+ "path": "同谐",
+ "base_HP": 1058,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "进入战斗后，使我方全体造成的击破伤害提高{{BreakDmgBuff}}%。",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "all_allies"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

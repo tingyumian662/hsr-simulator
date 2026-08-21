@@ -1,0 +1,20 @@
+{
+ "id": "the_story_s_next_page",
+ "name": "故事的下一页",
+ "rarity": 4,
+ "rank": 5,
+ "path": "记忆",
+ "base_HP": 1058,
+ "base_ATK": 370,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HP_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

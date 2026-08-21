@@ -1,0 +1,20 @@
+{
+ "id": "victory_in_a_blink",
+ "name": "胜利只在朝夕间",
+ "rarity": 4,
+ "rank": 5,
+ "path": "记忆",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 12.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

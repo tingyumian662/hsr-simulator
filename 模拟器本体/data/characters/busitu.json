@@ -1,0 +1,203 @@
+{
+  "id": "busitu",
+  "name": "不死途",
+  "element": "雷",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 853,
+  "base_ATK": 776,
+  "base_DEF": 388,
+  "base_SPD": 106,
+  "taunt": 100,
+  "max_energy": 150,
+  "trace_stats": {
+    "CRIT_DMG": 37.3,
+    "DMG_BONUS_LIGHTNING": 14.4,
+    "ATK_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "利爪，授以礼仪",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK雷; 削韧10"
+    },
+    "skill": {
+      "name": "鞭哨，逐尽恶兽",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "指定目标成【饲饵】(最新); 200%ATK+(已是饲饵额外100%)+回1SP; 场上存在饲饵全敌DEF-40%; 无饲饵→最低HP敌成饲饵; 行迹1+1婪酣(引擎handler)"
+    },
+    "ultimate": {
+      "name": "飨宴，自始无终",
+      "type": "ultimate",
+      "cost": {
+        "energy": 150
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 400.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 30.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "指定目标成【饲饵】; 400%ATK+3充能+强化天赋FUA(婪酣≥4耗4层额外200%段, 致命→新饲饵连锁); 行迹1+2婪酣; E4 ATK+40% 3回合(引擎handler)"
+    },
+    "talent": {
+      "name": "宿怨，切齿奉还",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "初始2充能上限3; 饲饵受其他目标攻击→回8能+耗1充能FUA 200%ATK+2层婪酣(上限12/E2 18); 行迹2 FUA伤害+80%+每层+10%(引擎handler)"
+    },
+    "technique": {
+      "name": "吃吧，可憎的手",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战(用户2026-08-18确认): 全敌100%ATK雷伤+1充能(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "罪途",
+      "description": "战技/终结技+1/2婪酣; FUA致命+1层",
+      "hook_name": "busitu_trace1"
+    },
+    {
+      "name": "影肢",
+      "description": "FUA伤害+80%+每层婪酣+10%",
+      "hook_name": "busitu_trace2"
+    },
+    {
+      "name": "头狼",
+      "description": "在场全队暴伤+40%+全队FUA暴伤+80%",
+      "hook_name": "busitu_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "暴击伤害+37.3%/雷伤+14.4%/攻击力+10%",
+      "hook_name": "busitu_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "小心，满月不可外出",
+      "description": "在场全敌受伤+24%(≤50%HP时36%)",
+      "hook_name": "busitu_e1"
+    },
+    {
+      "rank": 2,
+      "name": "敲门，屋内空余窃笑",
+      "description": "婪酣上限18; 强化FUA返还移除层数35%",
+      "hook_name": "busitu_e2"
+    },
+    {
+      "rank": 3,
+      "name": "沉默，老友各怀心事",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "busitu_e3"
+    },
+    {
+      "rank": 4,
+      "name": "切记，不必咀嚼真相",
+      "description": "终结技时ATK+40% 3回合",
+      "hook_name": "busitu_e4"
+    },
+    {
+      "rank": 5,
+      "name": "提醒，侦探亦是凶手",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "busitu_e5"
+    },
+    {
+      "rank": 6,
+      "name": "结局，或许无人生还",
+      "description": "有饲饵全敌全抗-20%; 每获1层婪酣伤害+4%上限30层",
+      "hook_name": "busitu_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "用户txt 2026-08-18 (base stats)"
+}

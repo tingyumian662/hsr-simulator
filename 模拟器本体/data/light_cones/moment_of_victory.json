@@ -1,0 +1,36 @@
+{
+  "name": "制胜的瞬间",
+  "rarity": 5,
+  "rank": 1,
+  "path": "存护",
+  "base_HP": 1058,
+  "base_ATK": 476,
+  "base_DEF": 595,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "DEF_percent": 24.0,
+        "EFFECT_HIT_RATE": 24.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "使自身受到敌方攻击的概率提高",
+      "attributes": {},
+      "condition_code": "event_battle_start",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "受到攻击后，防御力额外提高24%，持续到自身回合结束",
+      "attributes": {
+        "DEF_percent": 24.0
+      },
+      "condition_code": "event_hit_taken",
+      "target": "self"
+    }
+  ],
+  "id": "moment_of_victory"
+}

@@ -1,0 +1,315 @@
+{
+  "id": "xiadie",
+  "name": "遐蝶",
+  "element": "量子",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1629,
+  "base_ATK": 523,
+  "base_DEF": 485,
+  "base_SPD": 95,
+  "taunt": 100,
+  "max_energy": 34000,
+  "_energy_note": "【新蕊】特殊能量。HP损失1:1转化，上限34000。由天赋独立管理，不使用current_energy。",
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "DMG_BONUS_QUANTUM": 14.4,
+    "CRIT_DMG": 13.3
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·哀悼，死海之涟漪",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于遐蝶50%生命上限的量子属性伤害。"
+    },
+    "skill": {
+      "name": "战技·缄默，幽蝶之轻抚",
+      "type": "skill",
+      "cost": {
+        "hp_percent_allies": 30.0
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "blast",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": {
+        "hp_cost": "消耗除死龙外的我方全体30%当前生命值（最低降至1点）。",
+        "dragon_form": "若死龙在场，替换为【骸爪，冥龙之环拥】。"
+      }
+    },
+    "skill_dragon": {
+      "name": "骸爪，冥龙之环拥",
+      "type": "skill",
+      "cost": {
+        "hp_percent_allies": 40.0
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "量子",
+          "_source": "遐蝶"
+        },
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "量子",
+          "_source": "死龙"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": {
+        "hp_cost": "消耗除死龙外的我方全体40%当前生命值。",
+        "joint_attack": "遐蝶与死龙连携攻击全体。"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·亡喉怒哮，苏生之颂铃",
+      "type": "ultimate",
+      "cost": {
+        "_xinrui": "上限"
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "xiadie_realm"
+        }
+      ],
+      "_mechanism": {
+        "summon": "召唤死龙(SPD=165, HP=新蕊上限100%)，行动提前100%。",
+        "realm": "展开【遗世冥域】：敌方全体全属性抗性-20%，遐蝶天赋增伤扩散至死龙。",
+        "duration": "死龙3回合后或HP=0时消失，解除境界。"
+      }
+    },
+    "talent": {
+      "name": "天赋·掌心淌过的荒芜",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "xinrui_gain": "我方全体每损失1点HP→遐蝶获得1点【新蕊】。上限34000。",
+        "dmg_buff": "我方损失HP→遐蝶+死龙伤害+20%/层，上限3层，持续3回合。",
+        "dragon_heal": "死龙在场时，队友HP损失→转化为死龙HP恢复。死龙在场时无法通过天赋获得新蕊。",
+        "ult_activate": "【新蕊】达到34000时可激活终结技。"
+      }
+    },
+    "technique": {
+      "name": "秘技·悲鸣，赐死之先声",
+      "type": "technique",
+      "technique_category": "battle_start",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "xiadie_tech"
+        }
+      ],
+      "_mechanism": {
+        "summon": "进战召唤死龙(HP=新蕊上限50%)，行动提前100%，展开境界。",
+        "hp_cost": "消耗除死龙外全队40%当前HP。",
+        "fallback": "若未召龙，获得新蕊上限30%点数的【新蕊】。"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "西风的驻足",
+      "description": "施放【骸爪，冥龙之环拥】后，获得1层【焰息】（最多叠加6层，持续至本回合结束）；死龙施放【燎尽黯泽的焰息】时，每层【焰息】使造成的伤害提高30%。",
+      "hook_name": "xiadie_trace1_flame_stack"
+    },
+    {
+      "name": "倒置的火炬",
+      "description": "遐蝶HP≥50%→速度+40%。死龙焰息击杀或无法削减HP→死龙SPD+100%/1回合。",
+      "hook_name": "xiadie_trace2_speed"
+    },
+    {
+      "name": "收容的暗潮",
+      "description": "除死龙外队友治疗→100%转化为新蕊(死龙在场→转化为死龙HP)，每人上限=新蕊12%。任意单位行动后重置。",
+      "hook_name": "xiadie_trace3_heal_convert"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "雪地的圣女，付记忆入殓",
+      "description": "敌方HP≤80%/50%时，死龙技能伤害为120%/140%。",
+      "hook_name": "xiadie_e1"
+    },
+    {
+      "rank": 2,
+      "name": "以扑翼繁花加冕",
+      "description": "召唤死龙后获得2层【炽意】(抵扣焰息HP消耗)，遐蝶行动提前100%，下次强化战技获30%新蕊。",
+      "hook_name": "xiadie_e2"
+    },
+    {
+      "rank": 3,
+      "name": "虔敬的旅人，于死境翩跹",
+      "description": "终结技+2/天赋+2/忆灵技+1。",
+      "hook_name": "xiadie_e3"
+    },
+    {
+      "rank": 4,
+      "name": "拥悲怜哀歌安眠",
+      "description": "遐蝶在场时，我方全体受治疗回复量+20%。",
+      "hook_name": "xiadie_e4"
+    },
+    {
+      "rank": 5,
+      "name": "素白的新篇，以预言装点",
+      "description": "战技+2/普攻+1/忆灵天赋+1。",
+      "hook_name": "xiadie_e5"
+    },
+    {
+      "rank": 6,
+      "name": "待流年奔涌破茧",
+      "description": "遐蝶+死龙量子抗性穿透+20%。死龙无视弱点削韧，击破时触发量子纠缠。灼掠幽墟的晦翼弹射+3次。",
+      "hook_name": "xiadie_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "死龙",
+    "element": "量子",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 165,
+    "max_taunt": 200,
+    "inherit_ratios": {
+      "_doc": "死龙HP=新蕊上限×100%，不继承遐蝶HP。",
+      "HP": 0
+    },
+    "position_offset": 1,
+    "_hp_note": "死龙HP由召唤时【新蕊】上限×100%设定，不继承遐蝶。后续HP损失→恢复来自天赋。",
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·擘裂冥茫的爪痕",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "all_enemies",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 40.0,
+            "damageType": "direct",
+            "element": "量子"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 10.0
+          }
+        ],
+        "_description": "对敌方全体造成等同于遐蝶40%生命上限的量子属性伤害。"
+      },
+      "memsprite_skill": {
+        "name": "忆灵技·燎尽黯泽的焰息",
+        "type": "skill",
+        "cost": {
+          "_hp_percent": 25.0
+        },
+        "target": "all_enemies",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 24.0,
+            "damageType": "direct",
+            "element": "量子",
+            "_note": "基础倍率24%，递增至28%/34%后不再提升"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 10.0
+          }
+        ],
+        "_mechanism": {
+          "hp_cost": "消耗死龙生命上限25%。",
+          "repeat": "同次行动中可重复发动，倍率递增24%→28%→34%。",
+          "detonate": "HP≤25%时→降至1点→触发灼掠幽墟的晦翼（6次弹射+全队回血）→死龙消失。"
+        }
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "忆灵天赋·月茧荫蔽的身躯",
+        "effect": "死龙在场时我方受伤害→最多降至1点，剩余由死龙5倍HP承担。"
+      },
+      "talent_2": {
+        "name": "忆灵天赋·震彻寂壤的怒啸",
+        "effect": "死龙召唤时→全队伤害+10%/3回合。"
+      },
+      "talent_3": {
+        "name": "忆灵天赋·灼掠幽墟的晦翼",
+        "effect": "死龙消失时→6次弹射(每次40%HP量子伤)+全队回复(6%HP+800)。"
+      }
+    }
+  },
+  "gold_offspring": true,
+  "energy_type": "special"
+}

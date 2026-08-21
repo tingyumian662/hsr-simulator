@@ -1,0 +1,199 @@
+{
+  "id": "himeko_nova",
+  "name": "姬子•启行",
+  "element": "火",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1125,
+  "base_ATK": 756,
+  "base_DEF": 485,
+  "base_SPD": 98,
+  "taunt": 75,
+  "max_energy": 150,
+  "trace_stats": {
+    "ATK_percent": 28.0,
+    "CRIT_RATE": 12.0,
+    "DMG_BONUS_FIRE": 8.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "点燃第一里航标",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK火; 削韧10"
+    },
+    "skill": {
+      "name": "升起领航的烽火",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "paramId": "himeko_nova_flag",
+          "value": 3.0
+        }
+      ],
+      "_mechanism": "恢复所有助战技使用次数+【领航旗语】3回合(全队增伤20%+每回合开始恢复1次次数)(引擎handler)"
+    },
+    "ultimate": {
+      "name": "我们，亦是逐星的巨人",
+      "type": "ultimate",
+      "cost": {
+        "energy": 150
+      },
+      "target": "all_enemies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 48.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "操控拓星者: 6次超频粒子光束(16%ATK全体+1源能, 上限3/E6 6); 耗尽自动轨道歼灭脉冲(10%全体+每额外源能15%随机单体, 行迹3源能≥3×1.3, E6源能≥6额外160%全体); 最后一击3×80%; 击杀立即最后一击; 终结技后刷新特殊效果次数(引擎handler)"
+    },
+    "talent": {
+      "name": "共赴灼热的远征",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "在场展开境界【拓星视界】+全队1次助战技使用次数; 助战技用姬子面板结算; 姬子使用时全抗穿透20%+暴伤80%+无视弱点削韧+火击破; 他人使用回4能量(引擎handler)"
+    },
+    "support_skill": {
+      "name": "开拓，与你同行",
+      "type": "support_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 80.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "all_enemies"
+        },
+        {
+          "stat": "ATK",
+          "scale": 12.0,
+          "damageType": "direct",
+          "element": "火",
+          "_target": "bounce",
+          "_hits": 3
+        }
+      ],
+      "effects": [],
+      "_mechanism": "助战技(专属): 全队80%ATK+3次×12%随机单体; 姬子本人使用200%/4×32%(引擎handler覆盖)"
+    },
+    "technique": {
+      "name": "拓星巡航",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 秘技点上限+3 + 每个波次开始时立即施放1次战技(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "共赴灼热的远征（天赋）",
+      "description": "展开境界【拓星视界】+全队1次助战技次数; 同行协议(裁决/歼破)判定",
+      "hook_name": "himeko_nova_protocol"
+    },
+    {
+      "name": "人类该向何处去",
+      "description": "姬子•启行使用助战技不消耗使用次数; 回合开始使用次数=上限时回5能量",
+      "hook_name": "himeko_nova_trace1"
+    },
+    {
+      "name": "列车的脉搏在轰鸣",
+      "description": "非姬子•启行的开拓同行角色使用助战技→立即获得1个可插入施放终结技的额外回合(不重复触发)",
+      "hook_name": "himeko_nova_trace2"
+    },
+    {
+      "name": "银轨在旷古中静默",
+      "description": "施放终结技立即+3源能; 源能≥3时轨道歼灭脉冲随机单体伤害倍率+30%",
+      "hook_name": "himeko_nova_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击力+28%/暴击率+12%/火属性伤害+8%",
+      "hook_name": "himeko_nova_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "我们称之为路的，是开拓",
+      "description": "天赋额外助战技效果次数+1; 裁决需终结技次数-1; 歼破需充能-3; 助战技额外伤害次数+1",
+      "hook_name": "himeko_nova_e1"
+    },
+    {
+      "rank": 2,
+      "name": "旗帜，永不降下的帆",
+      "description": "助战技使用上限2次; 终结技和助战技伤害×130%; 领航旗语每回合开始恢复1次次数",
+      "hook_name": "himeko_nova_e2"
+    },
+    {
+      "rank": 3,
+      "name": "星辰之子，也在思索繁星",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "himeko_nova_e3"
+    },
+    {
+      "rank": 4,
+      "name": "握住所有伸向天空的手",
+      "description": "使用助战技时全抗穿透全队生效, 姬子额外+10%",
+      "hook_name": "himeko_nova_e4"
+    },
+    {
+      "rank": 5,
+      "name": "去跨越宇宙的全境",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "himeko_nova_e5"
+    },
+    {
+      "rank": 6,
+      "name": "铭记，终抵群星的誓约",
+      "description": "火属性抗性穿透+20%; 源能上限6; 我方用助战技伤害+75%+姬子+1源能; 终结技期间光束额外+1源能; 源能≥6时脉冲额外160%全体",
+      "hook_name": "himeko_nova_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified; 基础属性按用户txt 2026-08-15 回改)"
+}

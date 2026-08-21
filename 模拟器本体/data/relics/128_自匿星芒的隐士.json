@@ -1,0 +1,19 @@
+{
+  "name": "自匿星芒的隐士",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "The provided Shield Effect increases by 10%.",
+      "attributes": {"SHIELD_BONUS": 10.0},
+      "condition": "shield_effect_bonus"
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases the Shield Effect provided by the wearer by 12%. When an ally target holds a Shield provided by the wearer, the ally target's CRIT DMG increases by 15%.",
+      "attributes": {
+        "SHIELD_BONUS": 12.0
+      },
+      "condition": "shield_ally_cd"
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "id": "acheron",
+  "name": "黄泉",
+  "element": "雷",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1125,
+  "base_ATK": 698,
+  "base_DEF": 436,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 9,
+  "trace_stats": {
+    "CRIT_DMG": 24.0,
+    "DMG_BONUS_LIGHTNING": 8.0,
+    "ATK_percent": 28.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "三途枯榷",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK雷; 削韧10; 能量恢复0(特殊能量)"
+    },
+    "skill": {
+      "name": "八雷飞渡",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 60.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "+1残梦+集真赤1层; 160%ATK扩散(相邻60%); 削韧20(引擎handler)"
+    },
+    "ultimate": {
+      "name": "残梦尽染，一刀缭断",
+      "type": "ultimate",
+      "cost": {
+        "_dream": 9
+      },
+      "target": "single_enemy",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "耗9残梦; 3×啼泽雨斩(24%ATK单体, 消目标最多3层集真赤→全敌15%ATK每层提升至60%)+黄泉返渡(120%ATK全体+清集真赤+行迹3额外6×25%ATK弹射); 终结技期无视弱点削韧+全抗-20%(引擎handler)"
+    },
+    "talent": {
+      "name": "红叶时雨，万倾一空",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "残梦满9激活终结技; 任意单位施放技能期间使敌陷入负面→+1残梦+集真赤1层(每次施放最多1次); 集真赤离场转移给最多目标(引擎handler, on_debuff_applied事件)"
+    },
+    "technique": {
+      "name": "四相断我",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 每波200%ATK雷伤+无视弱点削韧+四相断我(施放终结技后+1残梦+集真赤)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "赤鬼",
+      "description": "开局5残梦+集真赤5层; 溢出→四相断我(上限3层)",
+      "hook_name": "acheron_trace1"
+    },
+    {
+      "name": "奈落",
+      "description": "虚无队友1/2名→普攻战技终结技伤害115%/160%",
+      "hook_name": "acheron_trace2"
+    },
+    {
+      "name": "雷心",
+      "description": "啼泽雨斩击中集真赤目标→增伤30%×3层 3回合; 黄泉返渡额外6次×25%ATK",
+      "hook_name": "acheron_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击力+28%/暴击伤害+24%/雷伤+8%",
+      "hook_name": "acheron_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "高天廖落真言始",
+      "description": "对负面目标造成伤害时暴击率+18%",
+      "hook_name": "acheron_e1"
+    },
+    {
+      "rank": 2,
+      "name": "霆鼓俱寂，瑟风亦止",
+      "description": "奈落需求-1; 回合开始+1残梦+集真赤1层",
+      "hook_name": "acheron_e2"
+    },
+    {
+      "rank": 3,
+      "name": "寒肃惊永蛰",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "acheron_e3"
+    },
+    {
+      "rank": 4,
+      "name": "亘焰燎照镜中人",
+      "description": "敌方入场时终结技伤害易伤8%",
+      "hook_name": "acheron_e4"
+    },
+    {
+      "rank": 5,
+      "name": "崇岩支离，千身飘零",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "acheron_e5"
+    },
+    {
+      "rank": 6,
+      "name": "灾咎解桎梏",
+      "description": "终结技伤害全抗穿透20%; 普攻/战技视为终结技伤害+无视弱点削韧",
+      "hook_name": "acheron_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "energy_type": "special"
+}

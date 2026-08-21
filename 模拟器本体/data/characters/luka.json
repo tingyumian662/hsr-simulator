@@ -1,0 +1,24 @@
+{
+  "id": "luka",
+  "name": "卢卡",
+  "element": "物理",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 582,
+  "base_DEF": 485,
+  "base_SPD": 103,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "EFFECT_HIT_RATE": 18.0,
+    "DEF_percent": 12.5,
+    "ATK_percent": 28.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

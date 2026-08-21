@@ -1,0 +1,11 @@
+{
+  "name": "筑城者的贝洛伯格",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's DEF by 15%. When the wearer's Effect Hit Rate is 50% or higher, the wearer gains an extra 15% DEF.",
+      "attributes": {"DEF_percent": 15.0},
+      "condition": "ehr_threshold_50_def"
+    }
+  ]
+}

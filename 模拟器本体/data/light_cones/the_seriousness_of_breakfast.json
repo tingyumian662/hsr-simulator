@@ -1,0 +1,20 @@
+{
+ "id": "the_seriousness_of_breakfast",
+ "name": "早餐的仪式感",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "DMG_BONUS_ALL": 12.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

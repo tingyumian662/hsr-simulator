@@ -1,0 +1,24 @@
+{
+  "id": "jingliu",
+  "name": "镜流",
+  "element": "冰",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1436,
+  "base_ATK": 679,
+  "base_DEF": 485,
+  "base_SPD": 96,
+  "taunt": 125,
+  "max_energy": 140,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "CRIT_DMG": 37.3,
+    "SPD_percent": 9.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "xueyi",
+  "name": "雪衣",
+  "element": "量子",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1058,
+  "base_ATK": 600,
+  "base_DEF": 397,
+  "base_SPD": 103,
+  "taunt": 125,
+  "max_energy": 120,
+  "trace_stats": {
+    "DMG_BONUS_QUANTUM": 8.0,
+    "BREAK_EFFECT": 37.3,
+    "HP_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

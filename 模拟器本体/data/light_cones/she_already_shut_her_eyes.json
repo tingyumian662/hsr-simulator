@@ -1,0 +1,45 @@
+{
+ "id": "she_already_shut_her_eyes",
+ "name": "她已闭上双眼",
+ "rarity": 5,
+ "rank": 1,
+ "path": "存护",
+ "base_HP": 1270,
+ "base_ATK": 423,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HP_percent": 24.0,
+    "ENERGY_REGEN": 12.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "生命值降低时，我方全体造成的伤害提高9%，持续2回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_hp_loss:huanghun:1:all_allies:2:",
+   "target": "all_allies"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "生命值降低时，我方全体造成的伤害提高9%，持续2回合",
+   "attributes": {
+    "DMG_BONUS_ALL": 9.0
+   },
+   "condition_code": "stack:huanghun:1",
+   "target": "all_allies"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "每个波次开始时，为我方全体回复等同于各自已损失生命值80%的生命值",
+   "attributes": {},
+   "paramId": "lc_she_already_shut_her_eyes_heal",
+   "condition_code": "event_wave_start",
+   "target": "all_allies"
+  }
+ ],
+ "_source": "manual verified"
+}

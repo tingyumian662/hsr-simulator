@@ -1,0 +1,21 @@
+{
+  "_comment": "角色推荐装备映射表（v6.8）。key=角色 id（data/characters 文件名）; 选择角色时前端自动套用。无映射的角色维持现状。录入规范: 录角色时顺手填（character-pipeline）。",
+  "_field_notes": {
+    "light_cone": "专属光锥 id（data/light_cones 文件名; 前端按命途过滤后命中才生效）",
+    "set4": "外圈四件套中文名（data/relics 套装 name; 留空=不设）",
+    "set2": "内圈二件套中文名（同上; 留空=不设）",
+    "body": "躯干主词条 StatType 键: CRIT_RATE/CRIT_DMG/ATK_percent/HP_percent/DEF_percent/HEAL_BONUS/EFFECT_HIT_RATE",
+    "feet": "脚部主词条: SPD_PERCENT/ATK_percent/HP_percent/DEF_percent",
+    "sphere": "位面球主词条: DMG_BONUS_PHYSICAL/DMG_BONUS_FIRE/DMG_BONUS_ICE/DMG_BONUS_LIGHTNING/DMG_BONUS_WIND/DMG_BONUS_QUANTUM/DMG_BONUS_IMAGINARY/ATK_percent/HP_percent/DEF_percent; 留空=前端按角色元素推导",
+    "rope": "连结绳主词条: ATK_percent/ENERGY_REGEN/HP_percent/DEF_percent/BREAK_EFFECT"
+  },
+  "example_character_id": {
+    "light_cone": "light_cone_id",
+    "set4": "外圈套装名",
+    "set2": "内圈套装名",
+    "body": "CRIT_DMG",
+    "feet": "SPD_PERCENT",
+    "sphere": "",
+    "rope": "ENERGY_REGEN"
+  }
+}

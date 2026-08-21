@@ -1,0 +1,21 @@
+{
+  "name": "熔岩锻铸的火匠",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Fire DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_FIRE": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases DMG by the wearer's Skill by 12%. After unleashing Ultimate, increases the wearer's Fire DMG by 12% for the next attack.",
+      "attributes": {
+        "DMG_BONUS_SKILL": 12.0
+      },
+      "condition": "on_ult_fire_dmg"
+    }
+  ]
+}

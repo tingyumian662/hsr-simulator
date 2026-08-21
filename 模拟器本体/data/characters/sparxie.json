@@ -1,0 +1,247 @@
+{
+  "id": "sparxie",
+  "name": "火花",
+  "element": "火",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 640,
+  "base_DEF": 460,
+  "base_SPD": 107,
+  "taunt": 100,
+  "max_energy": 160,
+  "cast_number": 144,
+  "trace_stats": {
+    "CRIT_DMG": 13.3,
+    "CRIT_RATE": 12.0,
+    "ELATION_LEVEL": 28.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "哑火了吗",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK火; 削韧10"
+    },
+    "basic_attack_enhanced": {
+      "name": "百花齐放，胜者独享！",
+      "type": "basic_attack_enhanced",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 25.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 30.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "adjacent",
+          "value": 15.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 40.0
+        }
+      ],
+      "_mechanism": "直播连线强化普攻(仅1次, 用户2026-08-15确认): 50%/25%火; 陷阱每次+20%/10%+礼物; 持好活追加40%/20%欢愉伤害+陷阱弹射10%(引擎handler); 削韧30+15*2"
+    },
+    "skill": {
+      "name": "尖叫！火花花连线中",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "开启直播连线(下次普攻变强化普攻, 一次性); 互动陷阱+1(最多20次); 不视为使用战技(引擎handler)"
+    },
+    "ultimate": {
+      "name": "万我狂欢，镜头不要停",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "倍率=(0.6×欢愉度+50%)ATK; +2笑点; 行迹1按欢愉角色数1/2/3+额外2/4/8笑点+1/1/4爆点; E4额外+5笑点+欢愉度+36%3回合(引擎handler)"
+    },
+    "talent": {
+      "name": "幕后花手",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "持好活当赏: 强化普攻额外40%/20%欢愉伤害; 每发动1次互动陷阱→强化普攻额外1次10%欢愉伤害弹射(引擎handler)"
+    },
+    "technique": {
+      "name": "流量变现",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 全敌50%ATK火伤+回2战技点(elation.init_battle处理)"
+    },
+    "elation_skill": {
+      "name": "信号溢出：好戏返场！",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 50.0,
+          "damageType": "elation",
+          "element": "火",
+          "target": "all_enemies"
+        },
+        {
+          "stat": "NONE",
+          "scale": 25.0,
+          "damageType": "elation",
+          "element": "火",
+          "_target": "bounce",
+          "_hits": 20
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 6.66
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "参演编号144: 50%全体+20次×25%随机单体欢愉伤害+2爆点; E6每笑点额外+1次伤害(上限40)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "炫目！人设万花筒",
+      "description": "队伍欢愉角色数1/2/3+: 终结技额外2/4/8笑点+1/1/4爆点",
+      "hook_name": "sparxie_trace1"
+    },
+    {
+      "name": "沸腾！真伪调色盘",
+      "description": "每1笑点全队暴击伤害+8%(上限80%)",
+      "hook_name": "sparxie_trace2"
+    },
+    {
+      "name": "甜蜜！笑点签售会",
+      "description": "攻击力>2000时每超100点欢愉度+5%(上限80%)",
+      "hook_name": "sparxie_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "欢愉度+28%/暴击率+12%/暴击伤害+13.3%",
+      "hook_name": "sparxie_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "#全网热搜：她是谁？",
+      "description": "阿哈时刻结束时+5笑点; 每1笑点全队全属性抗性穿透+1.5%(上限15%)",
+      "hook_name": "sparxie_e1"
+    },
+    {
+      "rank": 2,
+      "name": "#观众的眼睛是雪亮的",
+      "description": "阿哈时刻结束时+1额外回合+2爆点; 每消耗1爆点自身暴伤+10% 2回合(最多4层)",
+      "hook_name": "sparxie_e2"
+    },
+    {
+      "rank": 3,
+      "name": "#请点击：心跳超链接",
+      "description": "战技+2; 普攻+1; 欢愉技+1",
+      "hook_name": "sparxie_e3"
+    },
+    {
+      "rank": 4,
+      "name": "#硬控！顶级表情管理",
+      "description": "施放终结技额外+5笑点; 自身欢愉度+36% 3回合",
+      "hook_name": "sparxie_e4"
+    },
+    {
+      "rank": 5,
+      "name": "#世界破烂，小花缝补",
+      "description": "终结技+2; 天赋+2; 欢愉技+1",
+      "hook_name": "sparxie_e5"
+    },
+    {
+      "rank": 6,
+      "name": "#锵锵，即将绝版的我",
+      "description": "全属性抗性穿透+20%; 欢愉技每计入1笑点额外伤害次数+1(上限40次)",
+      "hook_name": "sparxie_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified; 基础属性按用户txt 2026-08-15 回改)"
+}

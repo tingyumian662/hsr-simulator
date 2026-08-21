@@ -1,0 +1,20 @@
+{
+ "id": "inherently_unjust_destiny",
+ "name": "命运从未公平",
+ "rarity": 5,
+ "rank": 1,
+ "path": "存护",
+ "base_HP": 1058,
+ "base_ATK": 423,
+ "base_DEF": 662,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "DEF_percent": 40.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

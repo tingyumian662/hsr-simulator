@@ -1,0 +1,24 @@
+{
+  "id": "gallagher",
+  "name": "加拉赫",
+  "element": "火",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1305,
+  "base_ATK": 529,
+  "base_DEF": 441,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 110,
+  "trace_stats": {
+    "HP_percent": 18.0,
+    "EFFECT_RES": 28.0,
+    "BREAK_EFFECT": 13.3
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

@@ -1,0 +1,287 @@
+{
+  "id": "firefly",
+  "name": "流萤",
+  "element": "火",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 814,
+  "base_ATK": 523,
+  "base_DEF": 776,
+  "base_SPD": 104,
+  "taunt": 125,
+  "max_energy": 240,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "BREAK_EFFECT": 37.3,
+    "EFFECT_RES": 18.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "指令-闪燃推进",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK, 削韧10"
+    },
+    "basic_attack_enhanced": {
+      "name": "火萤Ⅳ型-底火斩击",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "heal",
+          "target": "self",
+          "paramId": "20|0"
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 15.0
+        }
+      ],
+      "_mechanism": "完全燃烧下强化普攻: 回复20%自身生命上限; 单攻200%ATK; 削韧15; 能量恢复0(实机)"
+    },
+    "skill": {
+      "name": "指令-天火轰击",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1,
+        "hp_percent_max_self": 40.0
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "消耗40%生命上限(不足降至1); 固定恢复60%能量上限; 自身行动提前25%(引擎内联); 单攻200%ATK; 削韧20; 标准能量恢复0(实机, 固定回能独立实现)"
+    },
+    "skill_enhanced": {
+      "name": "火萤Ⅳ型-死星过载",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "heal",
+          "target": "self",
+          "paramId": "25|0"
+        },
+        {
+          "type": "debuff",
+          "target": "blast",
+          "paramId": "firefly_fire_weakness",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "回复25%生命上限; 主目标+相邻添加火弱点2回合; 主倍率(0.2×BE+200)%相邻(0.1×BE+100)%最多算360%BE(引擎内联, JSON倍率为满级基础档); E1不耗SP+无视15%防御; 能量恢复0(实机)"
+    },
+    "ultimate": {
+      "name": "火萤Ⅳ型-完全燃烧",
+      "type": "ultimate",
+      "cost": {
+        "energy": 240
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "paramId": "firefly_combustion",
+          "value": 1.0
+        },
+        {
+          "type": "spawn_marker",
+          "target": "self",
+          "paramId": "firefly_countdown",
+          "value": 1.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "进入完全燃烧: 行动提前100%+速度+60+强化攻击击破效率+50%+使敌方目标受到萨姆造成的击破伤害提高20%(持续至本次攻击结束); 行动序列出现70速倒计时(行动时解除); 期间无法施放终结技"
+    },
+    "talent": {
+      "name": "茧式源火中枢",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "HP越低减伤越多(最多40%, HP≤20%满, on_hp_loss动态刷新); 完全燃烧维持最大减伤+效果抵抗+30%(引擎已归属天赋); 战斗开始能量<50%恢复至50%; 能量满解除自身所有负面"
+    },
+    "technique": {
+      "name": "Δ指令-焦土陨击",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "technique_category": "battle_start",
+      "_mechanism": "进战+每波次: 全敌火弱点2回合+200%ATK火伤+削韧20(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "α模组-偏时迸发",
+      "description": "完全燃烧下击破特攻+25%; 强化攻击使目标击破时倒计时行动延后10%(每次完全燃烧最多3次)",
+      "hook_name": "firefly_trace1_combustion_pull"
+    },
+    {
+      "name": "β模组-自限装甲",
+      "description": "完全燃烧下BE≥150%时攻击击破状态敌人→100%超击破; BE≥300%→150%",
+      "hook_name": "firefly_trace2_super_break"
+    },
+    {
+      "name": "模组-过载核心",
+      "description": "攻击力>1800时每超10点击破特攻+0.8%",
+      "hook_name": "firefly_trace3_atk_to_be"
+    },
+    {
+      "name": "茧式源火中枢（天赋）",
+      "description": "战斗开始时能量不足50%恢复至50%",
+      "hook_name": "firefly_talent_start"
+    },
+    {
+      "name": "茧式源火中枢（天赋·满能）",
+      "description": "能量恢复至上限时解除自身所有负面效果",
+      "hook_name": "firefly_talent_cleanse"
+    },
+    {
+      "name": "茧式源火中枢（天赋·减伤）",
+      "description": "HP越低受到的伤害越低, HP≤20%时最大, 最多降低40%",
+      "hook_name": "firefly_talent_dr_hp_loss"
+    },
+    {
+      "name": "茧式源火中枢（天赋·减伤刷新）",
+      "description": "回合开始刷新减伤曲线",
+      "hook_name": "firefly_talent_dr_turn"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "我曾安眠，赤染之茧",
+      "description": "强化战技无视15%防御且不消耗战技点",
+      "hook_name": "firefly_e1"
+    },
+    {
+      "rank": 2,
+      "name": "自破碎的天空坠落",
+      "description": "完全燃烧下强化攻击击杀/击破→萨姆额外回合(每回合1次)",
+      "hook_name": "firefly_e2_kill"
+    },
+    {
+      "rank": 2,
+      "name": "自破碎的天空坠落·击破",
+      "description": "强化攻击使目标击破时同样触发额外回合",
+      "hook_name": "firefly_e2_break"
+    },
+    {
+      "rank": 2,
+      "name": "自破碎的天空坠落·重置",
+      "description": "萨姆回合开始时重置可触发次数",
+      "hook_name": "firefly_e2_reset"
+    },
+    {
+      "rank": 3,
+      "name": "沉睡在静默的星河",
+      "description": "战技等级+2；普攻等级+1",
+      "hook_name": "firefly_e3"
+    },
+    {
+      "rank": 4,
+      "name": "我会看见，飞萤之火",
+      "description": "完全燃烧下效果抵抗+50%",
+      "hook_name": "firefly_e4"
+    },
+    {
+      "rank": 5,
+      "name": "自无梦的长夜亮起",
+      "description": "终结技等级+2；天赋等级+2",
+      "hook_name": "firefly_e5"
+    },
+    {
+      "rank": 6,
+      "name": "绽放在终竟的明天",
+      "description": "完全燃烧下火属性抗性穿透+20%; 强化攻击弱点击破效率+50%",
+      "hook_name": "firefly_e6"
+    }
+  ],
+  "_source": "fribbels + 角色技能介绍/流萤.txt (2026-08-10 录入)"
+}

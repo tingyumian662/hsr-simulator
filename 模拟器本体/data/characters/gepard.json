@@ -1,0 +1,24 @@
+{
+  "id": "gepard",
+  "name": "杰帕德",
+  "element": "冰",
+  "path": "存护",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1397,
+  "base_ATK": 543,
+  "base_DEF": 655,
+  "base_SPD": 92,
+  "taunt": 150,
+  "max_energy": 100,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "DMG_BONUS_ICE": 22.4,
+    "EFFECT_RES": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

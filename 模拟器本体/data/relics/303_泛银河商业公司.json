@@ -1,0 +1,11 @@
+{
+  "name": "泛银河商业公司",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Effect Hit Rate by 10%. Meanwhile, the wearer's ATK increases by an amount equal to 25% of the current Effect Hit Rate, up to a maximum increase of 25%.",
+      "attributes": {"EFFECT_HIT_RATE": 10.0},
+      "condition": "ehr_to_atk_capped"
+    }
+  ]
+}

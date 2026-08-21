@@ -1,0 +1,20 @@
+{
+ "id": "flickering_stars",
+ "name": "星火悄然闪耀",
+ "rarity": 5,
+ "rank": 1,
+ "path": "智识",
+ "base_HP": 847,
+ "base_ATK": 635,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 18.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

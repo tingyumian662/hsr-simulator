@@ -1,0 +1,20 @@
+{
+ "id": "warmth_shortens_cold_nights",
+ "name": "暖夜不会漫长",
+ "rarity": 4,
+ "rank": 5,
+ "path": "丰饶",
+ "base_HP": 1058,
+ "base_ATK": 370,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HP_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

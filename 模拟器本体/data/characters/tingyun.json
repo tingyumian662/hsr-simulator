@@ -1,0 +1,24 @@
+{
+  "id": "tingyun",
+  "name": "停云",
+  "element": "雷",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 847,
+  "base_ATK": 529,
+  "base_DEF": 397,
+  "base_SPD": 112,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "DMG_BONUS_LIGHTNING": 8.0,
+    "ATK_percent": 28.0,
+    "DEF_percent": 22.5
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

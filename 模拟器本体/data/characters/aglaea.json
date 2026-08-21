@@ -1,0 +1,312 @@
+{
+  "id": "aglaea",
+  "name": "阿格莱雅",
+  "element": "雷",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1241,
+  "base_ATK": 698,
+  "base_DEF": 485,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 350,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "CRIT_RATE": 12.0,
+    "DMG_BONUS_LIGHTNING": 22.4
+  },
+  "gold_offspring": true,
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·刺纹之蜜",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ]
+    },
+    "basic_attack_enhanced": {
+      "name": "孤锋千吻",
+      "type": "basic_attack",
+      "cost": {
+        "_sp_recover": 0
+      },
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 90.0,
+          "damageType": "direct",
+          "element": "雷",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "阿格莱雅+衣匠连携攻击，无法恢复战技点"
+    },
+    "skill": {
+      "name": "战技·高举吧，升华的名讳",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "heal",
+          "target": "memsprite",
+          "paramId": "50|0"
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "为衣匠回复25%/50%生命上限；不在场则召唤+自身立即行动"
+    },
+    "ultimate": {
+      "name": "终结技·共舞吧，命定的衣匠",
+      "type": "ultimate",
+      "cost": {
+        "energy": 350
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "paramId": "aglaea_sovereign"
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "召唤衣匠(在场回满血)，进入【至高之姿】+自身立即行动"
+    },
+    "talent": {
+      "name": "天赋·金玫之指",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 10.0
+        }
+      ],
+      "_mechanism": "衣匠初始=阿格莱雅35%速度+44%/66%生命上限+180/720。攻击使目标陷入【间隙织线】，攻击织线目标额外12%/30%攻击附加伤害"
+    },
+    "technique": {
+      "name": "秘技·披星百裂",
+      "type": "technique",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "雷"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "召唤衣匠，进战全体100%攻击雷伤+随机目标织线",
+      "technique_category": "battle_start"
+    }
+  },
+  "traces": [
+    {
+      "name": "飞驰之阳",
+      "description": "战斗开始时，若自身能量不足50%，恢复自身能量至50%。",
+      "hook_name": "aglaea_trace1_start_energy"
+    },
+    {
+      "name": "织运之竭",
+      "description": "衣匠消失时，忆灵天赋的速度提高层数最多保留1层，衣匠再次被召唤时获得对应层数的速度提高效果。",
+      "hook_name": "aglaea_trace2_spd_retain"
+    },
+    {
+      "name": "短视之惩",
+      "description": "处于【至高之姿】状态时，阿格莱雅与衣匠的攻击力提高，提高数值等同于阿格莱雅速度的720%+衣匠速度的360%。",
+      "hook_name": "aglaea_trace3_sovereign_atk"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "飘曳金星的行列",
+      "description": "处于【间隙织线】状态下的敌人受到的伤害提高15%，阿格莱雅或衣匠攻击该目标后额外恢复20点能量。",
+      "hook_name": "aglaea_e1"
+    },
+    {
+      "rank": 2,
+      "name": "行舟命运的眼睑",
+      "description": "当阿格莱雅或衣匠行动时，使阿格莱雅与衣匠造成的伤害无视目标14%的防御力，该效果最多叠加3层，持续至除自身与衣匠以外的任意单位主动施放技能时。",
+      "hook_name": "aglaea_e2"
+    },
+    {
+      "rank": 3,
+      "name": "华珠凝滞的礼物",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级；忆灵天赋等级+1，最多不超过10级。",
+      "hook_name": "aglaea_e3"
+    },
+    {
+      "rank": 4,
+      "name": "大理石内的闪烁",
+      "description": "忆灵天赋的速度提高效果层数上限提高1层。阿格莱雅施放攻击后也能使衣匠获得忆灵天赋的速度提高效果。",
+      "hook_name": "aglaea_e4"
+    },
+    {
+      "rank": 5,
+      "name": "漆黑苦难的织者",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级；忆灵技等级+1，最多不超过10级。",
+      "hook_name": "aglaea_e5"
+    },
+    {
+      "rank": 6,
+      "name": "盈虚无常的金线",
+      "description": "当阿格莱雅处于【至高之姿】状态时，自身与衣匠的雷属性抗性穿透提高20%，当阿格莱雅或衣匠的速度高于160/240/320点时，其造成的连携攻击伤害提高10%/30%/60%。",
+      "hook_name": "aglaea_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "衣匠",
+    "element": "雷",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 0,
+    "max_taunt": 100,
+    "inherit_ratios": {
+      "_doc": "SPD=阿格莱雅SPD×35%(动态)。HP=44%/66%生命上限+180/720(特殊)。ATK=同阿格莱雅。",
+      "HP": 0.66,
+      "ATK": 1.0,
+      "SPD": 0.35
+    },
+    "position_offset": -1,
+    "is_backup": false,
+    "_mechanism": {
+      "spd_inherit": "SPD=阿格莱雅35%(动态随阿格莱雅速度)",
+      "hp_flat": "HP=阿格莱雅66%生命上限+720",
+      "speed_stack": "攻击织线目标→自身速度+55点，最多6层",
+      "gossamer": "织线标记：阿格莱雅攻击使最新目标陷入【间隙织线】"
+    },
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·刺纹之陷",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "blast",
+        "multipliers": [
+          {
+            "stat": "ATK",
+            "scale": 110.0,
+            "damageType": "direct",
+            "element": "雷",
+            "target": "single_enemy"
+          },
+          {
+            "stat": "ATK",
+            "scale": 66.0,
+            "damageType": "direct",
+            "element": "雷",
+            "target": "adjacent"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "single_enemy",
+            "value": 10.0
+          },
+          {
+            "type": "energy_regen",
+            "target": "self",
+            "value": 10.0
+          }
+        ],
+        "_mechanism": "优先攻击织线目标。攻击织线目标后自身速度+55点(最多6层)"
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "忆灵天赋·泪水锻造的匠躯",
+        "effect": "攻击织线目标→自身速度+44/55点，最多6层。衣匠行动自动施放刺纹之陷，优先织线目标。"
+      },
+      "talent_2": {
+        "name": "忆灵天赋·飞驰之夏",
+        "effect": "衣匠被召唤时，使自身行动提前100%。"
+      },
+      "talent_3": {
+        "name": "忆灵天赋·枯草之盈",
+        "effect": "衣匠消失时，使阿格莱雅恢复20点能量。"
+      }
+    }
+  },
+  "sovereign_spd_pct": 15.0
+}

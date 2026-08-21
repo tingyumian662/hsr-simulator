@@ -1,0 +1,24 @@
+{
+  "id": "natasha",
+  "name": "娜塔莎",
+  "element": "物理",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1164,
+  "base_ATK": 476,
+  "base_DEF": 507,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 90,
+  "trace_stats": {
+    "HP_percent": 28.0,
+    "EFFECT_RES": 18.0,
+    "DEF_percent": 12.5
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

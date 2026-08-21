@@ -1,0 +1,22 @@
+{
+ "id": "make_the_world_clamor",
+ "name": "别让世界静下来",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "使装备者进入战斗时立即恢复3200.0%点能量，同时使其终结技造成的伤害提高{{DmgBuff}}%。",
+   "attributes": {
+    "ENERGY_REGEN": 3200.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

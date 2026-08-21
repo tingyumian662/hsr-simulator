@@ -1,0 +1,21 @@
+{
+  "name": "流星追迹的怪盗",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Break Effect by 16%.",
+      "attributes": {
+        "BREAK_EFFECT": 16.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "Increases the wearer's Break Effect by 16%. After the wearer inflicts Weakness Break on an enemy, regenerates 3 Energy.",
+      "attributes": {
+        "BREAK_EFFECT": 16.0
+      },
+      "condition": ""
+    }
+  ]
+}

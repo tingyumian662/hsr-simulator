@@ -1,0 +1,197 @@
+{
+  "id": "tribbie",
+  "name": "缇宝",
+  "element": "量子",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 523,
+  "base_DEF": 727,
+  "base_SPD": 96,
+  "taunt": 100,
+  "max_energy": 120,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "CRIT_DMG": 37.3,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "一百层的小火箭",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 15.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "扩散: 主30%HP/相邻15%HP量子; 削韧10"
+    },
+    "skill": {
+      "name": "礼物都去哪儿了",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "paramId": "tribbie_shenqi",
+          "value": 1.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "【神启】3回合: 全队全属性抗性穿透+24%(回合开始-1, 引擎handler)"
+    },
+    "ultimate": {
+      "name": "猜猜这里住着谁",
+      "type": "ultimate",
+      "cost": {
+        "energy": 120
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "结界2回合: 敌受伤+30% + 受击后对最高HP目标附加12%HP量子伤(引擎handler); 30%HP群伤"
+    },
+    "talent": {
+      "name": "好忙好忙的缇宝",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 18.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "队友施放终结技后缇宝FUA 18%HP群伤(每角色1次/缇宝终结技重置, 引擎handler)"
+    },
+    "technique": {
+      "name": "开心你就拍拍手",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 进入战斗获得【神启】3回合(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "城墙外的羊羔儿…",
+      "description": "FUA后增伤72%×3层3回合",
+      "hook_name": "tribbie_trace1"
+    },
+    {
+      "name": "长翅膀的玻璃球！",
+      "description": "结界期生命上限+全队HP之和9%",
+      "hook_name": "tribbie_trace2"
+    },
+    {
+      "name": "岔路旁的小石子？",
+      "description": "开局回30能; 队友攻击每命中1目标+1.5能",
+      "hook_name": "tribbie_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "暴伤+37.3%/暴击+12%/生命+10%",
+      "hook_name": "tribbie_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "拾起砂糖的祭典",
+      "description": "结界期我方攻击后对附加目标额外24%真伤",
+      "hook_name": "tribbie_e1"
+    },
+    {
+      "rank": 2,
+      "name": "探访佳梦的向导",
+      "description": "附加伤害×1.2且额外1次",
+      "hook_name": "tribbie_e2"
+    },
+    {
+      "rank": 3,
+      "name": "盛满晨曦的宝藏",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "tribbie_e3"
+    },
+    {
+      "rank": 4,
+      "name": "心意相契的安宁",
+      "description": "神启期全队无视18%防御",
+      "hook_name": "tribbie_e4"
+    },
+    {
+      "rank": 5,
+      "name": "开启奇迹的时钟",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "tribbie_e5"
+    },
+    {
+      "rank": 6,
+      "name": "星月满天的明日",
+      "description": "终结技后FUA; FUA增伤+729%",
+      "hook_name": "tribbie_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

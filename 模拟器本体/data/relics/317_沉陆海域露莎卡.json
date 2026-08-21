@@ -1,0 +1,13 @@
+{
+  "name": "沉陆海域露莎卡",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Energy Regeneration Rate by 5%. If the wearer is not the first character in the team lineup, then increases the ATK of the first character in the team lineup by 12%.",
+      "attributes": {
+        "ENERGY_REGEN": 5.0
+      },
+      "condition": "not_first_slot_atk_buff"
+    }
+  ]
+}

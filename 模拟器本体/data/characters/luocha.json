@@ -1,0 +1,24 @@
+{
+  "id": "luocha",
+  "name": "罗刹",
+  "element": "虚数",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1281,
+  "base_ATK": 757,
+  "base_DEF": 364,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 100,
+  "trace_stats": {
+    "ATK_percent": 28.0,
+    "HP_percent": 18.0,
+    "DEF_percent": 12.5
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

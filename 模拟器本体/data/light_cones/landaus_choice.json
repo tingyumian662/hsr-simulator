@@ -1,0 +1,26 @@
+{
+  "name": "朗道的选择",
+  "rarity": 4,
+  "rank": 1,
+  "path": "存护",
+  "base_HP": 952,
+  "base_ATK": 423,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "受到的伤害降低16%（S1, 用户提供 16%/18%/20%/22%/24%）",
+      "attributes": {
+        "DMG_REDUCTION": 16.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "使装备者受到敌方攻击的概率提高200%（×3, 用户确认）",
+      "attributes": {},
+      "condition_code": "event_battle_start",
+      "target": "self"
+    }
+  ],
+  "id": "landaus_choice"
+}

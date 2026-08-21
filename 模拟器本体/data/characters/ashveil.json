@@ -1,0 +1,24 @@
+{
+  "id": "ashveil",
+  "name": "不死途",
+  "element": "雷",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 854,
+  "base_ATK": 776,
+  "base_DEF": 388,
+  "base_SPD": 106,
+  "taunt": 75,
+  "max_energy": 150,
+  "trace_stats": {
+    "ATK_percent": 10.0,
+    "CRIT_DMG": 37.3,
+    "DMG_BONUS_LIGHTNING": 14.4
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

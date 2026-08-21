@@ -1,0 +1,20 @@
+{
+ "id": "shared_feeling",
+ "name": "同一种心情",
+ "rarity": 4,
+ "rank": 5,
+ "path": "丰饶",
+ "base_HP": 953,
+ "base_ATK": 423,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HEAL_BONUS": 10.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

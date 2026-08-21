@@ -1,0 +1,13 @@
+{
+  "name": "出云显世与高天神国",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's ATK by 12%. When entering battle, if at least one teammate follows the same Path as the wearer, then the wearer's CRIT Rate increases by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    }
+  ]
+}

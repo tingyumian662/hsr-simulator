@@ -1,0 +1,40 @@
+{
+  "name": "爱如此刻永恒",
+  "rarity": 5,
+  "rank": 1,
+  "path": "记忆",
+  "base_HP": 1270,
+  "base_ATK": 476,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "SPD_percent": 18.0
+      }
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "忆灵对我方单体施放忆灵技后，获得【空白】：敌方全体受到的伤害提高10%（易伤乘区）",
+      "attributes": {},
+      "condition_code": "event_memsprite_attack",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "忆灵对敌方施放忆灵技后，获得【诗行】：我方全体暴击伤害提高16%",
+      "attributes": {},
+      "condition_code": "event_memsprite_attack",
+      "target": "all_allies"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "同时持有【空白】和【诗行】时，两者效果提高60%（易伤16%，暴伤25.6%）",
+      "attributes": {},
+      "condition_code": "event_memsprite_attack",
+      "target": "self"
+    }
+  ],
+  "id": "this_love_forever"
+}

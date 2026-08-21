@@ -1,0 +1,13 @@
+{
+  "name": "永恒之地翁法罗斯",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT Rate by 8%. While the wearer's memosprite is on the field, increases all allies' SPD by 8%. This effect cannot be stacked.",
+      "attributes": {
+        "CRIT_RATE": 8.0
+      },
+      "condition": ""
+    }
+  ]
+}

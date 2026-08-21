@@ -1,0 +1,20 @@
+{
+  "id": "quid_pro_quo",
+  "name": "等价交换",
+  "rarity": 4,
+  "rank": 5,
+  "path": "丰饶",
+  "base_HP": 952,
+  "base_ATK": 423,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "回合开始时，随机为1个当前能量百分比低于50%且有常规能量系统（max_energy>0）的我方其他目标恢复16点能量",
+      "attributes": {},
+      "condition_code": "event_turn_start",
+      "target": "self"
+    }
+  ],
+  "_source": "manual verified"
+}

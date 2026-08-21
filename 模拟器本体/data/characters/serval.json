@@ -1,0 +1,24 @@
+{
+  "id": "serval",
+  "name": "希露瓦",
+  "element": "雷",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 653,
+  "base_DEF": 375,
+  "base_SPD": 104,
+  "taunt": 75,
+  "max_energy": 100,
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "EFFECT_HIT_RATE": 18.0,
+    "EFFECT_RES": 10.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

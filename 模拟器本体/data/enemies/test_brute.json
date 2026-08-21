@@ -1,0 +1,94 @@
+{
+  "id": "test_brute",
+  "name": "测试凶兽",
+  "level": 80,
+  "HP": 500000,
+  "ATK": 100,
+  "DEF": 800,
+  "SPD": 80,
+  "toughness": 200,
+  "dmg_reduction": 0,
+  "vulnerability": 0,
+  "actions_per_turn": 2,
+  "element_res": {
+    "冰": 0,
+    "量子": 0,
+    "风": 0,
+    "雷": 0,
+    "虚数": 0,
+    "物理": 0,
+    "火": 0
+  },
+  "attacks": [
+    {
+      "name": "挥击",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 100.0,
+      "target_type": "single_enemy",
+      "priority": 0
+    },
+    {
+      "name": "横扫",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 80.0,
+      "target_type": "blast",
+      "priority": 1
+    },
+    {
+      "name": "三连击",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 60.0,
+      "target_type": "bounce",
+      "hits": 3,
+      "priority": 2
+    },
+    {
+      "name": "咆哮",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 50.0,
+      "target_type": "single_enemy",
+      "priority": 3,
+      "debuffs": [
+        {
+          "id": "brute_stun",
+          "name": "眩晕",
+          "category": "control",
+          "duration": 1,
+          "base_chance": 1.0
+        }
+      ],
+      "energy_gain": 5
+    },
+    {
+      "name": "蓄力",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 40.0,
+      "target_type": "single_enemy",
+      "priority": 4,
+      "self_buffs": [
+        {
+          "id": "brute_rage",
+          "name": "狂暴",
+          "attributes": {
+            "ATK_PERCENT": 0.5
+          },
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "name": "狂暴挥击",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 150.0,
+      "target_type": "single_enemy",
+      "priority": 5,
+      "requires_buff": "brute_rage"
+    }
+  ]
+}

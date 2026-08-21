@@ -1,0 +1,28 @@
+{
+ "id": "gugu_gaga_adventure",
+ "name": "菇菇嘎嘎历险记",
+ "rarity": 4,
+ "rank": 5,
+ "path": "欢愉",
+ "base_HP": 846,
+ "base_ATK": 476,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ELATION_LEVEL": 20.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放欢愉技时，敌方受到的欢愉伤害提高10%，持续2回合（仅欢愉伤害生效的易伤）",
+   "attributes": {
+    "VULNERABILITY_APPLIED_ELATION": 10.0
+   },
+   "condition_code": "typed_permanent",
+   "target": "self"
+  }
+ ]
+}

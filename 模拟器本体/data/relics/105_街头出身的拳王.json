@@ -1,0 +1,19 @@
+{
+  "name": "街头出身的拳王",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Physical DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_PHYSICAL": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "After the wearer attacks or is hit, their ATK increases by 5% for the rest of the battle. This effect can stack up to 5 times.",
+      "attributes": {},
+      "condition": "stack_atk_on_hit"
+    }
+  ]
+}

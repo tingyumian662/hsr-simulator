@@ -1,0 +1,13 @@
+{
+  "name": "劫火莲灯铸炼宫",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's SPD by 6%. When the wearer hits an enemy target that has Fire Weakness, the wearer's Break Effect increases by 40%, lasting for 1 turn.",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": ""
+    }
+  ]
+}

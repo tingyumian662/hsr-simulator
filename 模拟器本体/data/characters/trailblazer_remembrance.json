@@ -1,0 +1,305 @@
+{
+  "id": "trailblazer_remembrance",
+  "name": "开拓者·记忆",
+  "element": "冰",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 543,
+  "base_DEF": 630,
+  "base_SPD": 103,
+  "taunt": 100,
+  "max_energy": 160,
+  "trace_stats": {
+    "ATK_percent": 14.0,
+    "HP_percent": 14.0,
+    "CRIT_DMG": 37.3
+  },
+  "gold_offspring": true,
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·包在我身上！",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ]
+    },
+    "basic_attack_enhanced": {
+      "name": "明天，一同写下！",
+      "type": "basic_attack",
+      "cost": {
+        "_epic": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 120.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "消耗1层史诗, 解除迷迷控制, 开拓者+迷迷连携攻击, 迷迷+10%充能"
+    },
+    "skill": {
+      "name": "战技·就决定是你了！",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "召唤迷迷; 在场→回迷迷60%生命上限+10%充能"
+    },
+    "ultimate": {
+      "name": "终结技·一起上吧，迷迷！",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "all_enemies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "召唤迷迷+40%充能, 迷迷对全体120%/240%攻击冰伤(忆灵技处理)"
+    },
+    "talent": {
+      "name": "天赋·无所不能的伙伴",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "迷迷初始130速+开拓者80%生命上限+640。我方全体每累计恢复10能量→迷迷+1%充能"
+    },
+    "technique": {
+      "name": "秘技·记忆如往日重现",
+      "type": "technique",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "非进战: 全敌行动延后50%+100%ATK冰伤(引擎handler; 用户2026-08-14确认txt未标进战)",
+      "technique_category": "support"
+    }
+  },
+  "traces": [
+    {
+      "name": "磁石与长链",
+      "description": "持有【迷迷的声援】的我方目标能量上限大于100点时，每超过10点，通过【迷迷的声援】造成的真实伤害倍率额外提高2.0%，最多提高20%。",
+      "hook_name": "tbr_trace1_magnet_chain"
+    },
+    {
+      "name": "追念之权杖",
+      "description": "战斗开始时，开拓者的行动提前30%。首次召唤迷迷时，使迷迷获得40%充能。",
+      "hook_name": "tbr_trace2_scepter"
+    },
+    {
+      "name": "袖珍的事诗",
+      "description": "迷迷施放【坏人！麻烦！】时，立即获得5%充能。",
+      "hook_name": "tbr_trace3_pocket_poem"
+    },
+    {
+      "name": "未完的尾声",
+      "description": "施放终结技后，获得1层【史诗】，最多持有2层。持有【史诗】且迷迷在场时，普攻强化为【明天，一同写下！】。",
+      "hook_name": "tbr_trace4_epic"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "现在的记叙者",
+      "description": "持有【迷迷的声援】的我方目标暴击率提高10%。",
+      "hook_name": "tbr_e1"
+    },
+    {
+      "rank": 2,
+      "name": "过往的拾遗者",
+      "description": "除迷迷以外的我方忆灵行动时，开拓者恢复8点能量。该效果每回合最多触发1次。",
+      "hook_name": "tbr_e2"
+    },
+    {
+      "rank": 2,
+      "name": "过往的拾遗者·重置",
+      "description": "开拓者回合开始时重置可触发次数(v5.7)",
+      "hook_name": "tbr_e2_reset"
+    },
+    {
+      "rank": 3,
+      "name": "未来的咏唱者",
+      "description": "战技等级+2；天赋等级+2；忆灵天赋等级+1。",
+      "hook_name": "tbr_e3"
+    },
+    {
+      "rank": 4,
+      "name": "缪斯的新舞伴",
+      "description": "使能量上限为0的我方目标主动施放技能时，迷迷也能够获得3%充能，并且该目标通过【迷迷的声援】造成的真实伤害倍率额外提高6%。",
+      "hook_name": "tbr_e4"
+    },
+    {
+      "rank": 5,
+      "name": "诗篇的裁缝匠",
+      "description": "终结技等级+2；普攻等级+1；忆灵技等级+1。",
+      "hook_name": "tbr_e5"
+    },
+    {
+      "rank": 6,
+      "name": "神启的转呈者",
+      "description": "终结技的暴击率固定为100%。",
+      "hook_name": "tbr_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "迷迷",
+    "element": "冰",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 130,
+    "max_taunt": 100,
+    "inherit_ratios": {
+      "_doc": "HP=开拓者80%生命上限+640。SPD=130固定。ATK=同开拓者。",
+      "HP": 0.8,
+      "ATK": 1.0
+    },
+    "position_offset": -1,
+    "is_backup": false,
+    "_mechanism": {
+      "charge": "充能0-100%。召唤+50%, 终结技+40%, 战技+10%, 强化普攻+10%, 坏人麻烦+5%, 全队每累计恢复10能量+1%",
+      "charge_100": "充能100%→立即行动→施放【我会！帮你！】",
+      "support": "全队暴伤+=迷迷12%暴伤+24%"
+    },
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·坏人！麻烦！",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "bounce",
+        "multipliers": [
+          {
+            "stat": "ATK",
+            "scale": 36.0,
+            "damageType": "direct",
+            "element": "冰",
+            "_hits": 4,
+            "target": "bounce"
+          },
+          {
+            "stat": "ATK",
+            "scale": 90.0,
+            "damageType": "direct",
+            "element": "冰",
+            "target": "all_enemies"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "bounce",
+            "value": 20.0
+          },
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 10.0
+          },
+          {
+            "type": "energy_regen",
+            "target": "self",
+            "value": 10.0
+          }
+        ],
+        "_mechanism": "4次随机单体36%攻击冰伤+全体90%攻击冰伤。施放后+5%充能"
+      },
+      "memsprite_support": {
+        "name": "我会！帮你！",
+        "type": "skill",
+        "cost": {},
+        "target": "single_ally",
+        "multipliers": [],
+        "effects": [],
+        "_mechanism": "指定我方单体行动提前100%+【迷迷的声援】3回合。声援:每造成1次伤害→额外28%真伤。对自身施放不触发行动提前"
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "忆灵天赋·伙伴！一起！",
+        "effect": "全队暴伤+=迷迷12%暴伤+24%。充能<100%:迷迷行动自动施放坏人麻烦。充能100%:立即行动→施放我会帮你"
+      },
+      "talent_2": {
+        "name": "忆灵天赋·迷迷，加油！",
+        "effect": "迷迷被召唤时立即获得50%充能"
+      },
+      "talent_3": {
+        "name": "忆灵天赋·遗憾…不留",
+        "effect": "迷迷消失时开拓者行动提前25%"
+      }
+    }
+  }
+}

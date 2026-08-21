@@ -1,0 +1,37 @@
+{
+ "name": "驶向第二次生命",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 60.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "造成的击破伤害无视目标20%防御力（仅击破伤害生效）",
+   "attributes": {
+    "DEF_PEN_BREAK": 20.0
+   },
+   "condition_code": "typed_permanent",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "击破特攻>=150%时，速度提高12%",
+   "attributes": {
+    "SPD_percent": 12.0
+   },
+   "condition_code": "state_be_threshold",
+   "target": "self"
+  }
+ ],
+ "id": "sailing_towards_a_second_life"
+}

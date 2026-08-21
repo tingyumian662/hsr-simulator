@@ -1,0 +1,20 @@
+{
+ "id": "memory_s_curtain_never_falls",
+ "name": "记忆永不落幕",
+ "rarity": 5,
+ "rank": 1,
+ "path": "记忆",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "SPD_percent": 6.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,190 @@
+{
+  "id": "bronya",
+  "name": "布洛妮娅",
+  "element": "风",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1242,
+  "base_ATK": 582,
+  "base_DEF": 534,
+  "base_SPD": 99,
+  "taunt": 100,
+  "max_energy": 120,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "DMG_BONUS_WIND": 22.4,
+    "CRIT_DMG": 24.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·驭风的子弹",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于布洛妮娅100%攻击力的风属性伤害。"
+    },
+    "skill": {
+      "name": "战技·作战再部署",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        },
+        {
+          "type": "cleanse",
+          "target": "single_ally",
+          "value": 1.0
+        },
+        {
+          "type": "action_advance",
+          "target": "single_ally",
+          "value": 100.0
+        },
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "value": 66.0,
+          "paramId": "bronya_skill_dmg_buff"
+        }
+      ],
+      "_description": "解除指定我方单体的1个负面状态，使其行动提前100%，并使其造成的伤害提高66%，持续1回合。"
+    },
+    "ultimate": {
+      "name": "终结技·贝洛伯格进行曲",
+      "type": "ultimate",
+      "cost": {
+        "energy": 120
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        },
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "bronya_ult_buff"
+        }
+      ],
+      "_description": "使我方全体攻击力提高55%，暴击伤害提高等同于布洛妮娅暴击伤害的16%+20%，持续2回合。"
+    },
+    "talent": {
+      "name": "天赋·先人一步",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "trigger": "施放普攻后",
+        "effect": "布洛妮娅的下一次行动提前15%。"
+      }
+    },
+    "technique": {
+      "name": "秘技·在旗帜下",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "bronya_technique_atk"
+        }
+      ],
+      "_description": "使用秘技后下一次战斗开始时，我方全体攻击力提高15%，持续2回合。",
+      "_mechanism": "非进战: 全队攻击力+15% 2回合(引擎handler, BUFF_REGISTRY bronya_technique_atk)"
+    }
+  },
+  "traces": [
+    {
+      "name": "号令",
+      "description": "普攻的暴击率提高至100%。",
+      "hook_name": "bronya_basic_crit_100"
+    },
+    {
+      "name": "阵地",
+      "description": "战斗开始时，我方全体防御力提高20%，持续2回合。",
+      "hook_name": "bronya_battle_start_def"
+    },
+    {
+      "name": "军势",
+      "description": "布洛妮娅在场时，我方全体造成的伤害提高10%。",
+      "hook_name": "bronya_team_dmg_bonus"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "养精蓄锐",
+      "description": "施放战技时，有50%固定概率恢复1个战技点，该效果有1回合的触发冷却。",
+      "hook_name": "bronya_e1"
+    },
+    {
+      "rank": 2,
+      "name": "快速行军",
+      "description": "施放战技时，被指定的我方目标在行动后速度提高30%，持续1回合。",
+      "hook_name": "bronya_e2"
+    },
+    {
+      "rank": 3,
+      "name": "鼓炮齐鸣",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "bronya_e3"
+    },
+    {
+      "rank": 4,
+      "name": "攻其不备",
+      "description": "我方其他角色对弱点为风属性的敌方目标施放普攻后，布洛妮娅立即进行1次追加攻击，对该目标造成等同于普攻伤害80%的风属性伤害，该效果每回合可触发1次。",
+      "hook_name": "bronya_e4"
+    },
+    {
+      "rank": 5,
+      "name": "所向克捷",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "bronya_e5"
+    },
+    {
+      "rank": 6,
+      "name": "气贯长虹",
+      "description": "战技对指定我方目标造成的伤害提高效果的持续时间增加1回合。",
+      "hook_name": "bronya_e6"
+    }
+  ],
+  "_source": "bilibili Wiki API verified"
+}

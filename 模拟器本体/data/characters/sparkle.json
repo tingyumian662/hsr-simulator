@@ -1,0 +1,188 @@
+{
+  "id": "sparkle",
+  "name": "花火",
+  "element": "量子",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1397,
+  "base_ATK": 524,
+  "base_DEF": 485,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 110,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "HP_percent": 28.0,
+    "CRIT_DMG": 24.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·独角戏",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于花火100%攻击力的量子属性伤害。"
+    },
+    "skill": {
+      "name": "战技·梦游鱼",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        },
+        {
+          "type": "action_advance",
+          "target": "single_ally",
+          "value": 50.0
+        },
+        {
+          "type": "buff",
+          "target": "single_ally",
+          "value": 1.0,
+          "paramId": "sparkle_cd_buff"
+        }
+      ],
+      "_description": "使指定我方单体行动提前50%，并使其暴击伤害提高等同于花火暴击伤害的24%+45%，持续至目标下个回合开始。"
+    },
+    "ultimate": {
+      "name": "终结技·一人千役",
+      "type": "ultimate",
+      "cost": {
+        "energy": 110
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        },
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "sparkle_ult_buff"
+        }
+      ],
+      "_description": "恢复4个战技点，使我方全体获得【谜诡】。持有【谜诡】的我方目标，花火天赋造成的伤害提高效果每层额外提高6%，持续2回合。"
+    },
+    "talent": {
+      "name": "天赋·叙述性诡计",
+      "type": "talent",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "sp_limit_increase": "战技点上限额外增加3点（最高8点）",
+        "sp_consume_buff": "每消耗1个战技点，我方全体造成的伤害提高6%（最多叠加3层，最高18%），持续至花火下个回合开始。"
+      }
+    },
+    "technique": {
+      "name": "秘技·不可靠叙事者",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_description": "使用秘技后进入持续20秒的【迷误】状态。进入战斗后我方全体获得1层花火天赋的伤害提高效果，持续2回合。",
+      "_mechanism": "非进战: 恢复3战技点+花火回20能量(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "岁时记",
+      "description": "施放普攻时，额外恢复10点能量。",
+      "hook_name": "sparkle_basic_energy"
+    },
+    {
+      "name": "夜想曲",
+      "description": "我方全体的攻击力提高45%。我方角色持有战技的暴击伤害提高效果时，全属性抗性穿透提高10%。",
+      "hook_name": "sparkle_team_cd"
+    },
+    {
+      "name": "悬疑",
+      "description": "持有【谜诡】的我方目标，花火天赋的增伤效果每层额外提高6%，最多3层（即与终结技效果叠加后每层额外12%）。",
+      "hook_name": "sparkle_mystery_boost"
+    },
+    {
+      "name": "叙述性诡计",
+      "description": "花火在场时，战技点上限额外增加2点。",
+      "hook_name": "sparkle_sp_limit"
+    },
+    {
+      "name": "一人千役·记录",
+      "description": "我方角色回合结束后若战技点小于上限，花火消耗记录值为我方恢复战技点，直至恢复至上限。",
+      "hook_name": "sparkle_turn_end"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "悬置怀疑",
+      "description": "持有【谜诡】的我方目标攻击力提高40%，战斗开始时或施放战技时，花火的速度提高15%，持续2回合。",
+      "hook_name": "sparkle_e1"
+    },
+    {
+      "rank": 2,
+      "name": "虚构无端",
+      "description": "天赋每层效果额外使敌方目标的防御力降低10%。",
+      "hook_name": "sparkle_e2"
+    },
+    {
+      "rank": 3,
+      "name": "梦幻泡影",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "sparkle_e3"
+    },
+    {
+      "rank": 4,
+      "name": "游戏人间",
+      "description": "终结技可以额外恢复1点战技点，天赋的战技点上限增加效果额外增加1点。",
+      "hook_name": "sparkle_e4"
+    },
+    {
+      "rank": 5,
+      "name": "双面真相",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "sparkle_e5"
+    },
+    {
+      "rank": 6,
+      "name": "多重解答",
+      "description": "战技的暴击伤害提高效果额外提高，提高数值等同于花火暴击伤害的30%，花火施放战技时，使战技的暴击伤害提高效果对持有【谜诡】的队友都会生效，花火施放终结技时，若我方单体中有目标持有战技的暴击伤害提高效果，使该效果扩散至持有【谜诡】的队友。",
+      "hook_name": "sparkle_e6"
+    }
+  ],
+  "_source": "bilibili Wiki API verified"
+}

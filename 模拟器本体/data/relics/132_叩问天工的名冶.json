@@ -1,0 +1,19 @@
+{
+  "name": "叩问天工的名冶",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Max HP by 12%. Increases the wearer's CRIT DMG dealt to enemy targets in the DEF reduction state by 28%. After the wearer inflicts the DEF reduction state on an enemy target, all allies gain \"Comburent\" for 2 turns.",
+      "attributes": {
+        "HP_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "This effect cannot be stacked. The DMG dealt by ally targets with \"Comburent\" increases by 15%. This effect can be triggered again after the wearer uses an attack.",
+      "attributes": {},
+      "condition": "comburent_team_dmg"
+    }
+  ]
+}

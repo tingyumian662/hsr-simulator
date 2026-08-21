@@ -1,0 +1,41 @@
+{
+  "name": "落日时起舞",
+  "rarity": 5,
+  "rank": 1,
+  "path": "毁灭",
+  "base_HP": 1058,
+  "base_ATK": 582,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "CRIT_DMG": 36.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "使自身受到敌方攻击的概率大幅提高",
+      "attributes": {},
+      "condition_code": "event_battle_start",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "施放终结技后获得1层【火舞】(持续2回合，每层独立计算，最多2层)，每层使追加攻击伤害提高36%",
+      "attributes": {},
+      "condition_code": "stack_gain:on_ult:huowu:2:self:2:",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "施放终结技后获得1层【火舞】(持续2回合，每层独立计算，最多2层)，每层使追加攻击伤害提高36%",
+      "attributes": {
+        "DMG_BONUS_ATK_FOLLOW_UP": 72.0
+      },
+      "condition_code": "stack:huowu:2"
+    }
+  ],
+  "id": "dance_at_sunset"
+}

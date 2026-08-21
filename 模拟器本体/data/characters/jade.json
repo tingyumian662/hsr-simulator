@@ -1,0 +1,24 @@
+{
+  "id": "jade",
+  "name": "翡翠",
+  "element": "量子",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1087,
+  "base_ATK": 660,
+  "base_DEF": 509,
+  "base_SPD": 103,
+  "taunt": 75,
+  "max_energy": 140,
+  "trace_stats": {
+    "DMG_BONUS_QUANTUM": 22.4,
+    "ATK_percent": 18.0,
+    "EFFECT_RES": 10.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

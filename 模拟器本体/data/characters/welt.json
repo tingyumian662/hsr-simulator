@@ -1,0 +1,190 @@
+{
+  "id": "welt",
+  "name": "瓦尔特",
+  "element": "虚数",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1125,
+  "base_ATK": 620,
+  "base_DEF": 509,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 120,
+  "trace_stats": {
+    "DMG_BONUS_IMAGINARY": 14.4,
+    "EFFECT_RES": 10.0,
+    "EFFECT_HIT_RATE": 28.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "重力压制",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "虚数"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK虚数; 削韧10; 行迹2附加80%倍率(引擎handler)"
+    },
+    "skill": {
+      "name": "虚空断界",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 72.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "_target": "bounce",
+          "_hits": 5
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "5段×72%ATK弹射(削韧10*5); 命中75%概率减速10% 2回合; 行迹2附加120%倍率(引擎handler)"
+    },
+    "ultimate": {
+      "name": "拟似黑洞",
+      "type": "ultimate",
+      "cost": {
+        "energy": 120
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 150.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "150%ATK全体; 100%禁锢1回合(行动延后12%+减速); 【失重】2回合(受击行动延后4%每回合最多8次); 行迹3额外5能; E1失重目标附加40%终结技倍率(引擎handler)"
+    },
+    "talent": {
+      "name": "时空扭曲",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "失重目标DEF-40%+速度-5%; 击中减速目标附加100%ATK虚数伤; E2天赋触发回3能(引擎handler)"
+    },
+    "technique": {
+      "name": "画地为牢",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战·领域(互斥): 全敌禁锢1回合(行动延后20%+减速)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "惩戒",
+      "description": "失重目标受伤+10%叠10层 2回合; 开局30能量",
+      "hook_name": "welt_trace1"
+    },
+    {
+      "name": "审判",
+      "description": "普攻/战技附加80%/120%倍率伤害",
+      "hook_name": "welt_trace2"
+    },
+    {
+      "name": "裁决",
+      "description": "EHR>40%每超10%攻击力+20%上限80%; 终结技额外5能量",
+      "hook_name": "welt_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "效果命中+28%/虚数伤害+14.4%/效果抵抗+10%",
+      "hook_name": "welt_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "名的传承",
+      "description": "失重目标击中附加40%终结技倍率(每目标每次攻击1次)",
+      "hook_name": "welt_e1"
+    },
+    {
+      "rank": 2,
+      "name": "星的凝聚",
+      "description": "天赋触发回3能量",
+      "hook_name": "welt_e2"
+    },
+    {
+      "rank": 3,
+      "name": "和平的祈愿",
+      "description": "战技+2; 普攻+1",
+      "hook_name": "welt_e3"
+    },
+    {
+      "rank": 4,
+      "name": "义的名号",
+      "description": "失重目标全属性抗性-30%",
+      "hook_name": "welt_e4"
+    },
+    {
+      "rank": 5,
+      "name": "善的力量",
+      "description": "终结技+2; 天赋+2",
+      "hook_name": "welt_e5"
+    },
+    {
+      "rank": 6,
+      "name": "光明的未来",
+      "description": "减速目标暴击率+30%+暴击伤害+60%",
+      "hook_name": "welt_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

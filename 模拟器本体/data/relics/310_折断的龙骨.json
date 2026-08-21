@@ -1,0 +1,13 @@
+{
+  "name": "折断的龙骨",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Effect RES by 10%. When the wearer's Effect RES is at 30% or higher, all allies' CRIT DMG increases by 10%.",
+      "attributes": {
+        "EFFECT_RES": 10.0
+      },
+      "condition": "effect_res_30_team_cd"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "密林卧雪的猎人",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Ice DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_ICE": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "After the wearer uses their Ultimate, their CRIT DMG increases by 25% for 2 turns.",
+      "attributes": {},
+      "condition": "on_ult_cd_buff"
+    }
+  ]
+}

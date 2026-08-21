@@ -1,0 +1,20 @@
+{
+ "id": "see_you_at_the_end",
+ "name": "于那终点再见",
+ "rarity": 4,
+ "rank": 5,
+ "path": "巡猎",
+ "base_HP": 953,
+ "base_ATK": 529,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 24.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

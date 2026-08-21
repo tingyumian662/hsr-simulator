@@ -1,0 +1,35 @@
+{
+ "name": "我将，巡征追猎",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 952,
+ "base_ATK": 635,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 15.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "施放追加攻击时，获得1层【流光】，最多叠加2层。回合结束时，移除1层【流光】",
+   "attributes": {},
+   "condition_code": "stack_gain:on_followup:liuguang:2:self:0:turn_end:-1",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "每层【流光】使终结技伤害无视目标27%防御力，最多2层（最高54%）",
+   "attributes": {
+    "DEF_PEN_SKILL_ULTIMATE": 54.0
+   },
+   "condition_code": "stack:liuguang:2",
+   "target": "self"
+  }
+ ],
+ "id": "i_venture_forth_to_hunt"
+}

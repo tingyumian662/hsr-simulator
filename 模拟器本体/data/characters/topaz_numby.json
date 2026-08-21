@@ -1,0 +1,24 @@
+{
+  "id": "topaz_numby",
+  "name": "托帕&账账",
+  "element": "火",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 931,
+  "base_ATK": 621,
+  "base_DEF": 412,
+  "base_SPD": 110,
+  "taunt": 75,
+  "max_energy": 130,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "DMG_BONUS_FIRE": 22.4,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

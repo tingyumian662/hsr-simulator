@@ -1,0 +1,240 @@
+{
+  "id": "yaoguang",
+  "name": "爻光",
+  "element": "物理",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1241,
+  "base_ATK": 465,
+  "base_DEF": 654,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 180,
+  "cast_number": 116,
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "ELATION_LEVEL": 10.0,
+    "SPD_percent": 9.0
+  },
+  "_trace_stats_note": "SPD_percent=9.0实际为速度+9(固定值)。欢愉度10%已含基础。",
+  "elation_stats": {},
+  "skills": {
+    "basic_attack": {
+      "name": "普攻",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "blast",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 45.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 15.0,
+          "damageType": "direct",
+          "element": "物理",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "blast",
+          "value": 10.0
+        }
+      ],
+      "_note": "普攻回能30(20+10额外)"
+    },
+    "skill": {
+      "name": "战技·结界展开",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "yaoguang_field"
+        }
+      ],
+      "_mechanism": {
+        "field": "结界持续3回合，自身回合开始-1。我方角色欢愉度提升=爻光欢愉度×20%。",
+        "laugh_gain": "释放普攻或战技后获得3笑点"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·阿哈增援",
+      "type": "ultimate",
+      "cost": {
+        "energy": 180
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 20.0,
+          "paramId": "res_pen_buff"
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 5.0,
+          "paramId": "laugh_gain_5"
+        }
+      ],
+      "_mechanism": {
+        "aha_extra_turn": "阿哈立即获得额外回合，固定计入20笑点(1魂→40)，不消耗原有笑点",
+        "res_pen": "全队全属性抗性穿透+20%，持续3回合"
+      }
+    },
+    "talent": {
+      "name": "天赋·大吉大利",
+      "type": "talent",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "condition": "爻光持有[好活当赏]时",
+        "trigger": "我方目标施放攻击后触发[大吉大利]",
+        "effect": "对随机1个被击中目标额外造成20%对应属性欢愉伤害",
+        "sp_bonus": "若本次攻击消耗战技点，额外触发1次(共2次)",
+        "elation_borrow": "攻击者欢愉度<爻光时，使用爻光的欢愉度计算该次伤害",
+        "not_attack": "不视为1次攻击"
+      }
+    },
+    "technique": {
+      "name": "秘技·备战",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_note": "辅助型秘技。下一次战斗开战时自动释放1次战技(不消耗战技点)",
+      "_mechanism": "非进战: 开战自动触发1次战技(免SP)→结界+全队欢愉度=爻光欢愉度×20% (v6.10.3 引擎init_battle)"
+    },
+    "elation_skill": {
+      "name": "欢愉技·凶星低语",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 100.0,
+          "damageType": "elation",
+          "element": "物理",
+          "_target": "all_enemies"
+        },
+        {
+          "stat": "NONE",
+          "scale": 20.0,
+          "damageType": "elation",
+          "element": "物理",
+          "_target": "bounce",
+          "_hits": 5
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "value": 16.0,
+          "paramId": "凶星低语"
+        }
+      ],
+      "_mechanism": {
+        "凶星低语": "敌方受到伤害提高16%，持续3回合(易伤乘区)",
+        "参演编号": 116
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "暴伤增幅",
+      "description": "暴击伤害+60%。施放欢愉技后回复1个战技点",
+      "hook_name": "yaoguang_cd_and_sp"
+    },
+    {
+      "name": "持久喝彩",
+      "description": "获得好活当赏时持续时间延长1回合(2→3)",
+      "hook_name": "yaoguang_goodshow_extend"
+    },
+    {
+      "name": "速域转化",
+      "description": "SPD≥120→欢愉度+30%, 每超1点+1%, 上限200点",
+      "hook_name": "yaoguang_spd_to_elation"
+    }
+  ],
+  "_special_trace_details": {
+    "trace1": {
+      "cd_bonus": 60.0,
+      "sp_recovery": "施放欢愉技后回1战技点"
+    },
+    "trace2": {
+      "goodshow_extend": 1,
+      "total_turns": 3
+    },
+    "trace3": {
+      "threshold": 120,
+      "per_spd_pct": 1.0,
+      "max_bonus_spd": 200
+    }
+  },
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "何处落玉，盈盈笑语",
+      "description": "阿哈额外回合计入笑点20→40。全体欢愉伤害无视20%防御",
+      "hook_name": "yaoguang_e1"
+    },
+    {
+      "rank": 2,
+      "name": "飞箭无目，青翎为典",
+      "description": "结界内全体SPD+12%，欢愉度+16%",
+      "hook_name": "yaoguang_e2"
+    },
+    {
+      "rank": 3,
+      "name": "镜映十光，卦显万吉",
+      "description": "战技+2/普攻+1/欢愉技+1",
+      "hook_name": "yaoguang_e3"
+    },
+    {
+      "rank": 4,
+      "name": "命若素绡，拈羽点彩",
+      "description": "阿哈额外回合中全体欢愉技伤害×1.5",
+      "hook_name": "yaoguang_e4"
+    },
+    {
+      "rank": 5,
+      "name": "羽衣煌煌，六爻增华",
+      "description": "终结技+2/天赋+2/欢愉技+1",
+      "hook_name": "yaoguang_e5"
+    },
+    {
+      "rank": 6,
+      "name": "牵丝渡引，天星垂虹",
+      "description": "全体欢愉增笑25%。自身欢愉技倍率+100%",
+      "hook_name": "yaoguang_e6"
+    }
+  ],
+  "_pending": ""
+}

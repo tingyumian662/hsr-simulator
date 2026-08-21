@@ -1,0 +1,42 @@
+{
+ "name": "镜中故我",
+ "rarity": 5,
+ "rank": 1,
+ "path": "同谐",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 60.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放终结技后，我方全体造成的伤害提高24%，持续3回合。若击破特攻>=150%，额外恢复1个战技点",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "event_ult_after",
+   "target": "all_allies"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "施放终结技后，若击破特攻>=150%，额外恢复1个战技点",
+   "attributes": {},
+   "condition_code": "event_ult_after",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "每个波次开始时，我方全体立即恢复10点能量。同类技能无法重复生效",
+   "attributes": {},
+   "condition_code": "event_wave_start",
+   "target": "all_allies"
+  }
+ ],
+ "id": "past_self_in_mirror"
+}

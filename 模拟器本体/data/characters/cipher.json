@@ -1,0 +1,217 @@
+{
+  "id": "cipher",
+  "name": "赛飞儿",
+  "element": "量子",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 931,
+  "base_ATK": 640,
+  "base_DEF": 509,
+  "base_SPD": 106,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "DMG_BONUS_QUANTUM": 14.4,
+    "EFFECT_HIT_RATE": 10.0,
+    "SPD_percent": 14
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "呀，漏网之鱼",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK量子; 削韧10"
+    },
+    "skill": {
+      "name": "嘿，空手套白银",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "blast",
+          "paramId": "cipher_weak",
+          "value": 1.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "扩散200%/100%ATK量子; 虚弱(伤害-10%)+自身ATK+30% 2回合(引擎handler)"
+    },
+    "ultimate": {
+      "name": "猫咪怪盗，敬上！",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 120.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 40.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "blast"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 50.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "120%ATK+记录值25%真伤+40%ATK扩散+记录值75%均分; 清空记录(引擎handler)"
+    },
+    "talent": {
+      "name": "热情好客的多洛斯人",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 150.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "【老主顾】锁定(生命上限最高, 仅最新); 受击FUA 150%ATK(1次/回合); 记录伤害12%/8%(引擎handler)"
+    },
+    "technique": {
+      "name": "穿靴子的猫",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "非进战: 全敌100%ATK量子伤+记录+200%(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "神行宝鞋",
+      "description": "SPD≥140/170 CR+25%/50%+记录+50%/100%",
+      "hook_name": "cipher_trace1"
+    },
+    {
+      "name": "三百侠盗",
+      "description": "记录非老主顾目标伤害8%",
+      "hook_name": "cipher_trace2"
+    },
+    {
+      "name": "偷天换日",
+      "description": "FUA暴伤+100%; 在场敌受伤+40%",
+      "hook_name": "cipher_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "速度+14/量子伤+14.4%/命中+10%",
+      "hook_name": "cipher_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "察言观色看笑脸",
+      "description": "记录×150%; FUA时ATK+80%",
+      "hook_name": "cipher_e1"
+    },
+    {
+      "rank": 2,
+      "name": "焦头烂额顺手牵",
+      "description": "击中敌受伤+30% 2回合",
+      "hook_name": "cipher_e2"
+    },
+    {
+      "rank": 3,
+      "name": "无中生有难分辨",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "cipher_e3"
+    },
+    {
+      "rank": 4,
+      "name": "东窗事发一溜烟",
+      "description": "老主顾受击50%ATK附加",
+      "hook_name": "cipher_e4"
+    },
+    {
+      "rank": 5,
+      "name": "狡兔三窟轻如燕",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "cipher_e5"
+    },
+    {
+      "rank": 6,
+      "name": "大盗无名天地间",
+      "description": "FUA×350%; 记录+16%; 清空返还20%",
+      "hook_name": "cipher_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

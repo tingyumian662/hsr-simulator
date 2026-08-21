@@ -1,0 +1,24 @@
+{
+  "id": "misha",
+  "name": "米沙",
+  "element": "冰",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1270,
+  "base_ATK": 600,
+  "base_DEF": 397,
+  "base_SPD": 96,
+  "taunt": 125,
+  "max_energy": 100,
+  "trace_stats": {
+    "CRIT_RATE": 6.7,
+    "DMG_BONUS_ICE": 22.4,
+    "DEF_percent": 22.5
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

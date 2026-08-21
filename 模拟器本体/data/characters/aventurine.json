@@ -1,0 +1,24 @@
+{
+  "id": "aventurine",
+  "name": "砂金",
+  "element": "虚数",
+  "path": "存护",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1203,
+  "base_ATK": 446,
+  "base_DEF": 655,
+  "base_SPD": 106,
+  "taunt": 150,
+  "max_energy": 110,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "DEF_percent": 35.0,
+    "DMG_BONUS_IMAGINARY": 14.4
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

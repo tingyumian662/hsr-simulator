@@ -1,0 +1,207 @@
+{
+  "id": "huohuo",
+  "name": "藿藿",
+  "element": "风",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 602,
+  "base_DEF": 509,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 140,
+  "trace_stats": {
+    "HP_percent": 28.0,
+    "EFFECT_RES": 18.0,
+    "SPD_percent": 5.0
+  },
+  "_trace_stats_note": "SPD_percent=5.0实际为速度+5(固定值)。",
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·令旗·征风召雨",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 25.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ]
+    },
+    "skill": {
+      "name": "战技·灵符·保命护身",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "single_ally",
+          "value": 1.0
+        },
+        {
+          "type": "heal",
+          "target": "single_ally",
+          "value": 1.0,
+          "paramId": "huohuo_skill_heal_main"
+        },
+        {
+          "type": "heal",
+          "target": "blast",
+          "value": 1.0,
+          "paramId": "huohuo_skill_heal_adjacent"
+        }
+      ],
+      "_mechanism": {
+        "heal_main": "目标: 24%HP上限+640",
+        "heal_adjacent": "相邻目标: 19.2%HP上限+512",
+        "禳命_trigger": "施放后获得禳命(3回合)"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·尾巴·遣神役鬼",
+      "type": "ultimate",
+      "cost": {
+        "energy": 140
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "all_allies_but_self",
+          "value": 1.0,
+          "paramId": "huohuo_ult_energy"
+        },
+        {
+          "type": "buff",
+          "target": "all_allies_but_self",
+          "value": 40.0,
+          "paramId": "huohuo_ult_atk"
+        }
+      ],
+      "_mechanism": {
+        "energy_restore": "队友: 各自能量上限×20%",
+        "atk_buff": "队友攻击力+40%, 2回合",
+        "special_trace2": "能量上限≥160的队友额外攻击力+24%",
+        "禳命_trigger": "施放后获得禳命(3回合)"
+      }
+    },
+    "talent": {
+      "name": "天赋·凭附·气通天真",
+      "type": "talent",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "禳命": "施放战技/终结技后获得, 持续3回合, 自身回合开始-1",
+        "heal_trigger": "禳命期间: 我方回合开始/施放终结技→治疗自身+血量最低队友(4.5%HP上限+120)",
+        "low_hp_heal": "每个HP≤50%的目标额外治疗(4.5%HP上限+120)",
+        "cleanse": "禳命治疗后解除目标1个负面(共6次, 重获禳命刷新次数)",
+        "special_trace3": "禳命治疗触发时藿藿回1能量"
+      }
+    },
+    "technique": {
+      "name": "秘技·凶煞·劾压鬼物",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "value": 25.0,
+          "paramId": "huohuo_tech_atk_down"
+        }
+      ],
+      "_note": "大地图恐吓敌人逃跑。进战后100%基础概率使敌方全体攻击力-25%, 持续2回合。",
+      "_mechanism": "非进战: 全敌攻击力-25% 2回合(100%基础概率EHR检定, 引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "开局禳命",
+      "description": "战斗开始恢复30能量+获得禳命, 持续2回合",
+      "hook_name": "huohuo_battle_start"
+    },
+    {
+      "name": "控抗精通",
+      "description": "抵抗控制概率+35%。终结技时能量上限≥160的队友额外攻击力+24%",
+      "hook_name": "huohuo_control_resist_and_atk"
+    },
+    {
+      "name": "能量循环",
+      "description": "禳命治疗触发时藿藿回复1能量",
+      "hook_name": "huohuo_energy_cycle"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "岁阳寄体，妖邪凭依",
+      "description": "天赋产生的【禳命】持续时间延长1回合，当藿藿拥有【禳命】时自身治疗量提高20%，并使我方全体速度提高12%。",
+      "hook_name": "huohuo_e1"
+    },
+    {
+      "rank": 2,
+      "name": "判官书符，镇尾锁灵",
+      "description": "当藿藿拥有【禳命】时，若我方目标受到致命攻击，不会陷入无法战斗状态，并立即回复等同于其自身生命上限50%的生命值，使【禳命】的持续回合数减1。该效果单场战斗中可以触发2次。",
+      "hook_name": "huohuo_e2"
+    },
+    {
+      "rank": 3,
+      "name": "贞凶体质，烛火招萤",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "huohuo_e3"
+    },
+    {
+      "rank": 4,
+      "name": "坐卧不离，争拗难宁",
+      "description": "施放战技或触发天赋为我方目标提供治疗时，目标的当前生命值越低治疗量越高，最多使藿藿提供的治疗量提高80%。",
+      "hook_name": "huohuo_e4"
+    },
+    {
+      "rank": 5,
+      "name": "降妖捉鬼，十王敕令",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "huohuo_e5"
+    },
+    {
+      "rank": 6,
+      "name": "同休共戚，相须而行",
+      "description": "为我方目标提供治疗时，使目标造成的伤害提高50%，持续2回合。",
+      "hook_name": "huohuo_e6"
+    }
+  ],
+  "_pending": {
+    "effective_stats": [
+      "HP_percent",
+      "SPD_percent",
+      "EFFECT_RES"
+    ],
+    "total_rolls": 25,
+    "lightcone": "时节不居",
+    "lc_rank": 1,
+    "relics": [
+      "晨昏交界的翔鹰(4件套)",
+      "折断的龙骨(2件套)"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+ "id": "a_memorial_that_never_ends",
+ "name": "记忆永不落幕",
+ "rarity": 5,
+ "rank": 5,
+ "path": "记忆",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "SPD_percent": 12.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放战技后，我方全体造成的伤害提高16%，持续3回合",
+   "attributes": {
+    "DMG_BONUS_ALL": 16.0
+   },
+   "condition_code": "event_skill_after",
+   "target": "all_allies"
+  }
+ ]
+}

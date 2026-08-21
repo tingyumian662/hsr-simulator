@@ -1,0 +1,13 @@
+{
+  "name": "沉欢醉饮的海隅",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's ATK by 12%. When the wearer's ATK is higher than or equal to 2400/3600, increases the DoT DMG dealt by 12%/24% respectively.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    }
+  ]
+}

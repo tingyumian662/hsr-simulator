@@ -1,0 +1,24 @@
+{
+  "id": "mortenax_blade",
+  "name": "千冶•刃",
+  "element": "火",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 543,
+  "base_DEF": 485,
+  "base_SPD": 107,
+  "taunt": 100,
+  "max_energy": 160,
+  "trace_stats": {
+    "CRIT_RATE": 12.0,
+    "HP_percent": 10.0,
+    "DMG_BONUS_FIRE": 22.4
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

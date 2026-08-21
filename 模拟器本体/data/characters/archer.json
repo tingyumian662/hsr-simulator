@@ -1,0 +1,24 @@
+{
+  "id": "archer",
+  "name": "Archer",
+  "element": "量子",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1164,
+  "base_ATK": 621,
+  "base_DEF": 485,
+  "base_SPD": 105,
+  "taunt": 75,
+  "max_energy": 220,
+  "trace_stats": {
+    "CRIT_RATE": 6.7,
+    "DMG_BONUS_QUANTUM": 22.4,
+    "ATK_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

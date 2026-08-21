@@ -1,0 +1,20 @@
+{
+ "id": "never_forget_her_flame",
+ "name": "勿忘她的火焰",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1164,
+ "base_ATK": 529,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 60.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

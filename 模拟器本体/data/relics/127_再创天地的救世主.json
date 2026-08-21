@@ -1,0 +1,19 @@
+{
+  "name": "再创天地的救世主",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases CRIT Rate by 8%.",
+      "attributes": {
+        "CRIT_RATE": 8.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "After the wearer uses Basic ATK or Skill, if the wearer's memosprite is on the field, increases Max HP of the wearer and their memosprite by 24%, and increases all allies' DMG dealt by 15%, lasting until after the wearer's next use of Basic ATK or Skill.",
+      "attributes": {},
+      "condition": "on_basic_skill_memosprite_buff"
+    }
+  ]
+}

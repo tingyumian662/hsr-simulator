@@ -1,0 +1,20 @@
+{
+ "id": "what_is_real",
+ "name": "何物为真",
+ "rarity": 4,
+ "rank": 5,
+ "path": "丰饶",
+ "base_HP": 1058,
+ "base_ATK": 423,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 24.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

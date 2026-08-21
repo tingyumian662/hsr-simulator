@@ -1,0 +1,19 @@
+{
+  "name": "死水深潜的先驱",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases DMG dealt to enemies with debuffs by 12%. Increases CRIT Rate by 4%.",
+      "attributes": {
+        "CRIT_RATE": 4.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "The wearer deals 8%/12% increased CRIT DMG to enemies with at least 2/3 debuffs. After the wearer inflicts a debuff on enemy targets, the aforementioned effects increase by 100%, lasting for 1 turn.",
+      "attributes": {},
+      "condition": "cd_per_debuff_count"
+    }
+  ]
+}

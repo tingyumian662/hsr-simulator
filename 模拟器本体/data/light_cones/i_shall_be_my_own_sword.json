@@ -1,0 +1,43 @@
+{
+ "name": "此身为剑",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 1164,
+ "base_ATK": 582,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 20.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "队友受到攻击或消耗生命值后，获得1层【月蚀】(最多3层)，每层使下次攻击伤害提高14%。施放攻击后【月蚀】解除",
+   "attributes": {},
+   "condition_code": "stack_gain:on_hit_taken|on_hp_loss:yueshi:3:self:0:clear_on:attack",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "队友受到攻击或消耗生命值后，获得1层【月蚀】(最多3层)，每层使下次攻击伤害提高14%。施放攻击后【月蚀】解除",
+   "attributes": {
+    "DMG_BONUS_ALL": 42.0
+   },
+   "condition_code": "stack:yueshi:3"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "【月蚀】叠满3层时，本次攻击额外无视目标12%防御力。施放攻击后解除",
+   "attributes": {
+    "DEF_PEN": 12.0
+   },
+   "condition_code": "stack_full:yueshi:3",
+   "target": "self"
+  }
+ ],
+ "id": "i_shall_be_my_own_sword"
+}

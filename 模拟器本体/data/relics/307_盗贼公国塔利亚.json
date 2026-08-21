@@ -1,0 +1,13 @@
+{
+  "name": "盗贼公国塔利亚",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Break Effect by 16%. When the wearer's SPD reaches 145 or higher, the wearer's Break Effect increases by an extra 20%.",
+      "attributes": {
+        "BREAK_EFFECT": 16.0
+      },
+      "condition": ""
+    }
+  ]
+}

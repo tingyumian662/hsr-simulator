@@ -1,0 +1,19 @@
+{
+  "name": "凯歌祝捷的英豪",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases ATK by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "While the wearer's memosprite is on the field, increases the wearer's SPD by 6%. When the wearer's memosprite attacks, increases the wearer's and memosprite's CRIT DMG by 30%, lasting for 2 turns.",
+      "attributes": {},
+      "condition": "on_memosprite_atk_cd"
+    }
+  ]
+}

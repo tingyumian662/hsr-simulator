@@ -1,0 +1,43 @@
+{
+ "name": "理想燃烧的地狱",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 952,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 16.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "战斗开始时，若我方战技点上限>=6，装备者攻击力提高40%",
+   "attributes": {
+    "ATK_percent": 40.0
+   },
+   "condition_code": "state_team_related",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "每次施放战技后，攻击力提高10%，最多叠加4层（最高40%）",
+   "attributes": {},
+   "condition_code": "stack_gain:on_skill:skill_stack:4:self:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "每次施放战技后，攻击力提高10%，最多叠加4层（最高40%）",
+   "attributes": {
+    "ATK_percent": 40.0
+   },
+   "condition_code": "stack:skill_stack:4"
+  }
+ ],
+ "id": "the_hell_where_ideals_burn"
+}

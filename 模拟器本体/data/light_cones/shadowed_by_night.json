@@ -1,0 +1,20 @@
+{
+ "id": "shadowed_by_night",
+ "name": "黑夜如影随行",
+ "rarity": 4,
+ "rank": 5,
+ "path": "巡猎",
+ "base_HP": 847,
+ "base_ATK": 476,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 28.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

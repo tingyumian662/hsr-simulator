@@ -1,0 +1,36 @@
+{
+ "name": "银河铁道之夜",
+ "rarity": 5,
+ "rank": 1,
+ "path": "智识",
+ "base_HP": 1164,
+ "base_ATK": 582,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "场上每有1个敌方目标，攻击力提高9%，最多叠加5层（最高45%）",
+   "attributes": {
+    "ATK_percent": 45.0
+   },
+   "condition_code": "count:enemies_alive:5",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "敌方目标弱点被击破时，造成的伤害提高30%，持续1回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_weakness_break:pojia:1:self:1:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "敌方目标弱点被击破时，造成的伤害提高30%，持续1回合",
+   "attributes": {
+    "DMG_BONUS_ALL": 30.0
+   },
+   "condition_code": "stack:pojia:1"
+  }
+ ],
+ "id": "night_on_the_milky_way"
+}

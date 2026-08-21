@@ -1,0 +1,31 @@
+{
+ "name": "以世界之名",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 582,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "对处于负面状态的目标造成的伤害提高24%",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "state_target_debuff_related",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放战技时，效果命中提高18%，攻击力提高24%",
+   "attributes": {
+    "EFFECT_HIT_RATE": 18.0,
+    "ATK_percent": 24.0
+   },
+   "condition_code": "event_skill_after",
+   "target": "self"
+  }
+ ],
+ "id": "in_the_name_of_the_world"
+}

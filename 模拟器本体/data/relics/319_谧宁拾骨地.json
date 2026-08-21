@@ -1,0 +1,13 @@
+{
+  "name": "谧宁拾骨地",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Max HP by 12%. When the wearer's Max HP is 5000 or higher, increases the wearer's and their memosprite's CRIT DMG by 28%.",
+      "attributes": {
+        "HP_percent": 12.0
+      },
+      "condition": ""
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+ "id": "destiny_s_threads_forewoven",
+ "name": "织造命运之线",
+ "rarity": 4,
+ "rank": 5,
+ "path": "存护",
+ "base_HP": 953,
+ "base_ATK": 370,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_RES": 12.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

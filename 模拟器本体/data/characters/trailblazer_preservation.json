@@ -1,0 +1,24 @@
+{
+  "id": "trailblazer_preservation",
+  "name": "开拓者·存护",
+  "element": "火",
+  "path": "存护",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1242,
+  "base_ATK": 602,
+  "base_DEF": 606,
+  "base_SPD": 95,
+  "taunt": 150,
+  "max_energy": 120,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "DEF_percent": 35.0,
+    "ATK_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充",
+  "_source": "fribbels"
+}

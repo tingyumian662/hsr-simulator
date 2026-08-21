@@ -1,0 +1,19 @@
+{
+  "name": "幽锁深牢的系囚",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases ATK by 12%.",
+      "attributes": {
+        "ATK_percent": 12.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "For every DoT the enemy target is afflicted with, the wearer will ignore 6% of its DEF when dealing DMG to it. This effect is valid for a max of 3 DoTs.",
+      "attributes": {},
+      "condition": "defpen_per_dot"
+    }
+  ]
+}

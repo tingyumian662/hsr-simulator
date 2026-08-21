@@ -1,0 +1,20 @@
+{
+ "id": "why_does_the_ocean_sing",
+ "name": "海洋为何而歌",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 953,
+ "base_ATK": 635,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_HIT_RATE": 40.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

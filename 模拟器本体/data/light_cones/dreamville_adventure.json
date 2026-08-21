@@ -1,0 +1,55 @@
+{
+  "id": "dreamville_adventure",
+  "name": "美梦小镇大冒险",
+  "rarity": 4,
+  "rank": 1,
+  "path": "同谐",
+  "base_HP": 952,
+  "base_ATK": 423,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放普攻、战技、终结技中某一类型的技能后，为我方全体附加【童心】，【童心】可以使我方目标对应类型的技能所造成的伤害提高12/14/16/18/20%。【童心】仅对装备者最新使用的技能类型生效，且不可叠加。",
+      "attributes": {},
+      "condition_code": "event_basic_after",
+      "target": "self",
+      "values": [
+        12,
+        14,
+        16,
+        18,
+        20
+      ]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放普攻、战技、终结技中某一类型的技能后，为我方全体附加【童心】，【童心】可以使我方目标对应类型的技能所造成的伤害提高12/14/16/18/20%。【童心】仅对装备者最新使用的技能类型生效，且不可叠加。",
+      "attributes": {},
+      "condition_code": "event_skill_after",
+      "target": "self",
+      "values": [
+        12,
+        14,
+        16,
+        18,
+        20
+      ]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放普攻、战技、终结技中某一类型的技能后，为我方全体附加【童心】，【童心】可以使我方目标对应类型的技能所造成的伤害提高12/14/16/18/20%。【童心】仅对装备者最新使用的技能类型生效，且不可叠加。",
+      "attributes": {},
+      "condition_code": "event_ult_after",
+      "target": "self",
+      "values": [
+        12,
+        14,
+        16,
+        18,
+        20
+      ]
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

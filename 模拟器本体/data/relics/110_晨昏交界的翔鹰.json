@@ -1,0 +1,19 @@
+{
+  "name": "晨昏交界的翔鹰",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Wind DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_WIND": 10.0
+      },
+      "condition": "ult_action_advance_25"
+    },
+    {
+      "pieces_required": 4,
+      "description": "After the wearer uses their Ultimate, their action is Advanced Forward by 25%.",
+      "attributes": {},
+      "condition": "ult_action_advance_25"
+    }
+  ]
+}

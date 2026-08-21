@@ -1,0 +1,31 @@
+{
+ "id": "journey_forever_peaceful",
+ "name": "愿旅途永远坦然",
+ "rarity": 4,
+ "rank": 5,
+ "path": "存护",
+ "base_HP": 1058,
+ "base_ATK": 370,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "使装备者提供的护盾量提高{{ShieldBuff}}%。",
+   "attributes": {
+    "DMG_BONUS_ALL": 20.0
+   },
+   "condition_code": "state_shield_related",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "我方目标持有护盾时，造成的伤害提高{{DmgBuff}}%。",
+   "attributes": {
+    "DMG_BONUS_ALL": 20.0
+   },
+   "condition_code": "state_shield_related",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

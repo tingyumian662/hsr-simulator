@@ -1,0 +1,20 @@
+{
+ "id": "woof_walk_time",
+ "name": "汪！散步时间！",
+ "rarity": 4,
+ "rank": 5,
+ "path": "毁灭",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 10.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

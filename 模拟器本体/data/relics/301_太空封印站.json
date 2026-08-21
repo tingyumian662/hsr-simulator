@@ -1,0 +1,11 @@
+{
+  "name": "太空封印站",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's ATK by 12%. When the wearer's SPD reaches 120 or higher, the wearer's ATK increases by an extra 12%.",
+      "attributes": {"ATK_percent": 12.0},
+      "condition": "spd_threshold_120_atk"
+    }
+  ]
+}

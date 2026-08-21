@@ -1,0 +1,26 @@
+{
+  "name": "梦应归于何处",
+  "rarity": 5,
+  "rank": 1,
+  "path": "毁灭",
+  "base_HP": 1164,
+  "base_ATK": 476,
+  "base_DEF": 529,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "BREAK_EFFECT": 60.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "对敌方目标造成击破伤害时，使其陷入【溃败】状态（持续2回合）。【溃败】状态下目标受到装备者的击破伤害提高24%，速度降低20%。同类效果无法叠加",
+      "attributes": {},
+      "condition_code": "event_weakness_break",
+      "target": "self"
+    }
+  ],
+  "id": "whereabouts_should_dreams_rest"
+}

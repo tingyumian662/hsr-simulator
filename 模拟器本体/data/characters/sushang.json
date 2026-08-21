@@ -1,0 +1,24 @@
+{
+  "id": "sushang",
+  "name": "素裳",
+  "element": "物理",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 917,
+  "base_ATK": 564,
+  "base_DEF": 419,
+  "base_SPD": 107,
+  "taunt": 75,
+  "max_energy": 120,
+  "trace_stats": {
+    "DEF_percent": 12.5,
+    "ATK_percent": 28.0,
+    "HP_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

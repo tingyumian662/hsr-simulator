@@ -1,0 +1,14 @@
+{
+  "name": "梦想之地匹诺康尼",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases wearer's Energy Regeneration Rate by 5%. Increases DMG by 10% for all other allies that are of the same Type as the wearer.",
+      "attributes": {
+        "ENERGY_REGEN": 5.0,
+        "DMG_BONUS_ALL": 10.0
+      },
+      "condition": ""
+    }
+  ]
+}

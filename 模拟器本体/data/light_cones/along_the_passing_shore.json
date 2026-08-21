@@ -1,0 +1,20 @@
+{
+ "id": "along_the_passing_shore",
+ "name": "行于流逝的岸",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 635,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 36.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

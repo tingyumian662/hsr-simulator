@@ -1,0 +1,24 @@
+{
+  "id": "rin_tohsaka",
+  "name": "远坂凛",
+  "element": "量子",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1048,
+  "base_ATK": 699,
+  "base_DEF": 461,
+  "base_SPD": 102,
+  "taunt": 75,
+  "max_energy": 160,
+  "trace_stats": {
+    "CRIT_DMG": 37.3,
+    "ATK_percent": 18.0,
+    "DMG_BONUS_QUANTUM": 8.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

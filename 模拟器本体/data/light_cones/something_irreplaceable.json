@@ -1,0 +1,47 @@
+{
+ "name": "无可取代的东西",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 1164,
+ "base_ATK": 582,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 24.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "消灭敌方目标或受到攻击后，回复等同于装备者攻击力8%的生命值",
+   "attributes": {},
+   "condition_code": "event_kill"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "消灭敌方目标或受到攻击后，回复等同于装备者攻击力8%的生命值",
+   "attributes": {},
+   "condition_code": "event_hit_taken"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "消灭敌方目标或受到攻击后，造成的伤害提高24%，持续到自身下个回合结束（不可叠加，每回合最多触发1次）",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "event_kill"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "消灭敌方目标或受到攻击后，造成的伤害提高24%，持续到自身下个回合结束（不可叠加，每回合最多触发1次）",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "event_hit_taken"
+  }
+ ],
+ "id": "something_irreplaceable"
+}

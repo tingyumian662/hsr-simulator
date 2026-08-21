@@ -1,0 +1,22 @@
+{
+ "id": "good_night_and_sleep_well",
+ "name": "晚安与睡颜",
+ "rarity": 4,
+ "rank": 5,
+ "path": "虚无",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "trigger_effect",
+   "condition": "敌方目标每承受1个负面效果，装备者对其造成的伤害提高{{DmgBuff}}%，最多叠加 3 层。该效果对持续伤害也会生效。",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "condition_code": "count:target_debuffs:3",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

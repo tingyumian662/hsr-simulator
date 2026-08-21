@@ -1,0 +1,217 @@
+{
+  "id": "lingsha",
+  "name": "灵砂",
+  "element": "火",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 679,
+  "base_DEF": 436,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 110,
+  "trace_stats": {
+    "BREAK_EFFECT": 37.3,
+    "HP_percent": 18.0,
+    "ATK_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "肃香",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK, 削韧10"
+    },
+    "skill": {
+      "name": "识烟飞彩",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 80.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "paramId": "lingsha_skill_heal"
+        },
+        {
+          "type": "spawn_marker",
+          "target": "self",
+          "paramId": "lingsha_fuyuan",
+          "value": 1.0
+        },
+        {
+          "type": "action_advance",
+          "target": "marker",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "群攻80%ATK; 全队治疗14%ATK+420; 召唤/刷新浮元(+3次行动,上限5); 浮元行动提前20%"
+    },
+    "ultimate": {
+      "name": "幔亭缭霞",
+      "type": "ultimate",
+      "cost": {
+        "energy": 110
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 150.0,
+          "damageType": "direct"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "paramId": "lingsha_chunzui",
+          "value": 1.0
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "paramId": "lingsha_ult_heal"
+        },
+        {
+          "type": "action_advance",
+          "target": "marker",
+          "value": 100.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "全敌150%ATK; 醇醉2回合(受击破伤害+25%); 全队治疗12%ATK+360; 浮元行动提前100%"
+    },
+    "talent": {
+      "name": "烟斜雾横，氛氲化生",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "战技召唤浮元(90速/3次行动/上限5); 浮元行动: 全队追击75%ATK+随机单体75%ATK+削韧(各10)+净化+治疗12%ATK+360; 行迹3被动追击"
+    },
+    "technique": {
+      "name": "流翠散云",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "paramId": "lingsha_chunzui",
+          "value": 1.0
+        }
+      ],
+      "technique_category": "support",
+      "_mechanism": "非进战: 战斗开始召唤浮元+全敌醇醉2回合(引擎handler; 用户2026-08-14补录实机文本)"
+    }
+  },
+  "traces": [
+    {
+      "name": "兰烟",
+      "description": "施放普攻时额外恢复10点能量",
+      "hook_name": "lingsha_trace1_basic_energy"
+    },
+    {
+      "name": "朱燎",
+      "description": "攻击力/治疗量提高, 数值=击破特攻的25%/10%, 上限50%/20%",
+      "hook_name": "lingsha_trace2_be_to_atk_heal"
+    },
+    {
+      "name": "遗爇",
+      "description": "浮元在场+队内有HP%≤60%角色+队友受伤/耗血→浮元立即追击(不耗次数, 2回合后可再触发)",
+      "hook_name": "lingsha_trace3_fuyuan_pursuit"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "馨气当盛，除邪避讳",
+      "description": "灵砂的弱点击破效率提高50%; 敌方弱点被击破时其防御力降低20%(击破期间)",
+      "hook_name": "lingsha_e1"
+    },
+    {
+      "rank": 2,
+      "name": "欹枕垂云，烟奁红雪",
+      "description": "施放终结技时，使我方全体击破特攻提高40%，持续3回合",
+      "hook_name": "lingsha_e2"
+    },
+    {
+      "rank": 3,
+      "name": "含芽细炷，浪蕊浓焚",
+      "description": "终结技等级+2；天赋等级+2",
+      "hook_name": "lingsha_e3"
+    },
+    {
+      "rank": 4,
+      "name": "横垂宝幄，半拂琼筵",
+      "description": "浮元行动时，为当前生命值最低的我方目标回复等同于灵砂40%攻击力的生命值",
+      "hook_name": "lingsha_e4"
+    },
+    {
+      "rank": 5,
+      "name": "纵横圆转，内常不倾",
+      "description": "战技等级+2；普攻等级+1",
+      "hook_name": "lingsha_e5"
+    },
+    {
+      "rank": 6,
+      "name": "晓兰深藏，宿香暗贮",
+      "description": "浮元在场时，敌方全体全属性抗性降低20%; 浮元攻击时额外造成4次伤害(每次50%ATK火伤+5削韧)",
+      "hook_name": "lingsha_e6"
+    }
+  ],
+  "_source": "fribbels + 角色技能介绍/灵砂.txt (2026-08-10 录入)"
+}

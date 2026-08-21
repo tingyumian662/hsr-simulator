@@ -1,0 +1,20 @@
+{
+ "id": "the_day_the_cosmos_fell",
+ "name": "银河沦陷日",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

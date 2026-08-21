@@ -1,0 +1,19 @@
+{
+  "name": "激奏雷电的乐队",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Lightning DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_LIGHTNING": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When the wearer uses their Skill, increases the wearer's ATK by 20% for 1 turn.",
+      "attributes": {},
+      "condition": "on_skill_atk_buff"
+    }
+  ]
+}

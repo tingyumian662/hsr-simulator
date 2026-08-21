@@ -1,0 +1,20 @@
+{
+ "id": "subscribe_for_more",
+ "name": "点个关注吧！",
+ "rarity": 4,
+ "rank": 5,
+ "path": "巡猎",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "trigger_effect",
+   "condition": "使装备者普攻和战技造成的伤害提高{{DmgBuff}}%，当装备者的当前能量值等于其能量上限时，该效果额外提高{{DmgBuff}}%。",
+   "attributes": {},
+   "condition_code": "state_energy_full",
+   "target": "self"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "妖精织梦的乐园",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "When the number of ally targets on the field is not equal to 4, for every 1 additional/missing ally target, increases the DMG dealt by the wearer and their memosprite by 9%/12%, stacking up to 4/3 times.",
+      "attributes": {},
+      "condition": "ally_count_dmg_bonus"
+    }
+  ]
+}

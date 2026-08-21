@@ -1,0 +1,24 @@
+{
+  "id": "bailu",
+  "name": "白露",
+  "element": "雷",
+  "path": "丰饶",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1319,
+  "base_ATK": 563,
+  "base_DEF": 485,
+  "base_SPD": 98,
+  "taunt": 100,
+  "max_energy": 100,
+  "trace_stats": {
+    "HP_percent": 28.0,
+    "DEF_percent": 22.5,
+    "EFFECT_RES": 10.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

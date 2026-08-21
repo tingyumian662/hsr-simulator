@@ -1,0 +1,190 @@
+{
+  "id": "anaxa",
+  "name": "那刻夏",
+  "element": "风",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 940,
+  "base_ATK": 756,
+  "base_DEF": 557,
+  "base_SPD": 97,
+  "taunt": 75,
+  "max_energy": 140,
+  "trace_stats": {
+    "DMG_BONUS_WIND": 22.4,
+    "CRIT_RATE": 12.0,
+    "HP_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "楚痛，酿造实识",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK风; 削韧10"
+    },
+    "skill": {
+      "name": "分形，驱逐虚知",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 70.0,
+          "damageType": "direct",
+          "element": "风",
+          "_hits": 5,
+          "target": "bounce"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "弹射5×70%ATK(优先未击中); 场上每敌+20%增伤(引擎handler); 每次击中+1随机弱点(引擎handler)"
+    },
+    "ultimate": {
+      "name": "生息破土，世界塑造",
+      "type": "ultimate",
+      "cost": {
+        "energy": 140
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "【升华】硬控+全7属性弱点(至目标回合开始) + 160%ATK风群伤(引擎handler)"
+    },
+    "talent": {
+      "name": "四分明哲，三重至高",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "每击中1次+1随机弱点(3回合, 优先未有); ≥5不同弱点【质性揭露】(增伤30%+额外战技)(引擎handler)"
+    },
+    "technique": {
+      "name": "瞳扉之彩",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 全敌添加攻击者属性弱点3回合(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "流浪的能指",
+      "description": "普攻+10能; 回合开始无揭露回30能",
+      "hook_name": "anaxa_trace1"
+    },
+    {
+      "name": "必要的留白",
+      "description": "智识1名CD+140%或2名全队伤害+50%",
+      "hook_name": "anaxa_trace2"
+    },
+    {
+      "name": "质性的嬗变",
+      "description": "每弱点无视4%防御上限28%",
+      "hook_name": "anaxa_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "暴击+12%/风伤+22.4%/生命+10%",
+      "hook_name": "anaxa_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "月掩星夜的魔术师",
+      "description": "首战技回1SP; 战技击中DEF-16% 2回合",
+      "hook_name": "anaxa_e1"
+    },
+    {
+      "rank": 2,
+      "name": "真实历史的自然人",
+      "description": "敌入场+1弱点+全抗-20%",
+      "hook_name": "anaxa_e2"
+    },
+    {
+      "rank": 3,
+      "name": "镌刻进深空的瞳孔",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "anaxa_e3"
+    },
+    {
+      "rank": 4,
+      "name": "坠落在山谷的炽热",
+      "description": "战技时ATK+30%×2层",
+      "hook_name": "anaxa_e4"
+    },
+    {
+      "rank": 5,
+      "name": "离心漩涡外的胚种",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "anaxa_e5"
+    },
+    {
+      "rank": 6,
+      "name": "万物皆在万物之中",
+      "description": "伤害×130%; 行迹2双效果",
+      "hook_name": "anaxa_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)",
+  "gold_offspring": true
+}

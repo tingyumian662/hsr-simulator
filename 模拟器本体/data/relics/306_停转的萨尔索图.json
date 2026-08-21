@@ -1,0 +1,13 @@
+{
+  "name": "停转的萨尔索图",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT Rate by 8%. When the wearer's current CRIT Rate reaches 50% or higher, the DMG dealt by the wearer's Ultimate and Follow-Up ATK increases by 15%.",
+      "attributes": {
+        "CRIT_RATE": 8.0
+      },
+      "condition": ""
+    }
+  ]
+}

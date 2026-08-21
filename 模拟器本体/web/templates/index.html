@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星穹铁道战斗模拟器</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg>
+    </div>
+    <div class="brand-copy">
+      <div class="brand-kicker">Combat Analysis Terminal</div>
+      <h1>星穹铁道战斗模拟器</h1>
+    </div>
+  </div>
+  <div class="header-status">
+    <span class="status-dot" aria-hidden="true"></span>
+    <span class="status-label">队伍状态</span>
+    <strong id="team-count">0 / 4</strong>
+  </div>
+</header>
+<div id="app">
+<div class="panel" id="left">
+  <div class="panel-heading">
+    <div><h2>队伍配置</h2><p>角色、光锥与遗器面板</p></div>
+    <span class="panel-count">04 SLOTS</span>
+  </div>
+  <div id="team-slots"></div>
+</div>
+<div class="panel" id="mid">
+  <div class="panel-heading">
+    <div><h2>敌人 & 模拟</h2><p>战斗环境参数</p></div>
+  </div>
+  <div class="card enemy-card">
+    <h3 class="section-title">敌方配置（逐只独立）</h3>
+    <div id="enemy-list"></div>
+    <button id="btn-add-enemy" type="button" onclick="addEnemyCard({})">+ 添加敌人</button>
+    <label class="field"><span>行动值上限 AV</span><input id="max-av" value="200" type="number"></label>
+    <button id="btn-sim" onclick="runSim()">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 4 13 8-13 8V4Z"/></svg>
+      <span>开始模拟</span>
+    </button>
+    <div id="sim-status" aria-live="polite">等待配置</div>
+  </div>
+  <div class="card summary-card" id="summary-panel" style="display:none">
+    <h3 class="section-title">伤害汇总</h3>
+    <div id="summary-content"></div>
+  </div>
+</div>
+<div class="panel" id="right">
+  <div id="tab-bar">
+    <span class="tab active" onclick="switchTab('log')"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>战斗日志</span>
+    <span class="log-badge" id="log-count">0 EVENTS</span>
+  </div>
+  <div id="log-container">
+    <div class="log-empty">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8"/></svg>
+      <span>完成队伍配置后开始模拟</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let ALL = {};
+// v6.8: 角色推荐装备映射（/api/list 附带; 选择角色时自动套用）
+let RECOMMENDATIONS = {};
+
+async function init(){
+  const r = await fetch('/api/list');
+  ALL = await r.json();
+  RECOMMENDATIONS = ALL.recommendations || {};
+  renderEnemies();
+  renderTeam();
+}
+init();
+
+// ── v6.5 逐只敌人配置 ──
+const ELEMENTS = ['物理','火','冰','雷','风','量子','虚数'];
+let enemySeq = 0;
+
+function weaknessChipsHtml(cid, checked){
+  return ELEMENTS.map(e=>{
+    const ck = checked.includes(e) ? 'checked':'';
+    return `<label class="weakness-chip" data-element="${e}"><input type="checkbox" value="${e}" ${ck}><span>${e}</span></label>`;
+  }).join('');
+}
+
+function addEnemyCard(defaults={}){
+  const list = document.getElementById('enemy-list');
+  const idx = enemySeq++;
+  const slot = document.createElement('div');
+  slot.className = 'enemy-slot';
+  slot.id = `enemy-slot-${idx}`;
+  slot.innerHTML = `
+    <div class="enemy-slot-head">
+      <input id="enemy-name-${idx}" class="enemy-name" placeholder="敌人名称（可选）" value="${defaults.name||''}">
+      <select id="enemy-type-${idx}" aria-label="敌人类型" title="精英每回合行动两次">
+        <option value="normal" ${defaults.elite?'':'selected'}>普通</option>
+        <option value="elite" ${defaults.elite?'selected':''}>精英（双动）</option>
+      </select>
+      <button type="button" class="enemy-remove" onclick="removeEnemy(${idx})" title="删除该敌人">✕</button>
+    </div>
+    <div class="field-grid">
+      <label class="field"><span>生命值 HP</span><input id="enemy-hp-${idx}" value="${defaults.hp??50000}" type="number"></label>
+      <label class="field"><span>防御力 DEF</span><input id="enemy-def-${idx}" value="${defaults.def??800}" type="number"></label>
+      <label class="field"><span>韧性</span><input id="enemy-tgh-${idx}" value="${defaults.toughness??20}" type="number"></label>
+      <label class="field"><span>效果抵抗 %</span><input id="enemy-res-${idx}" value="${(defaults.effect_res??0)*100}" type="number" min="0" max="100"></label>
+    </div>
+    <div class="weakness-field">
+      <span class="field-label">弱点属性</span>
+      <div class="weakness-checks">${weaknessChipsHtml(idx, defaults.weakness||['量子','虚数','冰'])}</div>
+    </div>`;
+  list.appendChild(slot);
+}
+
+function removeEnemy(idx){
+  const el = document.getElementById(`enemy-slot-${idx}`);
+  if(el) el.remove();
+}
+
+function renderEnemies(){
+  // 默认: 一只精英测试凶兽 + 一只普通小怪（可自行增删改）
+  addEnemyCard({name:'测试凶兽', elite:true, hp:50000, def:800, toughness:200, effect_res:0, weakness:[]});
+  addEnemyCard({name:'杂兵', hp:8000, def:600, toughness:40, effect_res:0, weakness:['量子','虚数','冰']});
+}
+
+function renderTeam(){
+  const slots = document.getElementById('team-slots');
+  for(let i=0;i<4;i++){
+    slots.innerHTML += `
+    <article class="card character-card" id="slot${i}">
+      <div class="slot-header"><span class="slot-index">0${i+1}</span><span class="slot-title" id="slot-name${i}">未选择角色</span></div>
+      <div class="field">
+        <span>角色</span>
+        <div class="search-field">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="char-search${i}" aria-label="搜索角色${i+1}" placeholder="搜索角色" oninput="filterChars(${i})">
+        </div>
+        <select id="char${i}" aria-label="选择角色${i+1}" onchange="onCharChange(${i})"><option value="">--</option></select>
+      </div>
+      <div class="field" id="lc-div${i}">
+        <span>光锥</span>
+        <div class="search-field">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="lc-search${i}" aria-label="搜索光锥${i+1}" placeholder="搜索当前命途光锥" oninput="filterLightCones(${i})">
+        </div>
+        <select id="lc${i}" aria-label="选择光锥${i+1}"><option value="">--</option></select>
+      </div>
+      <label class="field"><span>星魂</span><select id="eid${i}">${[0,1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>
+      <details><summary>遗器配置</summary>
+        <div class="details-body">
+        <div class="field"><span>外圈四件套</span><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="relic4-search${i}" aria-label="搜索外圈遗器${i+1}" placeholder="搜索遗器" oninput="filterRelics(${i},'4')"></div><select id="set4_${i}" onchange="smartRecommend(${i})"></select></div>
+        <div class="field"><span>内圈二件套</span><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="relic2-search${i}" aria-label="搜索内圈遗器${i+1}" placeholder="搜索遗器" oninput="filterRelics(${i},'2')"></div><select id="set2_${i}" onchange="smartRecommend(${i})"></select></div>
+        <div class="field-grid">
+          <label class="field"><span>躯干</span><select id="body${i}">
+            <option value="CRIT_RATE">暴击率</option><option value="CRIT_DMG" selected>暴伤</option>
+            <option value="ATK_percent">攻击%</option><option value="HP_percent">生命%</option><option value="DEF_percent">防御%</option>
+            <option value="HEAL_BONUS">治疗加成</option><option value="EFFECT_HIT_RATE">效果命中</option>
+          </select></label>
+          <label class="field"><span>脚部</span><select id="feet${i}">
+            <option value="">--</option>
+            <option value="SPD_PERCENT">速度</option>
+            <option value="ATK_percent">攻击%</option><option value="HP_percent">生命%</option><option value="DEF_percent">防御%</option>
+          </select></label>
+          <label class="field"><span>位面球</span><select id="sphere${i}">
+            <option value="DMG_BONUS_QUANTUM">量子增伤</option><option value="DMG_BONUS_PHYSICAL">物理增伤</option>
+            <option value="DMG_BONUS_FIRE">火增伤</option><option value="DMG_BONUS_ICE">冰增伤</option>
+            <option value="DMG_BONUS_LIGHTNING">雷增伤</option><option value="DMG_BONUS_WIND">风增伤</option>
+            <option value="DMG_BONUS_IMAGINARY">虚数增伤</option>
+            <option value="ATK_percent">攻击%</option><option value="HP_percent">生命%</option><option value="DEF_percent">防御%</option>
+          </select></label>
+          <label class="field"><span>连结绳</span><select id="rope${i}">
+            <option value="ATK_percent">攻击%</option><option value="ENERGY_REGEN" selected>充能</option>
+            <option value="HP_percent">生命%</option><option value="DEF_percent">防御%</option>
+            <option value="BREAK_EFFECT">击破特攻</option>
+          </select></label>
+        </div>
+        </div>
+      </details>
+      <details open><summary>副词条</summary>
+        <div class="details-body">
+        <div class="substat-toolbar">
+          <label class="field total-field"><span>总有效词条</span><div class="input-unit"><input id="total${i}" value="30" type="number" min="1" max="50" onchange="checkTotal(${i})"><span>条</span></div></label>
+          <button type="button" class="button-secondary" onclick="smartRecommend(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9L12 3Z"/></svg><span>智能推荐</span></button>
+          <button type="button" class="button-secondary button-icon" title="刷新面板" aria-label="刷新面板" onclick="refreshPreview(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/></svg></button>
+          <span class="roll-info" id="info${i}"></span>
+        </div>
+        <div class="preview-panel" id="preview${i}"></div>
+        <div class="stats">
+          ${[['cr','暴击'],['cd','暴伤'],['atk','攻击%'],['spd','速度'],['hp','生命%'],['res','抵抗'],['def','防御%'],['be','击破']].map(([key,name])=>`<div class="stat-field"><label><span>${name}</span><span class="input-unit"><input id="${key}${i}" value="0" type="number" min="0" max="30" onchange="checkTotal(${i});refreshPreview(${i})"><span>条</span></span></label></div>`).join('')}
+        </div>
+        </div>
+      </details>
+    </article>`;
+    const sel = document.getElementById(`char${i}`);
+    sel.innerHTML = '<option value="">--</option>' + charOptgroups(ALL.characters);
+  }
+  updateRelicLists();
+  updateTeamMeta();
+}
+
+// 命途固定顺序（拼音序）
+const PATH_ORDER = ['存护','丰饶','同谐','记忆','虚无','毁灭','巡猎','智识','欢愉'];
+// 中文名拼音排序
+const byName = (a,b)=>a.name.localeCompare(b.name,'zh');
+
+function charOptgroups(chars){
+  // v5.2 问题7: 空壳角色标注（无技能数据）
+  return PATH_ORDER.map(path=>{
+    const list = chars.filter(c=>c.path===path).sort(byName);
+    if(!list.length) return '';
+    return `<optgroup label="${path} (${list.length})">${list.map(c=>{
+      const tag = c.completeness==='full' ? '' : '（空壳）';
+      return `<option value="${c.id}">${c.name}${tag}</option>`;
+    }).join('')}</optgroup>`;
+  }).join('');
+}
+
+function filterChars(i){
+  const q = (document.getElementById(`char-search${i}`).value||'').trim();
+  const sel = document.getElementById(`char${i}`).value;
+  const filtered = q ? ALL.characters.filter(c=>c.name.includes(q)||c.id.includes(q)) : ALL.characters;
+  const selEl = document.getElementById(`char${i}`);
+  selEl.innerHTML = '<option value="">--</option>' + charOptgroups(filtered);
+  selEl.value = sel;  // 恢复选中（被过滤掉则自动回退到 --）
+  if(selEl.value !== sel) onCharChange(i);
+}
+
+function updateRelicLists(){
+  const outer = (ALL.outer_relics||[]).slice().sort(byName);
+  const inner = (ALL.inner_relics||[]).slice().sort(byName);
+  for(let i=0;i<4;i++){
+    const s4 = document.getElementById(`set4_${i}`);
+    const s2 = document.getElementById(`set2_${i}`);
+    if(s4) s4.innerHTML = outer.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+    if(s2) s2.innerHTML = inner.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+  }
+}
+
+function filterRelics(i, which){
+  const q = (document.getElementById(`relic${which}-search${i}`).value||'').trim();
+  const sel = document.getElementById(which==='4'?`set4_${i}`:`set2_${i}`).value;
+  const list = (which==='4'?ALL.outer_relics:ALL.inner_relics)||[];
+  const filtered = q ? list.filter(r=>r.name.includes(q)) : list.slice().sort(byName);
+  const selEl = document.getElementById(which==='4'?`set4_${i}`:`set2_${i}`);
+  selEl.innerHTML = filtered.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+  selEl.value = sel;
+}
+
+function onCharChange(i){
+  const cid = document.getElementById(`char${i}`).value;
+  const char = ALL.characters.find(c=>c.id===cid);
+  document.getElementById(`lc-search${i}`).value = '';
+  document.getElementById(`lc${i}`).value = '';
+  populateLightCones(i, '');
+  document.getElementById(`slot-name${i}`).textContent = char ? char.name : '未选择角色';
+  document.getElementById(`slot${i}`).classList.toggle('is-selected', Boolean(char));
+  updateTeamMeta();
+  // v6.8: 位面球默认按角色元素推导（修复此前写死量子增伤——火角色默认选错球）;
+  // 有推荐映射则自动套用（专属光锥/遗器套装/主词条; 无映射维持其余现状）
+  if(char){
+    const sp = document.getElementById(`sphere${i}`);
+    const elemVal = ELEMENT_SPHERE[char.element];
+    if(sp && elemVal && [...sp.options].some(o=>o.value===elemVal)) sp.value = elemVal;
+  }
+  applyRecommendedLoadout(i, char);
+}
+
+// v6.8 角色推荐装备自动套用（data/recommendations.json）
+const ELEMENT_SPHERE = {
+  '物理': 'DMG_BONUS_PHYSICAL', '火': 'DMG_BONUS_FIRE', '冰': 'DMG_BONUS_ICE',
+  '雷': 'DMG_BONUS_LIGHTNING', '风': 'DMG_BONUS_WIND',
+  '量子': 'DMG_BONUS_QUANTUM', '虚数': 'DMG_BONUS_IMAGINARY',
+};
+// 映射值可为数组（斜杠多选）——推荐项全部置顶、默认选首个, 其余照常排列（用户 2026-08-15 确认）
+const firstVal = v => Array.isArray(v) ? v[0] : v;
+// 推荐 option 置顶: 按 values 顺序把对应 option 移到下拉最前（其余选项保持原排列）
+// v6.8b: 倒序遍历——insertBefore 插到最前会反转顺序, 正序循环导致多值推荐倒序显示
+function moveOptionsToTop(el, values){
+  if(!el || !values || !values.length) return;
+  for(let idx = values.length - 1; idx >= 0; idx--){
+    const opt = [...el.options].find(o=>o.value===values[idx]);
+    if(opt) el.insertBefore(opt, el.firstChild);
+  }
+}
+function applyRecommendedLoadout(i, char){
+  if(!char) return;
+  const rec = RECOMMENDATIONS[char.id];
+  if(!rec) return;
+  let applied = [];
+  // 专属光锥（仅当按命途过滤后列表中存在; 置顶）
+  const lcVals = rec.light_cone ? (Array.isArray(rec.light_cone) ? rec.light_cone : [rec.light_cone]) : [];
+  if(lcVals.length){
+    const lcSel = document.getElementById(`lc${i}`);
+    moveOptionsToTop(lcSel, lcVals);
+    if([...lcSel.options].some(o=>o.value===firstVal(lcVals))){
+      lcSel.value = firstVal(lcVals);
+      applied.push('光锥');
+    }
+  }
+  // 遗器套装（外圈/内圈; 推荐项置顶, 默认选首个）
+  const s4Vals = rec.set4 ? (Array.isArray(rec.set4) ? rec.set4 : [rec.set4]) : [];
+  if(s4Vals.length){
+    const el = document.getElementById(`set4_${i}`);
+    moveOptionsToTop(el, s4Vals);
+    if([...el.options].some(o=>o.value===firstVal(s4Vals))){ el.value = firstVal(s4Vals); applied.push('外圈'); }
+  }
+  const s2Vals = rec.set2 ? (Array.isArray(rec.set2) ? rec.set2 : [rec.set2]) : [];
+  if(s2Vals.length){
+    const el = document.getElementById(`set2_${i}`);
+    moveOptionsToTop(el, s2Vals);
+    if([...el.options].some(o=>o.value===firstVal(s2Vals))){ el.value = firstVal(s2Vals); applied.push('内圈'); }
+  }
+  // 主词条（映射值优先; 置顶; sphere 已由 onCharChange 按元素全局推导, 此处仅覆盖映射显式值）
+  const mains = [['body', rec.body], ['feet', rec.feet], ['rope', rec.rope]];
+  if(rec.sphere) mains.push(['sphere', rec.sphere]);
+  for(const [key, raw] of mains){
+    if(!raw) continue;
+    const vals = Array.isArray(raw) ? raw : [raw];
+    const el = document.getElementById(`${key}${i}`);
+    moveOptionsToTop(el, vals);
+    if([...el.options].some(o=>o.value===firstVal(vals))){
+      el.value = firstVal(vals);
+      applied.push(key);
+    }
+  }
+  if(applied.length) console.log(`已套用推荐装备: ${char.name} (${applied.join('/')})`);
+}
+
+function populateLightCones(i, query){
+  const cid = document.getElementById(`char${i}`).value;
+  const char = ALL.characters.find(c=>c.id===cid);
+  const lcSel = document.getElementById(`lc${i}`);
+  const selected = lcSel.value;
+  const list = char ? ALL.light_cones.filter(l=>l.path===char.path) : [];
+  const filtered = query ? list.filter(l=>l.name.includes(query)||l.id.includes(query)) : list;
+  lcSel.innerHTML = '<option value="">--</option>' + filtered.sort(byName).map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  lcSel.value = selected;
+}
+
+function filterLightCones(i){
+  const query = (document.getElementById(`lc-search${i}`).value||'').trim();
+  populateLightCones(i, query);
+}
+
+function updateTeamMeta(){
+  const count = [0,1,2,3].filter(i=>document.getElementById(`char${i}`)?.value).length;
+  document.getElementById('team-count').textContent = `${count} / 4`;
+}
+
+function getConfig(i){
+  return {
+    char_id: document.getElementById(`char${i}`).value,
+    lc_id: document.getElementById(`lc${i}`).value||null,
+    eidolon: parseInt(document.getElementById(`eid${i}`).value),
+    relics: {
+      set4: document.getElementById(`set4_${i}`).value,
+      set2: document.getElementById(`set2_${i}`).value,
+      body: document.getElementById(`body${i}`).value,
+      feet: document.getElementById(`feet${i}`).value,
+      sphere: document.getElementById(`sphere${i}`).value,
+      rope: document.getElementById(`rope${i}`).value,
+    },
+    substats: {
+      CRIT_RATE: parseInt(document.getElementById(`cr${i}`).value)||0,
+      CRIT_DMG: parseInt(document.getElementById(`cd${i}`).value)||0,
+      ATK_percent: parseInt(document.getElementById(`atk${i}`).value)||0,
+      SPD_PERCENT: parseInt(document.getElementById(`spd${i}`).value)||0,
+      HP_percent: parseInt(document.getElementById(`hp${i}`).value)||0,
+      EFFECT_RES: parseInt(document.getElementById(`res${i}`).value)||0,
+      DEF_percent: parseInt(document.getElementById(`def${i}`).value)||0,
+      BREAK_EFFECT: parseInt(document.getElementById(`be${i}`).value)||0,
+    }
+  };
+}
+
+async function runSim(){
+  const btn = document.getElementById('btn-sim');
+  const status = document.getElementById('sim-status');
+  const btnLabel = btn.querySelector('span');
+  btn.disabled = true;
+  btnLabel.textContent = '模拟中';
+  status.dataset.state = 'loading';
+  status.textContent = '正在计算战斗序列...';
+
+  // v6.5: 逐只敌人配置（每只独立 名称/普通精英/HP/DEF/韧性/弱点）
+  const enemies = [];
+  document.querySelectorAll('#enemy-list .enemy-slot').forEach(slot=>{
+    const idx = slot.id.split('-').pop();
+    const weaknesses = [];
+    slot.querySelectorAll('.weakness-checks input:checked').forEach(cb=>weaknesses.push(cb.value));
+    const nameVal = document.getElementById(`enemy-name-${idx}`).value.trim();
+    enemies.push({
+      name: nameVal || '敌人',
+      elite: document.getElementById(`enemy-type-${idx}`).value === 'elite',
+      hp: parseFloat(document.getElementById(`enemy-hp-${idx}`).value),
+      def: parseFloat(document.getElementById(`enemy-def-${idx}`).value),
+      toughness: parseFloat(document.getElementById(`enemy-tgh-${idx}`).value),
+      effect_res: (parseFloat(document.getElementById(`enemy-res-${idx}`).value) || 0) / 100,
+      weakness: weaknesses,
+    });
+  });
+
+  let body;
+  try{
+    if(!enemies.length) throw new Error('至少配置一个敌人');
+    body = {
+      team: [0,1,2,3].map(i=>getConfig(i)).filter(c=>c.char_id),
+      enemies,
+      max_av: parseFloat(document.getElementById('max-av').value),
+    };
+  }catch(e){
+    // v5.5: 配置读取异常不卡死（此前在 try 外, 按钮永久禁用+状态卡"计算中"）
+    status.dataset.state = 'error';
+    status.textContent = '配置错误: '+e.message;
+    btn.disabled = false;
+    btnLabel.textContent = '开始模拟';
+    return;
+  }
+
+  try{
+    const r = await fetch('/api/simulate',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
+    const data = await r.json();
+    if(data.error){
+      status.dataset.state = 'error';
+      status.textContent = '模拟失败: '+data.error;
+      if(data.trace) console.error(data.trace);
+      btn.disabled = false;
+      btnLabel.textContent = '开始模拟';
+      return;
+    }
+
+    // 日志
+    const logDiv = document.getElementById('log-container');
+    logDiv.innerHTML = '';
+    if(data.log.length === 0){
+      logDiv.innerHTML = '<div class="log-line log-error">[空日志] turns='+data.turns
+        +' _debug='+JSON.stringify(data._debug||{})+'</div>';
+    }
+    data.log.forEach((line,i)=>{
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.textContent = line;
+      if(line.includes('ERROR')||line.includes('错误')) div.classList.add('log-error');
+      else if(line.includes('--- 第')) div.classList.add('log-turn');
+      else if(line.includes('>>>')||line.includes('伤害')) div.classList.add('log-event');
+      else if(line.includes('无敌')||line.includes('警告')) div.classList.add('log-warning');
+      logDiv.appendChild(div);
+    });
+    document.getElementById('log-count').textContent = `${data.log.length} EVENTS`;
+    logDiv.scrollTop = 0;
+
+    // 汇总
+    document.getElementById('summary-panel').style.display = 'block';
+    let html = `<div class="summary-total"><strong>${data.total_damage.toLocaleString()}</strong><span>总伤害 · ${data.turns} 回合</span></div>`;
+    data.summary.forEach(u=>{
+      const width = Math.max(0, Math.min(100, Number(u.pct)||0));
+      html += `<div class="summary-row"><div class="summary-bar"><span>${u.name}</span><span>${u.damage.toLocaleString()} · ${u.pct}%</span></div><div class="summary-track" style="--pct:${width}%"></div></div>`;
+    });
+    document.getElementById('summary-content').innerHTML = html;
+    status.dataset.state = 'success';
+    status.textContent = `模拟完成 · ${data.turns} 回合`;
+  }catch(e){
+    status.dataset.state = 'error';
+    status.textContent = '网络错误: '+e.message;
+  }
+  btn.disabled = false;
+  btnLabel.textContent = '开始模拟';
+}
+
+function switchTab(t){}
+
+// === 智能推荐 ===
+function setStats(i, vals){
+  for(const [k,v] of Object.entries(vals)){
+    const el = document.getElementById(`${k}${i}`);
+    if(el) el.value = v;
+  }
+}
+
+function usedTotal(i){
+  // v6.11 阶段2: 无效词条（stat-invalid）不计入有效预算
+  const keys = ['cr','cd','atk','spd','hp','res','def','be'];
+  return keys.reduce((s,k)=>{
+    const el = document.getElementById(k + i);
+    if(!el || el.classList.contains('stat-invalid')) return s;
+    return s+(parseInt(el.value)||0);
+  }, 0);
+}
+
+function checkTotal(i){
+  const total = parseInt(document.getElementById(`total${i}`).value)||30;
+  const used = usedTotal(i);
+  const info = document.getElementById(`info${i}`);
+  info.classList.toggle('is-over', used > total);
+  if(used > total) info.textContent = `超出 ${used-total}`;
+  else if(used === total) info.textContent = '已分配';
+  else info.textContent = `剩余 ${total-used}`;
+}
+
+async function refreshPreview(i){
+  const div = document.getElementById(`preview${i}`);
+  const cfg = getConfig(i);
+  if(!cfg.char_id){ div.textContent = ''; return; }  // v5.5: 未选角色不请求
+  div.textContent = '计算中...';
+  const body = {team: [cfg], enemy: {hp:1,def:1,toughness:1,weakness:[],count:1}, max_av:1};
+  try{
+    const r = await fetch('/api/preview', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await r.json();
+    if(data.previews && data.previews[0]){
+      const p = data.previews[0];
+      div.innerHTML = `HP:${p.HP} ATK:${p.ATK} DEF:${p.DEF} SPD:${p.SPD}<br>CR:${p.CR}% CD:${p.CD}% RES:${p.RES}% ERR:${p.ERR}% BE:${p.BE}%`;
+    }else{
+      div.textContent = '预览不可用';  // v5.5: 后端跳过该角色时不留"计算中"
+    }
+  }catch(e){ div.textContent = '预览失败: '+e.message; }
+}
+
+async function smartRecommend(i){
+  const info = document.getElementById(`info${i}`);
+  info.textContent = '计算中...';
+  const total = parseInt(document.getElementById(`total${i}`).value)||30;
+  const body = {
+    team: [getConfig(i)],
+    enemy: {hp:50000,def:800,toughness:20,weakness:[],count:1},
+    max_av: 1,
+  };
+  // 注入total_rolls
+  body.team[0].total_rolls = total;
+  try{
+    const r = await fetch('/api/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+    if(data.recommendations && data.recommendations[0] && data.recommendations[0].rolls){
+      const rec = data.recommendations[0];
+      const map = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_PERCENT:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be'};
+      const vals = {};
+      for(const [k,v] of Object.entries(rec.rolls)){ const key = map[k]; if(key) vals[key] = v; }
+      setStats(i, vals);
+      // v6.11 阶段2: 有效/无效分区（权重=0 的框置灰, 不占预算）
+      const wmap = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_percent:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be'};
+      for(const [wk,wv] of Object.entries(rec.weights || {})){
+        const key = wmap[wk];
+        if(!key) continue;
+        const el = document.getElementById(key + i);
+        if(!el) continue;
+        if(wv <= 0){ el.classList.add('stat-invalid'); el.title='无效词条（该角色不吃此词条, 不占有效预算）'; }
+        else { el.classList.remove('stat-invalid'); el.title=''; }
+      }
+      // 约束面板 + 毕业度
+      const g = rec.graduation || {};
+      let html = '✓ 有效词条 ' + g.effective_used + '/' + g.budget + ' · 毕业度 ' + g.score_pct + '%';
+      if(g.gap_to_target > 0) html += ' · 距毕业差 ' + g.gap_to_target + ' 条';
+      if((rec.constraints || []).length) html += '<div class="constraint-list">';
+      for(const c of (rec.constraints || [])){
+        html += '<div class="' + (c.met ? 'constraint-met' : 'constraint-miss') + '">' + c.name + ': 当前' + c.current + ' → ' + (c.met ? '已达标' : ('差'+c.suggest_rolls+'条')) + '</div>';
+      }
+      if((rec.constraints || []).length) html += '</div>';
+      info.innerHTML = html;
+      checkTotal(i);
+      refreshPreview(i);  // v5.5: 推荐成功后自动刷新面板预览
+    }else throw new Error('推荐结果不可用');
+  }catch(e){ info.textContent = '失败: '+e.message; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+{
+  "id": "ruan_mei",
+  "name": "阮•梅",
+  "element": "冰",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1086,
+  "base_ATK": 659,
+  "base_DEF": 485,
+  "base_SPD": 104,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "BREAK_EFFECT": 37.3,
+    "DEF_percent": 22.5
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "一针幽兰",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK冰; 削韧10"
+    },
+    "skill": {
+      "name": "慢捻抹复挑",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "【弦外音】3回合(阮·梅回合开始-1): 全队增伤32%+弱点击破效率50%; 行迹3 BE>120%每超10%增伤额外+6%上限36%(引擎handler)"
+    },
+    "ultimate": {
+      "name": "摇花缎水，沾衣不摘",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "结界2回合(自身回合开始-1, E6+1): 全队全抗穿透25%+攻击后目标挂【残梅绽】; E1全队无视20%防御(引擎handler)"
+    },
+    "talent": {
+      "name": "分型的螺旋",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "除自身外队友速度+10%; 我方击破弱点时阮·梅对目标120%冰击破伤害(E6+200%)(引擎handler)"
+    },
+    "technique": {
+      "name": "拭琴抚罗袂",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战: 自动触发1次战技(不耗SP)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "分型的螺旋（天赋）",
+      "description": "除自身外队友速度+10%; 我方击破弱点时阮·梅对目标120%冰击破伤害(E6+200%)",
+      "hook_name": "ruan_mei_break_damage"
+    },
+    {
+      "name": "物体呼吸中",
+      "description": "我方全体击破特攻提高20%",
+      "hook_name": "ruan_mei_trace1"
+    },
+    {
+      "name": "日消遐思长",
+      "description": "阮·梅回合开始时自身恢复5点能量",
+      "hook_name": "ruan_mei_trace2"
+    },
+    {
+      "name": "落烛照水燃",
+      "description": "击破特攻>120%每超10%战技增伤额外+6%上限36%",
+      "hook_name": "ruan_mei_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "击破特攻+37.3%/防御力+22.5%/速度+5",
+      "hook_name": "ruan_mei_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "神经仿绣图",
+      "description": "结界期间全队无视20%防御",
+      "hook_name": "ruan_mei_e1"
+    },
+    {
+      "rank": 2,
+      "name": "芦前漫步",
+      "description": "对破韧目标造成伤害时攻击力+40%",
+      "hook_name": "ruan_mei_e2"
+    },
+    {
+      "rank": 3,
+      "name": "彩缎烟衫绿婆娑",
+      "description": "终结技+2; 天赋+2",
+      "hook_name": "ruan_mei_e3"
+    },
+    {
+      "rank": 4,
+      "name": "寻神铜镜前",
+      "description": "敌方弱点被击破时自身击破特攻+100% 3回合",
+      "hook_name": "ruan_mei_e4"
+    },
+    {
+      "rank": 5,
+      "name": "手弄慵鬟玲珑钗",
+      "description": "战技+2; 普攻+1",
+      "hook_name": "ruan_mei_e5"
+    },
+    {
+      "rank": 6,
+      "name": "半脱纱巾落团扇",
+      "description": "结界持续时间+1回合; 天赋击破倍率额外+200%",
+      "hook_name": "ruan_mei_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

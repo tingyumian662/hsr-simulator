@@ -1,0 +1,19 @@
+{
+  "name": "重循苦旅的司铎",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases SPD by 6%.",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When using Skill or Ultimate on one ally target, increases the ability target's CRIT DMG by 18%, lasting for 2 turns. This effect can stack up to 2 times.",
+      "attributes": {},
+      "condition": "on_skill_single_cd_buff"
+    }
+  ]
+}

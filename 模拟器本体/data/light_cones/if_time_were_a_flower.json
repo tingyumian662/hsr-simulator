@@ -1,0 +1,42 @@
+{
+ "name": "如果时间是一朵花",
+ "rarity": 5,
+ "rank": 1,
+ "path": "同谐",
+ "base_HP": 1270,
+ "base_ATK": 529,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_DMG": 36.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "施放追加攻击后，额外恢复12点能量，并获得【谕示】，持续2回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_followup:yushi:1:all_allies:2:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【谕示】时（持续2回合），我方全体目标的暴击伤害提高48%",
+   "attributes": {
+    "CRIT_DMG": 48.0
+   },
+   "condition_code": "stack:yushi:1",
+   "target": "all_allies"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗时，恢复21点能量，并获得【谕示】，持续2回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_battle_start:yushi:1:all_allies:2:",
+   "target": "self"
+  }
+ ],
+ "id": "if_time_were_a_flower"
+}

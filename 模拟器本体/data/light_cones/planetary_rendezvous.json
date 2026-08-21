@@ -1,0 +1,27 @@
+{
+  "id": "planetary_rendezvous",
+  "name": "与行星相会",
+  "rarity": 4,
+  "rank": 1,
+  "path": "同谐",
+  "base_HP": 1058,
+  "base_ATK": 423,
+  "base_DEF": 330,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "进入战斗后，当我方目标造成与装备者相同属性的伤害时，造成的伤害提高12/15/18/21/24%。",
+      "attributes": {},
+      "condition_code": "event_battle_start",
+      "target": "self",
+      "values": [
+        12,
+        15,
+        18,
+        21,
+        24
+      ]
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

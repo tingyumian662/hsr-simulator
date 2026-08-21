@@ -1,0 +1,324 @@
+{
+  "id": "changyeyue",
+  "name": "长夜月",
+  "element": "冰",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1319,
+  "base_ATK": 543,
+  "base_DEF": 582,
+  "base_SPD": 99,
+  "taunt": 100,
+  "max_energy": 240,
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "HP_percent": 18.0,
+    "CRIT_DMG": 13.3
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·从此岁月朦胧",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于长夜月50%生命上限的冰属性伤害。"
+    },
+    "skill": {
+      "name": "战技·白昼悄然离去",
+      "type": "skill",
+      "cost": {
+        "hp_percent": 10.0
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        },
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 24.0,
+          "paramId": "changyeyue_skill_cd"
+        }
+      ],
+      "_mechanism": {
+        "summon": "召唤忆灵「长夜」。若已在场→为其回复50%生命上限。",
+        "buff": "我方全体忆灵暴击伤害+24%(=长夜月CD×24%)，持续2回合，长夜月每回合开始-1。",
+        "yizhi_gain": "获得2点【忆质】，若处于【至暗之谜】→额外+12点(共14点)。"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·晚安，全世界无眠",
+      "type": "ultimate",
+      "cost": {
+        "energy": 240
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "冰",
+          "_source": "忆灵长夜"
+        }
+      ],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 30.0
+        },
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "changyeyue_ult_state"
+        }
+      ],
+      "_mechanism": {
+        "summon": "召唤忆灵「长夜」。",
+        "damage": "忆灵「长夜」对敌方全体造成200%HP冰伤。",
+        "至暗之谜": "长夜月进入【至暗之谜】：敌方全体受伤+30%，长夜月+长夜伤害+60%，免疫控制。获得2点充能，长夜施放【迷梦】后消耗1点。长夜月回合开始无充能→退出状态。"
+      }
+    },
+    "talent": {
+      "name": "天赋·今夜与我同行",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "battle_start": "进入战斗时召唤忆灵「长夜」(SPD=160, HP=长夜月50%)。",
+        "hp_loss_cd": "长夜月或长夜每次生命降低→自身+长夜CD+60%/2回合+2【忆质】。每目标每受击最多触发1次。",
+        "yizhi_16": "【忆质】≥16→解除并免疫控制，长夜在场→立即行动。立即行动在长夜施放【迷梦】后可再次触发。"
+      }
+    },
+    "technique": {
+      "name": "秘技·愿有冷雨落下",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 24.0,
+          "paramId": "changyeyue_tech_cd"
+        }
+      ],
+      "_mechanism": "非进战: 全队忆灵暴伤+24%与战技同实现(changyeyue_tech_cd, 用户确认口径与战技相同) + 忆质+1(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "天亮了，雨落了",
+      "description": "队伍中「记忆」命途角色数量=1/2/3/4+时，战技持续期间额外使我方全体忆灵暴击伤害提高5%/15%/50%/65%。",
+      "hook_name": "changyeyue_trace1_memory_count_cd"
+    },
+    {
+      "name": "天黑黑，月寂寂",
+      "description": "长夜月和忆灵「长夜」的暴击率提高35%。施放技能时，消耗自身当前生命值5%使双方暴击伤害提高15%，持续2回合。忆灵「长夜」施放【迷梦，流失，如露】后，为我方恢复1个战技点。",
+      "hook_name": "changyeyue_trace2_cr_and_cd"
+    },
+    {
+      "name": "烛火起，烛火熄",
+      "description": "战斗开始时，长夜月恢复70点能量并获得1点【忆质】。长夜月或我方忆灵施放技能时，长夜月恢复5点能量并获得1点【忆质】。",
+      "hook_name": "changyeyue_trace3_energy_and_yizhi"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "睡吧，长夜有所梦",
+      "description": "长夜月在场时，场上敌方目标数量等于4+/3/2/1名时，我方忆灵造成的伤害为原伤害的120%/125%/130%/150%。",
+      "hook_name": "changyeyue_e1"
+    },
+    {
+      "rank": 2,
+      "name": "听，沉眠中的呓语",
+      "description": "长夜月和忆灵「长夜」的暴击伤害提高40%，每当长夜月获得【忆质】时，使获得的【忆质】数量提高2点。施放终结技时，额外获得2点【至暗之谜】的充能。",
+      "hook_name": "changyeyue_e2"
+    },
+    {
+      "rank": 3,
+      "name": "别怕，噩梦已成过去",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级；忆灵天赋等级+1，最多不超过10级。",
+      "hook_name": "changyeyue_e3"
+    },
+    {
+      "rank": 4,
+      "name": "醒来，便是你的明天",
+      "description": "长夜月在场时，我方忆灵的弱点击破效率提高25%，忆灵「长夜」的弱点击破效率额外提高25%。",
+      "hook_name": "changyeyue_e4"
+    },
+    {
+      "rank": 5,
+      "name": "忘却，记忆中的「我」",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级；忆灵技等级+1，最多不超过10级。",
+      "hook_name": "changyeyue_e5"
+    },
+    {
+      "rank": 6,
+      "name": "就这样，一直",
+      "description": "长夜月在场时，我方全体目标的全属性抗性穿透提高20%。忆灵「长夜」施放【迷梦，流失，如露】后，长夜月获得本次攻击消耗【忆质】数量的30%。",
+      "hook_name": "changyeyue_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "长夜",
+    "element": "冰",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 160,
+    "max_taunt": 150,
+    "inherit_ratios": {
+      "_doc": "长夜基础面板继承长夜月。HP继承50%，其他1.0。",
+      "HP": 0.5
+    },
+    "position_offset": -1,
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·追忆，蹁跹，如雨",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "single_enemy",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 50.0,
+            "damageType": "direct",
+            "element": "冰",
+            "_base": "基础50%HP"
+          },
+          {
+            "stat": "HP",
+            "scale": 10.0,
+            "damageType": "direct",
+            "element": "冰",
+            "_per_yizhi": "每4点【忆质】额外10%HP"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "single_enemy",
+            "value": 10.0
+          },
+          {
+            "type": "energy_regen",
+            "target": "self",
+            "value": 20.0
+          }
+        ],
+        "_mechanism": {
+          "auto_target": "自动选目标，优先攻击长夜月上次攻击的目标。",
+          "yizhi_scale": "长夜月每4点【忆质】→额外10%HP冰伤。",
+          "yizhi_gain": "施放后长夜月+1【忆质】。"
+        }
+      },
+      "memsprite_skill": {
+        "name": "忆灵技·迷梦，流失，如露",
+        "type": "skill",
+        "cost": {
+          "_yizhi": "全部【忆质】",
+          "_hp": "全部生命值"
+        },
+        "target": "all_enemies",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 12.0,
+            "damageType": "direct",
+            "element": "冰",
+            "_per_yizhi": true,
+            "target": "single_enemy"
+          },
+          {
+            "stat": "HP",
+            "scale": 6.0,
+            "damageType": "direct",
+            "element": "冰",
+            "_per_yizhi": true,
+            "target": "all_except_main"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 30.0
+          },
+          {
+            "type": "energy_regen",
+            "target": "self",
+            "value": 10.0
+          }
+        ],
+        "_mechanism": {
+          "condition": "长夜月【忆质】≥16且不处于控制状态时施放。",
+          "cost": "消耗全部【忆质】和生命值，施放后「长夜」消失。",
+          "damage": "每1点【忆质】对主目标12%HP+对副目标6%HP冰伤。"
+        }
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "忆灵天赋·孤独，浮游，漆黑",
+        "effect": "「长夜」免疫控制，被攻击概率提高。在场时，长夜月+长夜伤害提高50%。"
+      },
+      "talent_2": {
+        "name": "与夜，形影，不离",
+        "effect": "被召唤时，使自身立即行动。"
+      },
+      "talent_3": {
+        "name": "与你，再见，无期",
+        "effect": "消失时，长夜月SPD+10%。若因施放【迷梦】消失，每消耗1点【忆质】额外+1%SPD(上限40点)。加速无法叠加，长夜月下回合开始移除。"
+      }
+    }
+  },
+  "gold_offspring": true
+}

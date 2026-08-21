@@ -1,0 +1,20 @@
+{
+ "id": "the_forever_victual",
+ "name": "永远的迷境饭",
+ "rarity": 4,
+ "rank": 5,
+ "path": "同谐",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

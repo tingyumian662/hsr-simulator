@@ -1,0 +1,19 @@
+{
+  "name": "毁烬焚骨的大公",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the DMG dealt by Follow-Up ATK by 20%. When the wearer uses a Follow-Up ATK, increases the wearer's ATK by 6% for every time the Follow-Up ATK deals DMG.",
+      "attributes": {
+        "DMG_BONUS_ATK_FOLLOW_UP": 20.0
+      },
+      "condition": "fua_dmg_bonus"
+    },
+    {
+      "pieces_required": 4,
+      "description": "This effect can stack up to 8 times and lasts for 3 turns. This effect is removed the next time the wearer uses a Follow-Up ATK.",
+      "attributes": {},
+      "condition": "stack_atk_on_fua"
+    }
+  ]
+}

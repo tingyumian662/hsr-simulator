@@ -1,0 +1,193 @@
+{
+  "id": "fu_xuan",
+  "name": "符玄",
+  "element": "量子",
+  "path": "存护",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1475,
+  "base_ATK": 466,
+  "base_DEF": 606,
+  "base_SPD": 100,
+  "taunt": 150,
+  "max_energy": 135,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "CRIT_RATE": 18.7,
+    "HP_percent": 18.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·天律大衍",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 65.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_description": "对指定敌方单体造成等同于符玄65%生命上限的量子属性伤害。"
+    },
+    "skill": {
+      "name": "战技·太微行棋·灵台示现",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        },
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "fuxuan_field"
+        }
+      ],
+      "_description": "展开【穷观阵】，持续3回合。穷观阵内我方全体生命上限提高6%，暴击率提高12%。穷观阵期间符玄自身回合开始-1回合。"
+    },
+    "ultimate": {
+      "name": "终结技·太乙式盘·生克有象",
+      "type": "ultimate",
+      "cost": {
+        "energy": 135
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "fuxuan_ult_trigger"
+        }
+      ],
+      "_description": "对敌方全体造成等同于符玄100%生命上限的量子属性伤害，并为符玄天赋回复次数+1。"
+    },
+    "talent": {
+      "name": "天赋·乾清坤夷·否极泰来",
+      "type": "talent",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "damage_sharing": "穷观阵激活时，符玄承担我方全体受到伤害的65%（不可被分摊）。",
+        "damage_reduction": "符玄在场时，我方全体受到伤害降低18%。",
+        "self_heal": "符玄生命值降至50%以下时，回复等同于已损失生命值90%的生命值，该效果初始拥有1次回复次数，最多可拥有2次。"
+      }
+    },
+    "technique": {
+      "name": "秘技·岁记否泰·固笈四象",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "fuxuan_tech_barrier"
+        }
+      ],
+      "_description": "使用秘技后获得屏障，持续20秒。进入战斗时展开穷观阵，持续2回合。",
+      "_mechanism": "非进战: 穷观阵3回合(减伤18%+承伤65%+鉴知HP上限6%/暴击12%)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "太乙式盘",
+      "description": "施放终结技时，回复等同于符玄生命上限5%的生命值。",
+      "hook_name": "fuxuan_ult_heal"
+    },
+    {
+      "name": "遁甲星舆",
+      "description": "穷观阵激活时，我方全体抵抗控制类负面效果1次（穷观阵展开时重置次数）。",
+      "hook_name": "fuxuan_cc_resist"
+    },
+    {
+      "name": "六壬兆堪",
+      "description": "穷观阵激活时，符玄每回合开始时额外恢复20点能量。",
+      "hook_name": "fuxuan_energy_regen"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "司危",
+      "description": "【鉴知】使暴击伤害提高30%。",
+      "hook_name": "fuxuan_e1"
+    },
+    {
+      "rank": 2,
+      "name": "柔兆",
+      "description": "【穷观阵】开启时，若我方目标受到致命伤害，则本次行动中所有受到致命伤害的我方目标都不会陷入无法战斗状态，并立即回复等同于其自身生命上限70%的生命值。该效果单场战斗中可以触发1次。",
+      "hook_name": "fuxuan_e2"
+    },
+    {
+      "rank": 3,
+      "name": "直符",
+      "description": "战技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "fuxuan_e3"
+    },
+    {
+      "rank": 4,
+      "name": "格泽",
+      "description": "当处于【穷观阵】的我方其他目标受到攻击后，符玄恢复5点能量。",
+      "hook_name": "fuxuan_e4"
+    },
+    {
+      "rank": 5,
+      "name": "计神",
+      "description": "终结技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "fuxuan_e5"
+    },
+    {
+      "rank": 6,
+      "name": "种陵",
+      "description": "【穷观阵】开启时，会累计我方全体本场战斗中的已损失生命值。符玄施放终结技造成的伤害提高，提高数值等同于本场战斗中累计已损失生命值的200%。本场战斗中累计已损失生命值最高不超过符玄生命上限的120%，施放终结技后会清空并进行重新累计。",
+      "hook_name": "fuxuan_e6"
+    }
+  ],
+  "_source": "bilibili Wiki API verified"
+}

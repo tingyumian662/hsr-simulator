@@ -1,0 +1,24 @@
+{
+  "id": "yanqing",
+  "name": "彦卿",
+  "element": "冰",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 893,
+  "base_ATK": 679,
+  "base_DEF": 412,
+  "base_SPD": 109,
+  "taunt": 75,
+  "max_energy": 140,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "ATK_percent": 28.0,
+    "DMG_BONUS_ICE": 14.4
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

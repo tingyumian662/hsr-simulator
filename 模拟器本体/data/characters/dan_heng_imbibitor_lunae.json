@@ -1,0 +1,24 @@
+{
+  "id": "dan_heng_imbibitor_lunae",
+  "name": "丹恒•饮月",
+  "element": "虚数",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1242,
+  "base_ATK": 699,
+  "base_DEF": 364,
+  "base_SPD": 102,
+  "taunt": 125,
+  "max_energy": 140,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "DMG_BONUS_IMAGINARY": 22.4,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

@@ -1,0 +1,20 @@
+{
+ "name": "舞！舞！舞！",
+ "rarity": 4,
+ "rank": 5,
+ "path": "同谐",
+ "base_HP": 952,
+ "base_ATK": 423,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "trigger_effect",
+   "condition": "施放终结技后，我方全体行动提前24%",
+   "attributes": {},
+   "paramId": "lc_dance_dance_dance_advance",
+   "condition_code": "event_ult_after",
+   "target": "all_allies"
+  }
+ ],
+ "id": "dance_dance_dance"
+}

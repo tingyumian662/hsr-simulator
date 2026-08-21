@@ -1,0 +1,24 @@
+{
+  "id": "saber",
+  "name": "Saber",
+  "element": "风",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1242,
+  "base_ATK": 602,
+  "base_DEF": 655,
+  "base_SPD": 101,
+  "taunt": 125,
+  "max_energy": 360,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "DMG_BONUS_WIND": 22.4,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

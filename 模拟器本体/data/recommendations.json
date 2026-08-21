@@ -1,0 +1,920 @@
+{
+  "lingsha": {
+    "light_cone": "scent_alone_stays_true",
+    "set4": [
+      "荡除蠹灾的铁骑"
+    ],
+    "set2": [
+      "劫火莲灯铸炼宫"
+    ],
+    "body": [
+      "HEAL_BONUS"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "BREAK_EFFECT"
+    ]
+  },
+  "huohuo": {
+    "light_cone": "night_of_fright",
+    "set4": [
+      "骇域漫游的信使",
+      "晨昏交界的翔鹰",
+      "云无留迹的过客"
+    ],
+    "set2": [
+      "折断的龙骨",
+      "不老者的仙舟"
+    ],
+    "body": [
+      "HEAL_BONUS",
+      "HP_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "cerydra": {
+    "light_cone": "epoch_etched_in_golden_blood",
+    "set4": [
+      "重循苦旅的司铎",
+      "晨昏交界的翔鹰"
+    ],
+    "set2": [
+      "生命的翁瓦克",
+      "沉陆海域露莎卡",
+      "折断的龙骨"
+    ],
+    "body": [
+      "ATK_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
+  },
+  "bronya": {
+    "light_cone": "but_the_battle_isnt_over",
+    "set4": [
+      "晨昏交界的翔鹰",
+      "骇域漫游的信使"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克",
+      "折断的龙骨"
+    ],
+    "body": [
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "DEF_percent",
+      "HP_percent"
+    ]
+  },
+  "trailblazer_harmony": {
+    "light_cone": "dance_dance_dance",
+    "set4": [
+      "机心戏梦的钟表匠"
+    ],
+    "set2": [
+      "盗贼公国塔利亚"
+    ],
+    "body": [
+      "HP_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DEF_percent",
+      "HP_percent",
+      "DMG_BONUS_IMAGINARY"
+    ],
+    "rope": [
+      "BREAK_EFFECT"
+    ]
+  },
+  "tribbie": {
+    "light_cone": "if_time_were_a_flower",
+    "set4": [
+      "晨昏交界的翔鹰",
+      "哀歌覆国的诗人"
+    ],
+    "set2": [
+      "谧宁拾骨地"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "HP_percent",
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DMG_BONUS_QUANTUM"
+    ],
+    "rope": [
+      "HP_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "sparkle": {
+    "light_cone": "earthly_escapade",
+    "set4": [
+      "骇域漫游的信使",
+      "晨昏交界的翔鹰"
+    ],
+    "set2": [
+      "折断的龙骨",
+      "生命的翁瓦克",
+      "沉陆海域露莎卡"
+    ],
+    "body": [
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "dan_heng_permansor_terrae": {
+    "light_cone": "though_worlds_apart",
+    "set4": [
+      "自匿星芒的隐士"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "ATK_percent"
+    ],
+    "feet": [
+      "ATK_percent",
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "fu_xuan": {
+    "light_cone": "she_already_shut_her_eyes",
+    "set4": [
+      "戍卫风雪的铁卫"
+    ],
+    "set2": [
+      "生命的翁瓦克",
+      "沉陆海域露莎卡",
+      "折断的龙骨"
+    ],
+    "body": [
+      "HP_percent"
+    ],
+    "feet": [
+      "HP_percent",
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "seele": {
+    "light_cone": "in_the_night",
+    "set4": [
+      "繁星璀璨的天才"
+    ],
+    "set2": [
+      "繁星竞技场",
+      "奇想蕉乐园"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "DMG_BONUS_QUANTUM"
+    ],
+    "rope": [
+      "ATK_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "himeko_nova": {
+    "light_cone": "a_star_that_lights_the_night",
+    "set4": [
+      "星如我见的领航员"
+    ],
+    "set2": [
+      "坠星启航地"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "anaxa": {
+    "light_cone": "life_should_be_cast_to_flames",
+    "set4": [
+      "晨昏交界的翔鹰",
+      "识海迷坠的学者",
+      "繁星璀璨的天才"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "繁星竞技场",
+      "出云显世与高天神国"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_WIND"
+    ],
+    "rope": [
+      "ATK_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "trailblazer_elation": {
+    "light_cone": "elation_overflow_blessing",
+    "set4": [
+      "应天涉远的卜者"
+    ],
+    "set2": [
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "sparxie": {
+    "light_cone": "dazzling_world",
+    "set4": [
+      "闪耀功勋的魔法少女"
+    ],
+    "set2": [
+      "天国@直播间"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "yaoguang": {
+    "light_cone": "when_she_decided_to_see",
+    "set4": [
+      "应天涉远的卜者",
+      "骇域漫游的信使"
+    ],
+    "set2": [
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "evanescia": {
+    "light_cone": "encounter_next_bloom",
+    "set4": [
+      "闪耀功勋的魔法少女"
+    ],
+    "set2": [
+      "零号关卡朋克洛德"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "DMG_BONUS_PHYSICAL"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "yinlang": {
+    "light_cone": "welcome_to_galaxy_city",
+    "set4": [
+      "闪耀功勋的魔法少女"
+    ],
+    "set2": [
+      "零号关卡朋克洛德"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "DEF_percent",
+      "HP_percent"
+    ]
+  },
+  "mydei": {
+    "light_cone": "flame_of_blood_blaze_my_path",
+    "set4": [
+      "识海迷坠的学者",
+      "宝命长存的莳者"
+    ],
+    "set2": [
+      "谧宁拾骨地"
+    ],
+    "body": [
+      "HP_percent",
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "HP_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_IMAGINARY"
+    ],
+    "rope": [
+      "HP_percent"
+    ]
+  },
+  "firefly": {
+    "light_cone": "whereabouts_should_dreams_rest",
+    "set4": [
+      "荡除蠹灾的铁骑"
+    ],
+    "set2": [
+      "劫火莲灯铸炼宫"
+    ],
+    "body": [
+      "ATK_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "BREAK_EFFECT"
+    ]
+  },
+  "phainon": {
+    "light_cone": "thus_burns_the_dawn",
+    "set4": [
+      "恶海逐波的船长"
+    ],
+    "set2": [
+      "妖精织梦的乐园"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_PHYSICAL"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "the_dahlia": {
+    "light_cone": "never_forget_her_flame",
+    "set4": [
+      "荡除蠹灾的铁骑"
+    ],
+    "set2": [
+      "劫火莲灯铸炼宫"
+    ],
+    "body": [
+      "DEF_percent",
+      "HP_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "BREAK_EFFECT"
+    ]
+  },
+  "fugue": {
+    "light_cone": "long_road_leads_home",
+    "set4": [
+      "荡除蠹灾的铁骑"
+    ],
+    "set2": [
+      "劫火莲灯铸炼宫"
+    ],
+    "body": [
+      "EFFECT_HIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "BREAK_EFFECT"
+    ]
+  },
+  "hysilens": {
+    "light_cone": "why_does_the_ocean_sing",
+    "set4": [
+      "幽锁深牢的系囚"
+    ],
+    "set2": [
+      "沉欢醉饮的海隅"
+    ],
+    "body": [
+      "EFFECT_HIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_PHYSICAL"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "cipher": {
+    "light_cone": "lies_dance_on_the_breeze",
+    "set4": [
+      "死水深潜的先驱",
+      "繁星璀璨的天才"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "折断的龙骨"
+    ],
+    "body": [
+      "EFFECT_HIT_RATE",
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_QUANTUM",
+      "HP_percent",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "silver_wolf": {
+    "light_cone": "incessant_rain",
+    "set4": [
+      "晨昏交界的翔鹰"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "EFFECT_HIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "trailblazer_remembrance": {
+    "light_cone": "victory_in_a_blink",
+    "set4": [
+      "凯歌祝捷的英豪",
+      "再创天地的救世主"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent",
+      "DMG_BONUS_ICE"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "xilian": {
+    "light_cone": "this_love_forever",
+    "set4": [
+      "再创天地的救世主"
+    ],
+    "set2": [
+      "永恒之地翁法罗斯"
+    ],
+    "body": [
+      "HP_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_ICE",
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent"
+    ]
+  },
+  "xiadie": {
+    "light_cone": "make_farewells_more_beautiful",
+    "set4": [
+      "哀歌覆国的诗人"
+    ],
+    "set2": [
+      "谧宁拾骨地"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "HP_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_QUANTUM",
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent"
+    ]
+  },
+  "changyeyue": {
+    "light_cone": "to_evernight_s_stars",
+    "set4": [
+      "再创天地的救世主"
+    ],
+    "set2": [
+      "谧宁拾骨地"
+    ],
+    "body": [
+      "CRIT_DMG",
+      "HP_percent"
+    ],
+    "feet": [
+      "HP_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_ICE",
+      "HP_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "HP_percent"
+    ]
+  },
+  "aglaea": {
+    "light_cone": "time_woven_into_gold",
+    "set4": [
+      "凯歌祝捷的英豪"
+    ],
+    "set2": [
+      "奇想蕉乐园"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_LIGHTNING",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
+  },
+  "fengjin": {
+    "light_cone": "long_may_rainbows_adorn_the_sky",
+    "set4": [
+      "烈阳惊雷的女武神"
+    ],
+    "set2": [
+      "渊思寂虑的巨树"
+    ],
+    "body": [
+      "HEAL_BONUS"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "HP_percent"
+    ]
+  },
+  "sunday": {
+    "light_cone": "a_grounded_ascent",
+    "set4": [
+      "重循苦旅的司铎"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "robin": {
+    "light_cone": "flowing_nightglow",
+    "set4": [
+      "野穗伴行的快枪手"
+    ],
+    "set2": [
+      "沉陆海域露莎卡",
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "ATK_percent"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
+  },
+  "ruan_mei": {
+    "light_cone": "past_self_in_mirror",
+    "set4": [
+      "机心戏梦的钟表匠"
+    ],
+    "set2": [
+      "生命的翁瓦克",
+      "沉陆海域露莎卡",
+      "折断的龙骨",
+      "盗贼公国塔利亚"
+    ],
+    "body": [
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DEF_percent",
+      "HP_percent"
+    ],
+    "rope": [
+      "BREAK_EFFECT",
+      "ENERGY_REGEN"
+    ]
+  },
+  "busitu": {
+    "light_cone": "the_finale_of_a_lie",
+    "set4": [
+      "毁烬焚骨的大公",
+      "晨昏交界的翔鹰",
+      "风举云飞的勇烈"
+    ],
+    "set2": [
+      "千星荟萃之城"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_LIGHTNING",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "qianye": {
+    "light_cone": "reforged_in_hellfire",
+    "set4": [
+      "叩问天工的名冶"
+    ],
+    "set2": [
+      "千星荟萃之城"
+    ],
+    "body": [
+      "CRIT_RATE",
+      "CRIT_DMG",
+      "HP_percent"
+    ],
+    "feet": [
+      "HP_percent",
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_FIRE",
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent"
+    ]
+  },
+  "welt": {
+    "light_cone": "in_the_name_of_the_world",
+    "set4": [
+      "晨昏交界的翔鹰"
+    ],
+    "set2": [
+      "生命的翁瓦克",
+      "沉陆海域露莎卡"
+    ],
+    "body": [
+      "EFFECT_HIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "DMG_BONUS_IMAGINARY",
+      "HP_percent",
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
+  },
+  "acheron": {
+    "light_cone": "along_the_passing_shore",
+    "set4": [
+      "死水深潜的先驱"
+    ],
+    "set2": [
+      "出云显世与高天神国"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "feixiao": {
+    "light_cone": "i_venture_forth_to_hunt",
+    "set4": [
+      "风举云飞的勇烈",
+      "晨昏交界的翔鹰"
+    ],
+    "set2": [
+      "奔狼的都蓝王朝"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "ATK_percent",
+      "DMG_BONUS_WIND"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  }
+}

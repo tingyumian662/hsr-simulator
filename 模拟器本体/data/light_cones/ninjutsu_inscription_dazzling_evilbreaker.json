@@ -1,0 +1,20 @@
+{
+ "id": "ninjutsu_inscription_dazzling_evilbreaker",
+ "name": "忍法帖•缭乱破魔",
+ "rarity": 5,
+ "rank": 1,
+ "path": "智识",
+ "base_HP": 953,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 60.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

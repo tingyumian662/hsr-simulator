@@ -1,0 +1,215 @@
+{
+  "id": "the_dahlia",
+  "name": "大丽花",
+  "element": "火",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1086,
+  "base_ATK": 679,
+  "base_DEF": 606,
+  "base_SPD": 96,
+  "taunt": 100,
+  "max_energy": 130,
+  "trace_stats": {
+    "EFFECT_RES": 18.0,
+    "SPD_percent": 5.0,
+    "BREAK_EFFECT": 37.3
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "拨弄…记忆绽开裂隙",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK火; 削韧10"
+    },
+    "skill": {
+      "name": "舔舐…背叛伸出火舌",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 160.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "adjacent"
+        }
+      ],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "paramId": "dahlia_field_buff",
+          "value": 3.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 30.0
+        }
+      ],
+      "_mechanism": "扩散160%ATK火; 开结界3回合(回合开始-1): 全队弱点击破效率+50%+未破韧目标削韧也转超击破(60%, 用户2026-08-15确认)(引擎handler)"
+    },
+    "ultimate": {
+      "name": "沉溺…飞灰邀入墓床",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 300.0,
+          "damageType": "direct",
+          "element": "火",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "debuff",
+          "target": "all_enemies",
+          "paramId": "the_dahlia_baisie",
+          "value": 4.0
+        },
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5.0
+        }
+      ],
+      "_mechanism": "全敌【败谢】4回合(防御-18%+添加所有共舞者属性弱点); 300%ATK由敌方全体均分(每敌300/敌数, 白厄最后一击先例)"
+    },
+    "talent": {
+      "name": "谁在害怕康士坦丝？",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "火"
+        }
+      ],
+      "effects": [],
+      "_mechanism": "开战回35能量+与击破特攻最高队友成【共舞者】; 共舞者攻击破韧目标→削韧转60%超击破; 另一共舞者攻击后大丽花FUA 5次×30%ATK+每段命中破韧目标转100%超击破(每回合最多1次)(引擎handler)"
+    },
+    "technique": {
+      "name": "心，是最好的坟茔",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战·领域(互斥, 我方领域最多1个): 立即开启战技结界+已破韧目标开战削韧转60%超击破(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "又一场葬礼",
+      "description": "开战其他角色击破特攻+(24%+50%×大丽花BE) 1回合; 受治疗/护盾再触发3回合(单回合1次)",
+      "hook_name": "the_dahlia_trace1"
+    },
+    {
+      "name": "致哀，故人",
+      "description": "施放天赋追加攻击每2次回1战技点",
+      "hook_name": "the_dahlia_trace2"
+    },
+    {
+      "name": "弃旧，恋新",
+      "description": "我方为敌添加弱点→大丽花速度+30% 2回合; 火属性添加弱点→+20固定削韧+回10%能量上限",
+      "hook_name": "the_dahlia_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "击破特攻+37.3%/效果抵抗+18%/速度+5",
+      "hook_name": "the_dahlia_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "当一朵花含苞待放",
+      "description": "超击破倍率全队生效+共舞者额外40%; 共舞者攻击后目标25%韧性上限固定削韧(≥10≤300, 每目标1次, 致命攻击后重置)",
+      "hook_name": "the_dahlia_e1"
+    },
+    {
+      "rank": 2,
+      "name": "新生，鲜灵，爱怜",
+      "description": "在场全敌全属性抗性-20%; 敌方入场立即【败谢】3回合",
+      "hook_name": "the_dahlia_e2"
+    },
+    {
+      "rank": 3,
+      "name": "可惜花瓣薄如蝉翼",
+      "description": "终结技+2; 普攻+1",
+      "hook_name": "the_dahlia_e3"
+    },
+    {
+      "rank": 4,
+      "name": "可惜花蕊为虫剥蚀",
+      "description": "天赋追加攻击次数+5; 每次击中目标受伤+12% 2回合",
+      "hook_name": "the_dahlia_e4"
+    },
+    {
+      "rank": 5,
+      "name": "凋落，腐烂，憎恨",
+      "description": "战技+2; 天赋+2",
+      "hook_name": "the_dahlia_e5"
+    },
+    {
+      "rank": 6,
+      "name": "然而它总是，致命美丽",
+      "description": "共舞者击破特攻+150%; 施放天赋追加攻击时共舞者行动提前20%",
+      "hook_name": "the_dahlia_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified; 基础属性按用户txt 2026-08-15 回改)"
+}

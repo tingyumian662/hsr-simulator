@@ -1,0 +1,11 @@
+{
+  "name": "不老者的仙舟",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's Max HP by 12%. When the wearer's SPD reaches 120 or higher, all allies' ATK increases by 8%.",
+      "attributes": {"HP_percent": 12.0},
+      "condition": "spd_threshold_120_team_atk"
+    }
+  ]
+}

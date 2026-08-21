@@ -1,0 +1,19 @@
+{
+  "name": "盗匪荒漠的废土客",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases Imaginary DMG by 10%.",
+      "attributes": {
+        "DMG_BONUS_IMAGINARY": 10.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When dealing DMG to debuffed enemy targets, the wearer has their CRIT Rate increased by 10%. And when they deal DMG to Imprisoned enemy targets, their CRIT DMG increases by 20%.",
+      "attributes": {},
+      "condition": "cr_vs_debuff"
+    }
+  ]
+}

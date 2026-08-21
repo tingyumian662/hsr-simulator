@@ -1,0 +1,311 @@
+{
+  "id": "xilian",
+  "name": "昔涟",
+  "element": "冰",
+  "path": "记忆",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1397,
+  "base_ATK": 446,
+  "base_DEF": 582,
+  "base_SPD": 101,
+  "taunt": 100,
+  "max_energy": 27,
+  "_energy_note": "【追忆】特殊能量。上限27。普攻+0/强化普攻+3/战技+3/队友消耗未来+1。终结技-12。常态≥24可开大，往昔涟漪≥12。",
+  "trace_stats": {
+    "CRIT_DMG": 37.3,
+    "SPD_percent": 9.0,
+    "HP_percent": 10.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·看，希望的起始！",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50.0,
+          "damageType": "direct",
+          "element": "冰"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ],
+      "_zhuiyi": 1,
+      "_mechanism": "单攻50%HP冰; 削韧10; 获得1点追忆(引擎内联 hardcode, 本字段仅文档)"
+    },
+    "basic_attack_enhanced": {
+      "name": "向着爱与明天♪",
+      "type": "basic_attack",
+      "cost": {
+        "_sp_recover": 0
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "冰",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "HP",
+          "scale": 30.0,
+          "damageType": "direct",
+          "element": "冰",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        }
+      ],
+      "_zhuiyi": 3,
+      "_nost": "无战技点恢复",
+      "_condition": "仅在【往昔的涟漪】状态可用"
+    },
+    "skill": {
+      "name": "战技·盛放吧，来世的乐土",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "all_allies",
+          "value": 1.0,
+          "paramId": "xilian_field"
+        }
+      ],
+      "_zhuiyi": 3,
+      "_mechanism": {
+        "field": "结界持续2回合(昔涟回合-1)。我方每次造成伤害→额外24%真伤。终结技后→永久。昔涟死亡→解除。"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·诗的「◦」誓约的「∞」",
+      "type": "ultimate",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1.0
+        },
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "xilian_ult_ripple"
+        }
+      ],
+      "_mechanism": {
+        "cost": "消耗12追忆。常态终结技，单场1次。",
+        "summon": "召唤德谬歌(HP=昔涟100%)，立即额外回合。激活全体队友终结技。",
+        "enter_ripple": "进入【往昔的涟漪】：普攻→强化普攻，CR+50%(昔涟+德谬歌)，结界永久。",
+        "ult_becomes": "终结技替换为【一如初见的重逢】"
+      }
+    },
+    "ultimate_ripple": {
+      "name": "一如初见的重逢",
+      "type": "ultimate",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "cost": "消耗12追忆。仅在【往昔的涟漪】状态可用。",
+        "effect": "德谬歌立即获得1个额外回合"
+      }
+    },
+    "talent": {
+      "name": "天赋·众愿啊，汇流如歌",
+      "type": "talent",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "future": "战斗开始/昔涟行动后→队友+忆灵获【未来】。队友行动→消耗未来→昔涟+1追忆。",
+        "ult_condition": "追忆≥24→终结技(往昔的涟漪≥12)。上限27。",
+        "dmg_buff": "昔涟在场→全队伤害+20%"
+      }
+    },
+    "technique": {
+      "name": "秘技·西风尽头，宁谧永恒",
+      "type": "technique",
+      "technique_category": "support",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "buff",
+          "target": "self",
+          "value": 1.0,
+          "paramId": "xilian_tech"
+        }
+      ],
+      "_mechanism": {
+        "enter_battle": "进战自动展开战技结界"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "三相的因果",
+      "description": "SPD≥180→全队伤害+20%。每超1点→昔涟+德谬歌冰抗性穿透+2%(上限60点=120%)。",
+      "hook_name": "xilian_trace1_speed_to_pen"
+    },
+    {
+      "name": "记忆的净子",
+      "description": "队友忆灵被召唤时获得【未来】。忆灵持有的【未来】不会被消耗。",
+      "hook_name": "xilian_trace2_memsprite_future"
+    },
+    {
+      "name": "岁月的旅人",
+      "description": "队伍中1/2/3+名黄金裔或记忆角色→战斗开始获2/3/6追忆。",
+      "hook_name": "xilian_trace3_start_zhuiyi"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "空白，在诗篇的起点",
+      "description": "献予真我之诗触发的花与箭→+6追忆+弹射次数+12。",
+      "hook_name": "xilian_e1"
+    },
+    {
+      "rank": 2,
+      "name": "十三种光彩，倒映明天",
+      "description": "进战+12追忆。每名队友获增益→结界真伤倍率+6%(上限24%)。",
+      "hook_name": "xilian_e2"
+    },
+    {
+      "rank": 3,
+      "name": "因你而在，如我所书",
+      "description": "终结技+2/天赋+2/忆灵技+1。",
+      "hook_name": "xilian_e3"
+    },
+    {
+      "rank": 4,
+      "name": "请笑着，写就下一页",
+      "description": "每1次花与箭→献予真我之诗弹射倍率+6%(上限24层)。",
+      "hook_name": "xilian_e4"
+    },
+    {
+      "rank": 5,
+      "name": "目光，流溢昨日的花圃",
+      "description": "战技+2/普攻+1/忆灵天赋+1。",
+      "hook_name": "xilian_e5"
+    },
+    {
+      "rank": 6,
+      "name": "记忆，化作涟漪片片♪",
+      "description": "首次终结技→全队拉条100%。献予触发1次→敌DEF-20%; ≥2次→全队拉条24%。",
+      "hook_name": "xilian_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "德谬歌",
+    "element": "冰",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 0,
+    "max_taunt": 0,
+    "inherit_ratios": {
+      "_doc": "HP=昔涟HP×100%。SPD=0(界外，不参与行动条，仅通过额外回合行动)。",
+      "HP": 1.0
+    },
+    "position_offset": 0,
+    "is_backup": true,
+    "_position_note": "界外(SPD=0, 不在行动条, 不可选中, 不可受击)",
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·花与箭的舞曲",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "all_enemies",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 60.0,
+            "damageType": "direct",
+            "element": "冰"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 10.0
+          }
+        ],
+        "_zhenwo": "昔涟获追忆→花与箭追加弹射"
+      },
+      "memsprite_support": {
+        "name": "此诗，献予一切生命",
+        "type": "skill",
+        "cost": {},
+        "target": "single_ally",
+        "multipliers": [],
+        "effects": [],
+        "_mechanism": {
+          "gold_offspring": "黄金裔→特殊效果(待补充)",
+          "non_gold": "非黄金裔→伤害+40%/2回合(对忆灵生效)",
+          "_zhenwo": "累计忆灵行动次数+1"
+        },
+        "_zhenwo": "昔涟获追忆→花与箭追加弹射"
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "献予「真我」之诗",
+        "effect": "每累计2次忆灵行动(花与箭/此诗献予)→自动插入1个额外回合→自动释放1次花与箭的舞曲。触发后计数重置。"
+      },
+      "talent_2": {
+        "name": "忆灵天赋·等待，在所有的过去",
+        "effect": "SPD=0,不在行动条,界外不可选中。昔涟HP%变化→德谬歌HP%同步。在场时双方生命上限+24%。自身施放技能后所有持续效果-1回合。"
+      },
+      "talent_3": {
+        "name": "献予「真我」之诗",
+        "effect": "昔涟每从1个不同队友处获得追忆→德谬歌花与箭额外+1次60%HP冰弹射。昔涟终结技/德谬歌召唤→+1故事。故事≥3→消耗全部→德谬歌额外回合自动花与箭。"
+      }
+    }
+  },
+  "_gold_offspring": "阿格莱雅/万敌/风堇/赛飞儿/刻律德菈/遐蝶/海瑟音/缇宝/昔涟/那刻夏/开拓者·记忆/白厄/丹恒·腾荒",
+  "_gold_offspring_effects": {
+    "_note": "此诗，献予一切生命对13黄金裔的特殊效果",
+    "开拓者·记忆": "献予「创世」之诗: ATK+德谬歌HP16%, CR+德谬歌CR72%(迷迷生效)。开拓者强化普攻后→德谬歌额外回合+花与箭。",
+    "阿格莱雅": "献予「浪漫」之诗: 衣匠SPD叠满。攻击后消耗浪漫→回70能量。伤害+72%+无视36%DEF。至退出至高之姿。",
+    "缇宝": "献予「门径」之诗: 伤害无视12%DEF。追加攻击→结界附加伤害+1次。",
+    "万敌": "献予「纷争」之诗: 解控。血仇→自动弑神登神(CD+200%)。非血仇→拉条100%。",
+    "遐蝶": "献予「生死」之诗: 新蕊溢出200%。召唤死龙消耗溢出→晦翼倍率+0.24%/%(≤2敌→+0.48%)。",
+    "那刻夏": "献予「理性」之诗: 回1SP+拉条100%。战技+3次。下次普攻/战技→全智识ATK+60%+战技伤+40%。",
+    "风堇": "献予「天空」之诗: 德谬歌放技→+2层。对其施放→回24能量。治疗→小伊卡额外72%数值。",
+    "赛飞儿": "献予「诡计」之诗: 赛飞儿伤害+36%。老主顾DEF-20%，其他敌DEF-12%。",
+    "白厄": "献予「负世」之诗: +6火种。变身获永续燃烧(CR+16%)。额外回合不结束变身。额外回合耗HP15%。攻击后5次10%ATK火追伤。",
+    "海瑟音": "献予「海洋」之诗: 获暖流。攻击后回60能量。伤害+120%。普攻/战技→DOT原伤60%/80%。",
+    "刻律德菈": "献予「律法」之诗: 军功角色CD+30%。奇袭结束→+1充能。",
+    "长夜月": "献予「岁月」之诗: 迷梦伤害+18%。战技/终结技→+1忆质。战技CD额外+长夜月CD12%。",
+    "丹恒·腾荒": "献予「大地」之诗: 德谬歌放技→龙灵3次攻击附80%同袍护盾伤。同袍伤害+24%。拉条龙灵100%+护盾150%+不消耗强化。"
+  },
+  "energy_type": "special"
+}

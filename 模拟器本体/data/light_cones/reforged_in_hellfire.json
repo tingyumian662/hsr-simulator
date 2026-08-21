@@ -1,0 +1,20 @@
+{
+ "id": "reforged_in_hellfire",
+ "name": "灼尽炼狱的新骸",
+ "rarity": 5,
+ "rank": 1,
+ "path": "虚无",
+ "base_HP": 1376,
+ "base_ATK": 423,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HP_percent": 30.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

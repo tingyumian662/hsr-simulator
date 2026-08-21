@@ -1,0 +1,29 @@
+{
+ "name": "血火啊，燃烧前路",
+ "rarity": 5,
+ "rank": 1,
+ "path": "毁灭",
+ "base_HP": 1375,
+ "base_ATK": 476,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "HP_percent": 18.0,
+    "HEAL_BONUS": 20.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放战技或终结技时消耗生命上限6%的生命值，本次攻击伤害提高30%。若该次消耗生命值超过500点，伤害额外再提高30%（合计60%）。消耗生命值最多使当前生命值降至1点（不会致命）",
+   "attributes": {
+    "DMG_BONUS_ALL": 60.0
+   },
+   "condition_code": "event_skill_after",
+   "target": "self"
+  }
+ ],
+ "id": "flame_of_blood_blaze_my_path"
+}

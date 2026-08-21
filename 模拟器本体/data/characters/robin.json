@@ -1,0 +1,151 @@
+{
+  "id": "robin",
+  "name": "知更鸟",
+  "element": "物理",
+  "path": "同谐",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1280,
+  "base_ATK": 640,
+  "base_DEF": 485,
+  "base_SPD": 102,
+  "taunt": 100,
+  "max_energy": 160,
+  "trace_stats": {
+    "SPD_percent": 5.0,
+    "ATK_percent": 28.0,
+    "HP_percent": 18.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "扑翼白声",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "物理"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        },
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "单攻100%ATK物理; 削韧10"
+    },
+    "skill": {
+      "name": "翎之咏叹调",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "全队增伤50% 3回合(知更鸟回合开始-1); 行迹3额外回5能(引擎handler)"
+    },
+    "ultimate": {
+      "name": "千音迭奏，群星赋格",
+      "type": "ultimate",
+      "cost": {
+        "energy": 160
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "【协奏】状态: 除自身外队友立即行动; 全队ATK+22.8%+200; 每次我方攻击后知更鸟附加120%ATK物理伤(CR固定100%/CD固定150%); 免疫控制; 协奏期不进入自己回合; 90速倒计时结束退出+立即行动(引擎handler)"
+    },
+    "talent": {
+      "name": "调性合颂",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "全队暴伤+20%; 我方攻击后知更鸟回2能(E2+1)(引擎handler)"
+    },
+    "technique": {
+      "name": "酣醉序曲",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "support",
+      "_mechanism": "非进战·领域(互斥): 每波次开始知更鸟回5能(_respawn_wave接线)(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "即兴装饰",
+      "description": "协奏期全队追加攻击暴伤+25%",
+      "hook_name": "robin_trace1"
+    },
+    {
+      "name": "华彩花腔",
+      "description": "战斗开始自身行动提前25%",
+      "hook_name": "robin_trace2"
+    },
+    {
+      "name": "模进乐段",
+      "description": "施放战技时额外恢复5点能量",
+      "hook_name": "robin_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "攻击力+28%/生命上限+18%/速度+5",
+      "hook_name": "robin_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "微笑的国度",
+      "description": "协奏期全队全属性抗性穿透+24%",
+      "hook_name": "robin_e1"
+    },
+    {
+      "rank": 2,
+      "name": "两者的午茶",
+      "description": "协奏期全队速度+16%; 天赋回能+1",
+      "hook_name": "robin_e2"
+    },
+    {
+      "rank": 3,
+      "name": "倒悬的弦宫",
+      "description": "战技+2; 终结技+2",
+      "hook_name": "robin_e3"
+    },
+    {
+      "rank": 4,
+      "name": "雨滴的钥匙",
+      "description": "终结技解除全队控制; 协奏期全队效果抵抗+50%",
+      "hook_name": "robin_e4"
+    },
+    {
+      "rank": 5,
+      "name": "孤星的眼泪",
+      "description": "普攻+1; 天赋+2",
+      "hook_name": "robin_e5"
+    },
+    {
+      "rank": 6,
+      "name": "月隐的午夜",
+      "description": "协奏期附加暴伤额外+450%(最多8次/终结技重置)",
+      "hook_name": "robin_e6"
+    }
+  ],
+  "_pending": "",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

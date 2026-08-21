@@ -1,0 +1,20 @@
+{
+ "id": "a_dream_scented_in_wheat",
+ "name": "氤氲麦香的梦",
+ "rarity": 4,
+ "rank": 5,
+ "path": "智识",
+ "base_HP": 953,
+ "base_ATK": 529,
+ "base_DEF": 397,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 12.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

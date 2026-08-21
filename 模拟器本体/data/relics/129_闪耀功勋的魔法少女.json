@@ -1,0 +1,17 @@
+{
+  "name": "闪耀功勋的魔法少女",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases CRIT DMG by 16%.",
+      "attributes": {"CRIT_DMG": 16.0},
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "The Elation DMG dealt by the wearer and their memosprites ignores 10% of targets' DEF. For every 5 accumulated Punchline allies gain, the Elation DMG dealt additionally ignores 1% of targets' DEF, stacking up to 10 times.",
+      "attributes": {"DEF_PEN_ELATION": 10.0},
+      "condition": "elation_laugh_def_pen_stack"
+    }
+  ]
+}

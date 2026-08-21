@@ -1,0 +1,20 @@
+{
+ "id": "only_silence_remains",
+ "name": "唯有沉默",
+ "rarity": 4,
+ "rank": 5,
+ "path": "巡猎",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 16.0
+   }
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

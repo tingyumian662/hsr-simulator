@@ -1,0 +1,31 @@
+{
+  "id": "target_dummy",
+  "name": "测试木桩",
+  "level": 80,
+  "HP": 999999,
+  "ATK": 500,
+  "DEF": 1000,
+  "SPD": 100,
+  "toughness": 100,
+  "dmg_reduction": 0.0,
+  "vulnerability": 0.0,
+  "element_res": {
+    "物理": 0.0,
+    "火": 0.0,
+    "冰": 0.0,
+    "雷": 0.0,
+    "风": 0.0,
+    "量子": 0.0,
+    "虚数": 0.0
+  },
+  "attacks": [
+    {
+      "name": "挥击",
+      "element": "物理",
+      "damage_type": "direct",
+      "multiplier": 100.0,
+      "target_type": "single_enemy",
+      "priority": 0
+    }
+  ]
+}

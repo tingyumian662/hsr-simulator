@@ -1,0 +1,35 @@
+{
+ "name": "孤独的疗愈",
+ "rarity": 5,
+ "rank": 5,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 529,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "BREAK_EFFECT": 40.0
+   }
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "施放终结技后，造成的持续伤害提高48%，持续2回合",
+   "attributes": {
+    "DMG_BONUS_DOT": 48.0
+   },
+   "condition_code": "typed_permanent",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "陷入装备者施加的持续伤害效果的敌方目标被消灭时，装备者恢复6点能量",
+   "attributes": {},
+   "condition_code": "event_kill",
+   "target": "self"
+  }
+ ],
+ "id": "solitary_healing"
+}

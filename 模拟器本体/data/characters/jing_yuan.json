@@ -1,0 +1,24 @@
+{
+  "id": "jing_yuan",
+  "name": "景元",
+  "element": "雷",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1164,
+  "base_ATK": 699,
+  "base_DEF": 485,
+  "base_SPD": 99,
+  "taunt": 75,
+  "max_energy": 130,
+  "trace_stats": {
+    "ATK_percent": 28.0,
+    "CRIT_RATE": 12.0,
+    "DEF_percent": 12.5
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

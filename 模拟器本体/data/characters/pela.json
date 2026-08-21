@@ -1,0 +1,24 @@
+{
+  "id": "pela",
+  "name": "佩拉",
+  "element": "冰",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 988,
+  "base_ATK": 547,
+  "base_DEF": 463,
+  "base_SPD": 105,
+  "taunt": 100,
+  "max_energy": 110,
+  "trace_stats": {
+    "ATK_percent": 18.0,
+    "EFFECT_HIT_RATE": 10.0,
+    "DMG_BONUS_ICE": 22.4
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

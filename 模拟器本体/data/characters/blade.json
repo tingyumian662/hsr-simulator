@@ -1,0 +1,24 @@
+{
+  "id": "blade",
+  "name": "刃",
+  "element": "风",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1358,
+  "base_ATK": 543,
+  "base_DEF": 485,
+  "base_SPD": 97,
+  "taunt": 125,
+  "max_energy": 130,
+  "trace_stats": {
+    "EFFECT_RES": 10.0,
+    "HP_percent": 28.0,
+    "CRIT_RATE": 12.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

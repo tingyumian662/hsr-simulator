@@ -1,0 +1,24 @@
+{
+  "id": "argenti",
+  "name": "银枝",
+  "element": "物理",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1048,
+  "base_ATK": 737,
+  "base_DEF": 364,
+  "base_SPD": 103,
+  "taunt": 75,
+  "max_energy": 180,
+  "trace_stats": {
+    "ATK_percent": 28.0,
+    "DMG_BONUS_PHYSICAL": 14.4,
+    "HP_percent": 10.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

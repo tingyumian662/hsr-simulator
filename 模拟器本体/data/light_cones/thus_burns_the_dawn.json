@@ -1,0 +1,44 @@
+{
+  "name": "黎明恰如此燃烧",
+  "rarity": 5,
+  "rank": 1,
+  "path": "毁灭",
+  "base_HP": 952,
+  "base_ATK": 687,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "使装备者的基础速度提高12（加算至速度白值，可享受百分比速度加成）",
+      "attributes": {
+        "_base_SPD": 12.0
+      },
+      "condition_code": null,
+      "target": "self"
+    },
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "DEF_PEN": 18.0
+      }
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "施放终结技后获得【烈阳】（自身回合开始时移除）",
+      "attributes": {},
+      "condition_code": "stack_gain:on_ult:lieyang:1:self:0:clear_on:self_turn_start",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "持有【烈阳】时，造成的伤害提高60%",
+      "attributes": {
+        "DMG_BONUS_ALL": 60.0
+      },
+      "condition_code": "stack:lieyang:1",
+      "target": "self"
+    }
+  ],
+  "id": "thus_burns_the_dawn"
+}

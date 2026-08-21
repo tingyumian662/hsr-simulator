@@ -1,0 +1,20 @@
+{
+  "id": "today_is_another_peaceful_day",
+  "name": "今日亦是和平的一日",
+  "rarity": 4,
+  "rank": 5,
+  "path": "智识",
+  "base_HP": 847,
+  "base_ATK": 529,
+  "base_DEF": 331,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "进入战斗后，根据装备者的能量上限，提高装备者造成的伤害：每点能量提高0.4%%，最多计入160点。",
+      "attributes": {},
+      "condition_code": "event_battle_start",
+      "target": "self"
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer"
+}

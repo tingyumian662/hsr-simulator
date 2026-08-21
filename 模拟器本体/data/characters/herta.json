@@ -1,0 +1,24 @@
+{
+  "id": "herta",
+  "name": "黑塔",
+  "element": "冰",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 953,
+  "base_ATK": 582,
+  "base_DEF": 397,
+  "base_SPD": 100,
+  "taunt": 75,
+  "max_energy": 110,
+  "trace_stats": {
+    "DMG_BONUS_ICE": 22.4,
+    "DEF_percent": 22.5,
+    "CRIT_RATE": 6.7
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

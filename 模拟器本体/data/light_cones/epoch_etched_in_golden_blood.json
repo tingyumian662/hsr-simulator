@@ -1,0 +1,35 @@
+{
+ "name": "金血铭刻的时代",
+ "rarity": 5,
+ "rank": 1,
+ "path": "同谐",
+ "base_HP": 952,
+ "base_ATK": 635,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "ATK_percent": 64.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "施放终结技攻击后，恢复1个战技点",
+   "attributes": {},
+   "condition_code": "event_ult_after",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "对我方单体角色施放战技后，使目标造成的战技伤害提高54%，持续3回合（目标增益）",
+   "attributes": {
+    "DMG_BONUS_SKILL": 54.0
+   },
+   "condition_code": "typed_permanent",
+   "target": "self"
+  }
+ ],
+ "id": "epoch_etched_in_golden_blood"
+}

@@ -1,0 +1,43 @@
+{
+ "id": "carve_the_moon_weave_the_clouds",
+ "name": "镂月裁云之意",
+ "rarity": 4,
+ "rank": 5,
+ "path": "同谐",
+ "base_HP": 953,
+ "base_ATK": 476,
+ "base_DEF": 331,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "在战斗开始时以及当装备者回合开始时，随机生效1个效果。该效果生效时，替换上次的效果且本次不会与上次重复。效果包含：。使我方全体攻击力提高{{AtkBuff}}%；。使我方全体暴击伤害提高{{CritBuff}}%；。使我方全体能量恢复效率提高{{RegenBuff}}%。。同类效果无法叠加，在装备者陷入无法战斗状态时解除。",
+   "attributes": {
+    "ATK_percent": 20.0,
+    "ENERGY_REGEN": 12.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "all_allies"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "在战斗开始时以及当装备者回合开始时，随机生效1个效果。该效果生效时，替换上次的效果且本次不会与上次重复。效果包含：。使我方全体攻击力提高{{AtkBuff}}%；。使我方全体暴击伤害提高{{CritBuff}}%；。使我方全体能量恢复效率提高{{RegenBuff}}%。。同类效果无法叠加，在装备者陷入无法战斗状态时解除。",
+   "attributes": {
+    "ATK_percent": 20.0,
+    "ENERGY_REGEN": 12.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "all_allies"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "在战斗开始时以及当装备者回合开始时，随机生效1个效果。该效果生效时，替换上次的效果且本次不会与上次重复。效果包含：。使我方全体攻击力提高{{AtkBuff}}%；。使我方全体暴击伤害提高{{CritBuff}}%；。使我方全体能量恢复效率提高{{RegenBuff}}%。。同类效果无法叠加，在装备者陷入无法战斗状态时解除。",
+   "attributes": {
+    "ATK_percent": 20.0,
+    "ENERGY_REGEN": 12.0
+   },
+   "condition_code": "event_battle_start",
+   "target": "all_allies"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

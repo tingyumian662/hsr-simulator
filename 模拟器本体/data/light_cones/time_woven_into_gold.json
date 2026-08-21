@@ -1,0 +1,47 @@
+{
+  "id": "time_woven_into_gold",
+  "name": "将光阴织成黄金",
+  "rarity": 5,
+  "rank": 1,
+  "path": "记忆",
+  "base_HP": 1058,
+  "base_ATK": 635,
+  "base_DEF": 397,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "使装备者的基础速度提高12（加算至速度白值，可享受百分比速度加成）",
+      "attributes": {
+        "_base_SPD": 12.0
+      },
+      "condition_code": null,
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "装备者或装备者的忆灵在攻击后，使装备者获得1层【织锦】，最多叠加6层",
+      "attributes": {},
+      "condition_code": "stack_gain:on_self_attack|on_memsprite_attack:zhijin:6:self:",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "每层【织锦】使装备者和装备者的忆灵暴击伤害提高9%，最多6层（最高54%）",
+      "attributes": {
+        "CRIT_DMG": 54.0
+      },
+      "condition_code": "stack:zhijin:6",
+      "target": "self"
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "【织锦】叠满6层后，每层【织锦】额外使造成的普攻伤害提高9%（最高54%）",
+      "attributes": {
+        "DMG_BONUS_BASIC": 54.0
+      },
+      "condition_code": "stack_full:zhijin:6",
+      "target": "self"
+    }
+  ],
+  "_source": "fribbels/hsr-optimizer (verified)"
+}

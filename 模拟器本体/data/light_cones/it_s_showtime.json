@@ -1,0 +1,36 @@
+{
+ "id": "it_s_showtime",
+ "name": "好戏开演",
+ "rarity": 4,
+ "rank": 5,
+ "path": "虚无",
+ "base_HP": 1058,
+ "base_ATK": 476,
+ "base_DEF": 265,
+ "effects": [
+  {
+   "type": "conditional_buff",
+   "condition": "装备者对敌方目标施加负面状态后，获得一层【戏法】，每层【戏法】使装备者造成的伤害提高{{DmgBuff}}%最多叠加 3 层，持续 1 回合。当装备者的效果命中大于等于 80% 时，攻击力提高36.0%%。",
+   "attributes": {},
+   "condition_code": "stack_gain:on_debuff_apply:youxi:3:self:1:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "每层【戏法】使装备者造成的伤害提高10%，最多3层（最高30%）",
+   "attributes": {
+    "DMG_BONUS_ALL": 30.0
+   },
+   "condition_code": "stack:youxi:3"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "装备者效果命中≥80%时，攻击力提高36%",
+   "attributes": {
+    "ATK_percent": 36.0
+   },
+   "condition_code": "state_ehr_ge_80"
+  }
+ ],
+ "_source": "fribbels/hsr-optimizer"
+}

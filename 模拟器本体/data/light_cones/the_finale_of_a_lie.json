@@ -1,0 +1,44 @@
+{
+ "name": "一场谎言的终幕",
+ "rarity": 5,
+ "rank": 1,
+ "path": "巡猎",
+ "base_HP": 846,
+ "base_ATK": 635,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "CRIT_RATE": 18.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "战斗开始时或每累计施放4次追加攻击，获得【影噬】，持续3回合",
+   "attributes": {},
+   "condition_code": "stack_gain:on_battle_start|on_followup_4th:yingshi:1:self:3:",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【影噬】时，攻击力提高40%",
+   "attributes": {
+    "ATK_percent": 40.0
+   },
+   "condition_code": "stack:yingshi:1",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有【影噬】时，敌方全体受到的伤害提高20%（易伤乘区）。同类效果无法叠加",
+   "attributes": {
+    "VULNERABILITY_APPLIED": 20.0
+   },
+   "condition_code": "stack:yingshi:1",
+   "target": "self"
+  }
+ ],
+ "id": "the_finale_of_a_lie"
+}

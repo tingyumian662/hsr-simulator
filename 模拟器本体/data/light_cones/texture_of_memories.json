@@ -1,0 +1,35 @@
+{
+ "name": "记忆的质料",
+ "rarity": 5,
+ "rank": 5,
+ "path": "存护",
+ "base_HP": 1058,
+ "base_ATK": 423,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "",
+   "attributes": {
+    "EFFECT_RES": 16.0
+   }
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "未持有护盾时受到攻击，获得等同于装备者生命上限32%的护盾，持续2回合。每3回合可触发1次",
+   "attributes": {},
+   "condition_code": "state_shield_related",
+   "target": "self"
+  },
+  {
+   "type": "conditional_buff",
+   "condition": "持有护盾时，受到的伤害减少24%",
+   "attributes": {
+    "DMG_REDUCTION": 24.0
+   },
+   "condition_code": "state_shield_related",
+   "target": "self"
+  }
+ ],
+ "id": "texture_of_memories"
+}

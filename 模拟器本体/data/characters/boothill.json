@@ -1,0 +1,24 @@
+{
+  "id": "boothill",
+  "name": "波提欧",
+  "element": "物理",
+  "path": "巡猎",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1203,
+  "base_ATK": 621,
+  "base_DEF": 437,
+  "base_SPD": 107,
+  "taunt": 75,
+  "max_energy": 115,
+  "trace_stats": {
+    "HP_percent": 10.0,
+    "BREAK_EFFECT": 37.3,
+    "ATK_percent": 18.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

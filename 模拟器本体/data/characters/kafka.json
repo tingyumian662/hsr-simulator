@@ -1,0 +1,24 @@
+{
+  "id": "kafka",
+  "name": "卡芙卡",
+  "element": "雷",
+  "path": "虚无",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1087,
+  "base_ATK": 679,
+  "base_DEF": 485,
+  "base_SPD": 100,
+  "taunt": 100,
+  "max_energy": 120,
+  "trace_stats": {
+    "EFFECT_HIT_RATE": 18.0,
+    "HP_percent": 10.0,
+    "ATK_percent": 28.0
+  },
+  "skills": {},
+  "traces": [],
+  "eidolons": [],
+  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
+  "_source": "fribbels/hsr-optimizer (base stats verified)"
+}

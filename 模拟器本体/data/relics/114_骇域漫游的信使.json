@@ -1,0 +1,19 @@
+{
+  "name": "骇域漫游的信使",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases SPD by 6%.",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "When the wearer uses their Ultimate on an ally, SPD for all allies increases by 12% for 1 turn. This effect cannot be stacked.",
+      "attributes": {},
+      "condition": "on_ult_team_spd_buff"
+    }
+  ]
+}

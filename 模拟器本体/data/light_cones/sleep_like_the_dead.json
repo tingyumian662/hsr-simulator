@@ -1,0 +1,26 @@
+{
+  "name": "如泥酣眠",
+  "rarity": 5,
+  "rank": 1,
+  "path": "巡猎",
+  "base_HP": 1058,
+  "base_ATK": 582,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "",
+      "attributes": {
+        "CRIT_DMG": 30.0
+      }
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "普攻或战技未造成暴击时，暴击率提高36%，持续1回合。每3回合可触发1次",
+      "attributes": {},
+      "condition_code": "event_self_attack",
+      "target": "self"
+    }
+  ],
+  "id": "sleep_like_the_dead"
+}

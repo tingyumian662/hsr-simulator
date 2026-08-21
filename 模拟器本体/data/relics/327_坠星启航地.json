@@ -1,0 +1,11 @@
+{
+  "name": "坠星启航地",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "Increases the wearer's CRIT Rate by 8%. When entering combat, if the wearer and another teammate are both Trailblaze Companions characters, increases the wearer's CRIT DMG by 32%.",
+      "attributes": {"CRIT_RATE": 8.0},
+      "condition": "enter_combat_faction_cd"
+    }
+  ]
+}
