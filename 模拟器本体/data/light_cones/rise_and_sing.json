@@ -1,20 +1,65 @@
 {
- "id": "rise_and_sing",
- "name": "你将起身歌唱",
- "rarity": 5,
- "rank": 1,
- "path": "记忆",
- "base_HP": 1164,
- "base_ATK": 582,
- "base_DEF": 397,
- "effects": [
-  {
-   "type": "permanent_buff",
-   "condition": "",
-   "attributes": {
-    "HP_percent": 30.0
-   }
-  }
- ],
- "_source": "fribbels/hsr-optimizer"
+  "id": "rise_and_sing",
+  "name": "你将起身歌唱",
+  "rarity": 5,
+  "rank": 1,
+  "path": "记忆",
+  "base_HP": 1164,
+  "base_ATK": 582,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "使装备者的生命上限提高30%/37%/45%/52%/60%",
+      "attributes": {
+        "HP_percent": 30
+      },
+      "values": [
+        30,
+        37,
+        45,
+        52,
+        60
+      ]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "装备者施放终结技后，为我方恢复1个战技点",
+      "attributes": {},
+      "condition_code": "event_ult_after"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "进入战斗时，使装备者的行动提前30%/32%/35%/37%/40%，并使装备者获得【新声】，持续2回合。装备者持有【新声】时，我方全体速度提高20%/25%/30%/35%/40%",
+      "attributes": {},
+      "condition_code": "event_battle_start"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "行动提前叠影档数据条",
+      "attributes": {},
+      "condition_code": "rise_and_sing_advance",
+      "values": [
+        0.3,
+        0.32,
+        0.35,
+        0.37,
+        0.4
+      ]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "新声速度叠影档数据条",
+      "attributes": {},
+      "condition_code": "rise_and_sing_spd",
+      "values": [
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4
+      ]
+    }
+  ],
+  "_source": "知更鸟·晴歌.txt 用户原稿（专属光锥全5阶）"
 }

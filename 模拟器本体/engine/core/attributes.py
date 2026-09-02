@@ -374,7 +374,12 @@ def compute_combat_stats(
     if lightcone and lightcone.path == character.path:
         for effect in lightcone.effects:
             for attr, val in effect.attributes.items():
-                _apply_stat_direct(stats, attr, val)
+                # v6.11.1: permanent_buff 带 values 时按叠影等级索引取值（你将起身歌唱HP30-60%等）
+                v = val
+                if effect.type == 'permanent_buff' and getattr(effect, 'values', None):
+                    idx = min(max(lightcone.rank - 1, 0), len(effect.values) - 1)
+                    v = effect.values[idx]
+                _apply_stat_direct(stats, attr, v)
 
     # Step 6: 遗器套装效果
     if relics and relic_sets:

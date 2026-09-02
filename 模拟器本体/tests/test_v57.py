@@ -205,18 +205,18 @@ class TestFireflyFixes:
 
 class TestRealmCountdown:
     def test_xilian_field_expires_after_2_turns(self):
-        """结界2回合到期解除（此前 realm_turns 无消费点=永久）"""
+        """结界2回合到期解除（此前 realm_turns 无消费点=永久）
+        v7.2.0: 昔涟结界与境界解耦→独立 xilian_field_turns 倒计时"""
         from engine.systems.remembrance import RemembranceSystem
         u = _unit('xilian')
         state = SimState(enemies=[_enemy()], units=[u])
         rem = RemembranceSystem()
         _use_skill(u, state, 'skill')
-        assert state.realm_owner == 'xilian'
-        assert state.realm_turns == 2
+        assert state.extra.get('xilian_field_turns') == 2
         rem.tick_turn(state, u)
-        assert state.realm_turns == 1
+        assert state.extra.get('xilian_field_turns') == 1
         rem.tick_turn(state, u)
-        assert state.realm_owner == ''
+        assert not state.extra.get('xilian_field_turns')
         assert state.realm_true_dmg == 0
 
     def test_field_cleared_on_death(self):
@@ -225,10 +225,10 @@ class TestRealmCountdown:
         u = _unit('xilian')
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')
-        assert state.realm_owner == 'xilian'
+        assert state.extra.get('xilian_field_turns') == 2
         u.current_hp = 0
         _check_fatal(state, u)
-        assert state.realm_owner == ''
+        assert not state.extra.get('xilian_field_turns')
 
 
 class TestMydeiE2Reset:

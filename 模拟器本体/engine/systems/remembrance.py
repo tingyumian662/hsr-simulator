@@ -187,9 +187,10 @@ def _poem_fenzheng(state, summoner, ms_unit, mydei):
             mydei.extra.pop('poem_fenzheng_free', None)
         state.log.append('  献予「纷争」之诗: 血仇→免费弑神登神(暴伤+200%)')
     else:
+        from engine.core.combat_sim import _guest_advance_blocked
         navs = state.extra.get('navs', {})
         uidx = state.units.index(mydei)
-        if uidx in navs:
+        if uidx in navs and not _guest_advance_blocked(state, summoner, mydei):
             navs[uidx] = state.current_av
         state.log.append('  献予「纷争」之诗: 万敌行动提前100%')
     if cleared:
@@ -218,11 +219,11 @@ def _poem_haiyang(state, summoner, ms_unit, hysilens):
 
 def _poem_lixing(state, summoner, ms_unit, anaxa):
     """献予「理性」之诗(单次, 那刻夏): 回1SP+立即行动+战技伤害次数+3+真知"""
-    from engine.core.combat_sim import _gain_skill_points
+    from engine.core.combat_sim import _gain_skill_points, _guest_advance_blocked
     _gain_skill_points(state, 1)
     navs = state.extra.get('navs', {})
     i = state.units.index(anaxa)
-    if i in navs:
+    if i in navs and not _guest_advance_blocked(state, summoner, anaxa):
         navs[i] = state.current_av
     anaxa.extra['poem_lixing'] = True
     state.log.append('  献予「理性」之诗: 回1SP+立即行动+战技+3次')
@@ -533,6 +534,10 @@ class RemembranceSystem:
                                      summoner=summoner, ms_unit=ms_unit)
             return ms_unit
 
+        # v6.11.1 知更鸟·晴歌: 战技召唤贝茜/天赋气氛阈值召唤啾米·派丁（三忆灵并存, 独立逻辑）
+        if summoner.char.id == 'robin_summeretto':
+            return self._qingge_summon_variant(state, summoner, ms_data, '贝茜')
+
         # 普通忆灵：属性继承召唤者
         ms_stats = copy.deepcopy(summoner.base_stats)
         for attr_key, ratio in ms_data.inherit_ratios.items():
@@ -835,6 +840,11 @@ class RemembranceSystem:
         if summoner.char.id == 'xilian':
             self._xilian_memsprite_action(state, summoner, ms_unit)
             return
+        # v6.11.1 晴空乐手: 回合开始时施放忆灵技·叽叽啾啾四重奏
+        if summoner.char.id == 'robin_summeretto':
+            if "memsprite_basic" in ms_unit.data.skills:
+                self._use_memsprite_skill(state, summoner, ms_unit, "memsprite_basic")
+            return
         # 检查是否可以放迷梦: yizhi≥16 且召唤者不处于控制状态
         can_mimeng = summoner.yizhi >= 16
 
@@ -1020,6 +1030,15 @@ class RemembranceSystem:
                 scale += 10.0 * extra_hits
             # 长夜月E1倍率乘到最终 scale（per_yizhi/追忆计算之后）
             scale *= cy_mult
+            # v6.11.1 晴歌: E5忆灵技等级+1(每级+5%), E6忆灵技倍率×2
+            # v7.0.0 A3: E5改读 skill_level_boost 消除双重来源(解析器统一入口)
+            if summoner.char.id == 'robin_summeretto' and skill_key == 'memsprite_basic':
+                ms_boost = 1.0 + 0.05 * (
+                    summoner.extra.get('skill_level_boost', {}) or {}).get(
+                    'memsprite_skill', 0)
+                scale *= ms_boost
+                if summoner.eidolon_rank >= 6:
+                    scale *= 2.0
             # 献予「岁月」之诗: 迷梦伤害+18%
             if skill_key == "memsprite_skill" and summoner.char.id == 'changyeyue' \
                     and summoner.extra.get('poem_suiyue'):
@@ -1109,6 +1128,33 @@ class RemembranceSystem:
                 from engine.core.combat_sim import _apply_luandie
                 _apply_luandie(state, t)
 
+        # v6.11.1 晴歌忆灵技结算: 晴歌+20能量; E1记录→真伤(HP最高敌)后记录减半
+        if summoner.char.id == 'robin_summeretto' and skill_key == 'memsprite_basic':
+            from engine.core.combat_sim import _gain_energy, _commit_enemy_damage
+            _gain_energy(summoner, 20.0, state=state)
+            state.log.append(f'  忆灵技: 晴歌+20能量 ({summoner.current_energy:.0f})')
+            if summoner.eidolon_rank >= 1:
+                record = summoner.extra.get('qingge_record', 0.0)
+                # v7.1.0 P2: 目标取忆灵技AoE结算后的存活敌——结算前快照可能已全体阵亡,
+                # 此时本次不触发(记录不减半), 不再对尸体提交真伤
+                alive_now = [e for e in state.enemies if getattr(e, 'HP', 0) > 0]
+                if record > 0 and alive_now:
+                    atmo = summoner.extra.get('qingge_atmo', 0.0)
+                    true_dmg = record * (0.11 + atmo * 0.001)
+                    hp_top = max(alive_now, key=lambda e: e.HP)
+                    _commit_enemy_damage(state, summoner, hp_top, true_dmg,
+                                         damage_type='true_damage')
+                    summoner.extra['qingge_record'] = record * 0.50
+                    state.log.append(f'  晴歌E1: 真伤{true_dmg:.0f} → HP最高敌'
+                                     f'(记录{record:.0f}×11%+气氛{atmo:.0f}×0.1%), 记录减半')
+
+        # v6.11.1 晴歌天赋: 任意我方忆灵攻击→晴歌气氛+1（特邀嘉宾持有者的召唤物→额外+2）
+        # v7.0.0 A4: 晴歌自己的忆灵攻击 via_memsprite=True → E2/律动按忆灵施放技能触发
+        if total_dmg > 0:
+            from engine.core.combat_sim import _qingge_find, _qingge_on_ally_attack
+            if _qingge_find(state) is not None:
+                _qingge_on_ally_attack(state, summoner, via_memsprite=True)
+
         # 献予真我之诗: 花与箭时每1个不同队友来源→额外1次60%HP弹射
         if skill_key == "memsprite_basic" and summoner.char.id == 'xilian':
             from engine.core.combat_sim import AV_PER_TURN, _effective_spd
@@ -1136,9 +1182,11 @@ class RemembranceSystem:
                         bp.DEF *= 0.80  # 同步蓝图, 防波次重生还原
                     state.log.append('  昔涟E6: 献予触发→敌方DEF-20%')
                 elif gift == 2:
+                    from engine.core.combat_sim import _guest_advance_blocked
                     navs = state.extra.get('navs', {})
                     for i, eu in enumerate(state.units):
-                        if eu.is_alive and i in navs:
+                        if eu.is_alive and i in navs \
+                                and not _guest_advance_blocked(state, summoner, eu):
                             navs[i] = max(0, navs[i] - (AV_PER_TURN / _effective_spd(eu, state)) * 0.24)
                     state.log.append('  昔涟E6: 献予触发2次→全队拉条24%')
             # v6.2.1: 复用共享逐段管线（Codex P1-2: 此前绕过 _enemy_for_damage/声援/击杀检测）
@@ -1291,7 +1339,7 @@ class RemembranceSystem:
 
     def tick_turn(self, state, unit):
         """回合开始：至暗之谜倒计时、SPD bonus清除、雨过天晴倒计时"""
-        # v5.7: 境界倒计时跟随境界主人回合递减（昔涟结界2回合/遐蝶遗世冥域3回合;
+        # v5.7: 境界倒计时跟随境界主人回合递减（遐蝶遗世冥域3回合;
         # 此前 realm_turns 只赋值不消费=永久, 实机"每回合开始减1"; -1=永久不递减）
         if state.realm_owner and state.realm_turns > 0 and unit.char.id == state.realm_owner:
             state.realm_turns -= 1
@@ -1304,6 +1352,16 @@ class RemembranceSystem:
                 state.realm_turns = 0
                 state.realm_true_dmg = 0
                 state.log.append('  境界到期解除')
+        # v7.2.0: 昔涟结界独立倒计时（无境界技能, 与境界系统解耦）——
+        # 跟随昔涟回合递减, 归零解除; -1=涟漪后永久
+        if unit.char.id == 'xilian':
+            ft = state.extra.get('xilian_field_turns', 0)
+            if ft > 0:
+                ft -= 1
+                state.extra['xilian_field_turns'] = ft
+                if ft <= 0:
+                    state.realm_true_dmg = 0
+                    state.log.append('  昔涟结界到期解除')
         if unit.char.id == "changyeyue":
             # 至暗之谜回合倒计时
             if unit.is_darkness and unit.darkness_charges <= 0:
@@ -1431,6 +1489,69 @@ class RemembranceSystem:
         ms.base_stats.SPD = base_spd + stack * 55
         ms.runtime_spd = ms.base_stats.SPD  # v5.2: 写运行时字段, 不污染 MemSprite 配置
 
+    def _qingge_summon_variant(self, state, summoner, ms_data, name):
+        """晴歌专用: 召唤/维护唯一「晴空乐手」忆灵实体。
+        战技路径(贝茜档): 实体已在场→回血100%晴空乐手HP上限(Lv10)+晴歌气氛+6, 不重复召唤。
+        首次召唤: 创建唯一实体(成员档位1)。
+        v7.1.0 项目主澄清: 三只忆灵仅表示角色状态, 实机按一只忆灵计算——
+        啾米/派丁登台是成员档位切换(combat_sim._qingge_check_variant_spawn), 不再创建新实体。"""
+        import copy as _copy
+        from engine.core.combat_sim import (_gain_energy, _qingge_gain_atmo,
+                                            _qingge_check_variant_spawn,
+                                            _qingge_check_fever,
+                                            _qingge_refresh_fever_effects)
+        existing = next((m for m in state.memsprites
+                         if m.summoner_id == 'robin_summeretto' and m.is_alive), None)
+        if existing is not None:
+            t = existing
+            # v7.0.0 A3: E3战技+2→Lv12 每级+5%惯例消费
+            from engine.core.combat_sim import _skill_level_factor
+            heal = t.max_hp * 1.0 * _skill_level_factor(summoner, 'skill')
+            t.current_hp = min(t.max_hp, t.current_hp + heal)
+            _qingge_gain_atmo(state, 6.0, cause='战技·晴空乐手已在场')
+            state.log.append(f'  战技: {t.data.name}已在场→回血{heal:.0f} '
+                             f'(HP={t.current_hp:.0f}/{t.max_hp:.0f}) + 晴歌气氛+6')
+            return t
+        data = _copy.deepcopy(ms_data)
+        data.name = '晴空乐手'
+        ms_stats = _copy.deepcopy(summoner.base_stats)
+        ms_stats.HP = summoner.base_stats.HP * 0.70
+        ms_stats.SPD = summoner.base_stats.SPD * 1.80
+        ms_stats.CRIT_RATE += 0.50  # 行迹1·重构谐乐: 晴空乐手CR+50%
+        ms_unit = MemSpriteUnit(
+            data=data, summoner_id=summoner.char.id,
+            max_hp=ms_stats.HP, current_hp=ms_stats.HP,
+            base_stats=ms_stats,
+        )
+        ms_unit.current_energy = 0
+        ms_unit.runtime_spd = 0.0  # Fever前不在行动条(界外), 进Fever时激活
+        ms_unit.extra['qingge_members'] = 1  # 成员档位1=贝茜
+        state.memsprites.append(ms_unit)
+        summoner.memsprite_unit = ms_unit
+        # 忆灵天赋·贴近海的心跳: 被召唤→晴歌+20能量
+        _gain_energy(summoner, 20.0, state=state)
+        state.log.append(f'  召唤「晴空乐手」贝茜 HP={ms_stats.HP:.0f} (晴歌HP×70%)'
+                         f' + 贴近海的心跳: 晴歌+20能量')
+        state.hooks.trigger_all("on_memsprite_summon", u=summoner, state=state,
+                                summoner=summoner, ms_unit=ms_unit)
+        # 首次入场时已攒的气氛可能已达升档阈值→升档(可能直接全员登台进Fever)
+        _qingge_check_variant_spawn(state, summoner)
+        _qingge_check_fever(state, summoner)
+        # 成员数易伤/Fever动态效果随档位变化刷新
+        _qingge_refresh_fever_effects(state)
+        return ms_unit
+
+    def qingge_ai(self, u, state, **kw):
+        """晴歌AI: Fever期不进自己回合(行动条已摘除, 保险跳过); 满能量终结技由phase-1拦截;
+        SP>0→战技(召唤贝茜/在场回血+气氛), SP=0→普攻。"""
+        from engine.core.combat_sim import _use_skill
+        if u.extra.get('qingge_fever'):
+            return
+        if state.skill_points > 0:
+            _use_skill(u, state, 'skill')
+        else:
+            _use_skill(u, state, 'basic_attack')
+
     def fengjin_ai(self, u, state, **kw):
         """风堇AI: 战技流（用户确认: 实机基本不释放普攻）——SP>0→战技(治疗), SP=0→普攻。
         终结技由 phase-1 拦截入 X 轴队列（雨过天晴在 _ult_post 处理）。
@@ -1506,7 +1627,7 @@ class RemembranceSystem:
         if target.char.id in gifted:
             return
         gifted.add(target.char.id)
-        if state.realm_owner == 'xilian':
+        if state.extra.get('xilian_field_turns'):  # v7.2.0: 结界独立判定(无境界系统)
             state.realm_true_dmg = min(0.48, 0.24 + 0.06 * len(gifted))
             state.log.append(f'  昔涟E2: 获增益角色+1({target.char.name})→结界真伤{state.realm_true_dmg:.2f}')
 
@@ -1561,9 +1682,11 @@ class RemembranceSystem:
                 source_name="迷迷的声援(E1对忆灵)"))
         # 行动提前100%（非自身）
         if target.char.id != 'trailblazer_remembrance':
+            from engine.core.combat_sim import _guest_advance_blocked
             navs = state.extra.get('navs', {})
             for i, eu in enumerate(state.units):
-                if eu is target and i in navs:
+                if eu is target and i in navs \
+                        and not _guest_advance_blocked(state, summoner, eu):
                     navs[i] = state.current_av
                     break
         # 充能清零（100%已消耗）
@@ -1604,8 +1727,9 @@ class RemembranceSystem:
             self._use_memsprite_skill(state, summoner, ms_unit, "memsprite_basic")
 
     def xiadie_ai(self, u, state, **kw):
-        """遐蝶AI：新蕊<上限→战技(HP消耗,不耗SP)；≥上限→终结技(召唤死龙→焰息→引爆)"""
-        from engine.core.combat_sim import _use_skill, xiadie_xinrui_cap
+        """遐蝶AI：新蕊<上限→战技(HP消耗,不耗SP)；≥上限→终结技(召唤死龙→焰息→引爆)
+        v7.2.0 裁决A: 姬子·启行在场(拓星视界占境界)→终结技永封, 回落战技攒新蕊"""
+        from engine.core.combat_sim import _use_skill, _hn_realm_blocks_ult, xiadie_xinrui_cap
         if u.memsprite_unit and u.memsprite_unit.is_alive:
             # 遐蝶E2: 召唤后的下次强化战技+30%新蕊(一次性)
             if u.extra.pop('xiadie_e2_skill_pending', False):
@@ -1614,7 +1738,7 @@ class RemembranceSystem:
                 state.log.append(f'  遐蝶E2: 强化战技+30%新蕊 → {u.xinrui:.0f}/{cap:.0f}')
             _use_skill(u, state, "skill_dragon")
             return
-        if u.xinrui >= xiadie_xinrui_cap(u):
+        if u.xinrui >= xiadie_xinrui_cap(u) and not _hn_realm_blocks_ult(state, u):
             from engine.core.combat_sim import _use_skill
             _use_skill(u, state, "ultimate")
             return

@@ -463,6 +463,8 @@ class ElationSystem:
         state.log.append(
             f'[{state.current_av:6.0f}AV] {u.char.name} 强化普攻#{n}: {td:.0f} '
             f'(HS={hs:.0f}, x{damage_mult:.2f}) 盲盒伤害={bb_dmg:.0f} [{",".join(bb_parts)}]')
+        from engine.core.combat_sim import _qingge_notify_attack
+        _qingge_notify_attack(state, u, dealt=td > 0)  # v7.1.0 P1: 不经_use_skill的强化普攻补气氛
 
         if n >= INVINCIBLE_MAX:
             u.invincible_active = False
@@ -549,10 +551,12 @@ def _tb_ai(u, state, *, elation, **__):
             state.log.append(f'  主角终结技→{target.char.name}: +10好活当赏, 立即欢愉技(固定计入20笑点)')
             _use_skill(target, state, "elation_skill", laugh_n_override=20.0)
         else:
-            from engine.core.combat_sim import AV_PER_TURN, _effective_spd, _set_av
+            from engine.core.combat_sim import (AV_PER_TURN, _effective_spd, _set_av,
+                                                _guest_advance_blocked)
             navs = state.extra.get('navs', {})
             idx = next((i for i, x in enumerate(state.units) if x is target), None)
-            if idx is not None and idx in navs:
+            if idx is not None and idx in navs \
+                    and not _guest_advance_blocked(state, u, target):
                 advanced_av = max(
                     state.current_av,
                     navs[idx] - (AV_PER_TURN / max(_effective_spd(target, state), 1.0)) * 0.5,

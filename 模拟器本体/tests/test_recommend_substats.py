@@ -122,50 +122,58 @@ class TestSpdConstraints:
 
 class TestRecommendSubstats:
     def test_seele_30_rolls(self):
-        r = recommend_substats(_load("seele"), total_rolls=30)
-        assert sum(r.values()) == 30
-        # v5.5: 离散行动次数模型——seele 基础114速跨不到134边界(2动) → 速度词条0收益
-        # v6.11 阶段1: 纯边际最优下 30 条全双暴（权重1.0 且边际恒定, 主缩放被占满）
-        assert r["CRIT_RATE"] + r["CRIT_DMG"] > 20
-        assert r["SPD_PERCENT"] == 0
+        r = recommend_substats(_load("seele"), effective_rolls=30)
+        assert sum(r.values()) == 50  # v7.3.1: 总词条固定 50
+        # v7.3: 希儿无速度信号（三语义裁决: 无信号→权重0）→ 速度不进有效分配,
+        # 仅剩均摊份额; 断点前瞻行为由 test_v73_substats 的阿格莱雅/符玄用例覆盖
+        assert r["CRIT_RATE"] + r["CRIT_DMG"] >= 20
+        assert r["SPD_PERCENT"] <= 5
 
     def test_xiadie_hp_over_atk(self):
-        r = recommend_substats(_load("xiadie"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("xiadie"), effective_rolls=30)
+        assert sum(r.values()) == 50
         assert r["HP_percent"] > r["ATK_percent"]
+        # v7.3: 暴击率行迹≥10 第三信号——遐蝶占位倍率 224% 不再误杀双暴
+        assert r["CRIT_RATE"] + r["CRIT_DMG"] > 0
 
     def test_xilian_spd_180(self):
-        r = recommend_substats(_load("xilian"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("xilian"), effective_rolls=30)
+        assert sum(r.values()) == 50
         # base 101 + 鞋25 = 126, 需 (180-126)/3 = 18条（约束硬优先）;
-        # v6.11 阶段1: 达标后"每超1点→冰抗穿2%"收益极强（60点上限内）, 0.4 权重仍压过双暴
+        # v7.3 a方案: 断点前瞻使速度跨档收益全程可见 + "每超1点→冰抗穿2%"连续加成
+        # → 有效预算速度全取; 双暴在更大有效预算下回填
         assert r["SPD_PERCENT"] >= 18
-        assert r["CRIT_RATE"] > 0
+        r50 = recommend_substats(_load("xilian"), effective_rolls=50)
+        assert r50["CRIT_RATE"] > 0
 
     def test_fengjin_spd_200(self):
-        r = recommend_substats(_load("fengjin"), total_rolls=30)
-        assert sum(r.values()) == 30
-        # base 110 + 鞋25 = 135, 需 (200-135)/3 = 22条
+        r = recommend_substats(_load("fengjin"), effective_rolls=50)
+        assert sum(r.values()) == 50
+        # base 110 + 鞋25 = 135, 需 (200-135)/3 = 22条; v7.3: 速度 cap(30) 后剩余回填 HP
         assert r["SPD_PERCENT"] >= 15
         assert r["HP_percent"] > 0
 
     def test_huohuo_no_crit_stack(self):
-        r = recommend_substats(_load("huohuo"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("huohuo"), effective_rolls=50)
+        assert sum(r.values()) == 50
         assert r["HP_percent"] > 0
-        assert r["CRIT_DMG"] <= 10  # 治疗角色不堆暴伤
+        # v7.3: 非有效词条均摊（各 ~2-3 条）, 治疗角色不堆暴击
+        assert r["CRIT_DMG"] <= 10
 
     def test_empty_shell(self):
-        r = recommend_substats(_load("pela"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("pela"), effective_rolls=30)
+        assert sum(r.values()) == 50
 
-    def test_small_total(self):
-        r = recommend_substats(_load("seele"), total_rolls=5)
-        assert sum(r.values()) == 5
+    def test_small_effective(self):
+        r = recommend_substats(_load("seele"), effective_rolls=5)
+        assert sum(r.values()) == 50  # 总仍 50
+        # v7.5: 有效仅 5 条（单词条 ≤60% → 暴击至多 3 条）, 其余均摊
+        assert r["CRIT_RATE"] + r["CRIT_DMG"] + r["ATK_percent"] == 5
+        assert r["CRIT_RATE"] <= 3
 
     def test_keys_contract(self):
-        r = recommend_substats(_load("xiadie"), total_rolls=30)
-        assert set(r.keys()) == set(FRONTEND_ROLL_KEYS)
+        r = recommend_substats(_load("xiadie"), effective_rolls=30)
+        assert set(r.keys()) == set(FRONTEND_ROLL_KEYS)  # v7.3: 9 键（含效果命中）
 
 
 class TestV55RecommendationBounds:
@@ -181,7 +189,7 @@ class TestV55RecommendationBounds:
 
     def test_recommendation_never_exceeds_main_stat_conflict_roll_cap(self):
         pieces = self._lingsha_main_pieces()
-        result = recommend_substats(_load("lingsha"), pieces=pieces, total_rolls=50)
+        result = recommend_substats(_load("lingsha"), pieces=pieces, effective_rolls=50)
         mains = {piece.slot: piece.main_stat_type for piece in pieces}
 
         for frontend_key, count in result.items():
@@ -197,8 +205,8 @@ class TestV55RecommendationBounds:
             )],
         )
 
-        without_light_cone = recommend_substats(char, total_rolls=30)
-        with_light_cone = recommend_substats(char, light_cone, total_rolls=30)
+        without_light_cone = recommend_substats(char, effective_rolls=30)
+        with_light_cone = recommend_substats(char, light_cone, effective_rolls=30)
 
         assert with_light_cone["SPD_PERCENT"] < without_light_cone["SPD_PERCENT"]
 
@@ -223,8 +231,8 @@ class TestBreakChars:
         assert p.is_break
 
     def test_firefly_recommend(self):
-        r = recommend_substats(_load("firefly"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("firefly"), effective_rolls=30)
+        assert sum(r.values()) == 50  # v7.3.1: 总词条固定 50
         assert set(r.keys()) == set(FRONTEND_ROLL_KEYS)
         assert r["SPD_PERCENT"] > 0     # 145 速度达标约束
         assert r["ATK_percent"] == 0    # 放弃攻击词条（用户确认）
@@ -236,8 +244,8 @@ class TestBreakChars:
         assert p.primary_stat == "ATK"  # ATK 基数治疗（HEAL_REGISTRY stat）
 
     def test_lingsha_recommend(self):
-        r = recommend_substats(_load("lingsha"), total_rolls=30)
-        assert sum(r.values()) == 30
+        r = recommend_substats(_load("lingsha"), effective_rolls=30)
+        assert sum(r.values()) == 50  # v7.3.1: 总词条固定 50
         assert r["SPD_PERCENT"] > 0     # 134 达标
         assert r["BREAK_EFFECT"] > 0
 

@@ -578,6 +578,21 @@ def _trace_fengjin_t3(u, state, **kw):
         state.log.append('  行迹3·雷雨轻柔: 效果抵抗+50%')
 
 
+def _trace_qingge_cr(u, state, **kw):
+    """晴歌行迹1·重构谐乐: 晴歌+晴空乐手CR+50%（晴空乐手侧在召唤时加, 见 remembrance._qingge_summon_variant）"""
+    if u.char.id == 'robin_summeretto':
+        u.base_stats.CRIT_RATE += 0.50
+        state.log.append('  行迹·重构谐乐: 晴歌CR+50%')
+
+
+def _trace_qingge_rhythm(u, state, healer=None, targets=None, **kw):
+    """晴歌行迹2·即兴蓝调（治疗侧; 护盾侧由 combat_sim on_shield 内联调用同一逻辑）:
+    队友提供的治疗作用于晴歌/晴空乐手→【律动】直接满12层;
+    任意目标回合内第一次提供治疗/护盾→晴歌气氛+1（与护盾共享去重）。"""
+    from engine.core.combat_sim import _qingge_on_heal_shield
+    _qingge_on_heal_shield(state, provider=healer, targets=targets)
+
+
 # ── v5.3 开拓者·同谐 ──
 
 def _hook_owner(state, char_id, fallback):
@@ -803,10 +818,10 @@ def _eid_fugue_e2_ult(u, state, **kw):
     """忘归人E2: 施放终结技后我方全体行动提前24%"""
     if u.char.id != 'fugue':
         return
-    from engine.core.combat_sim import _effective_spd, AV_PER_TURN
+    from engine.core.combat_sim import _effective_spd, _guest_advance_blocked, AV_PER_TURN
     navs = state.extra.get('navs', {})
     for i, eu in enumerate(state.units):
-        if eu.is_alive and i in navs:
+        if eu.is_alive and i in navs and not _guest_advance_blocked(state, u, eu):
             navs[i] = max(0, navs[i] - (AV_PER_TURN / _effective_spd(eu, state)) * 0.24)
     state.log.append('  E2: 终结技后全队行动提前24%')
 
@@ -1111,11 +1126,16 @@ def _eid_dahlia_e6(u, state, **kw):
 def _trace_hn_protocol(u, state, **kw):
     """姬子·启行天赋·同行协议（on_enter_battle）:
     裁决（开拓者/丹恒/星期日）: 姬子伤害+100%+终结技额外+100%+队友终结技计数→免费助战技;
-    歼破（三月七/长夜月/瓦尔特/姬子）: 全队暴伤+100%+每击中充能→免费助战技; 两协议可共存"""
+    歼破（三月七/长夜月/瓦尔特/姬子）: 全队暴伤+100%+每击中充能→免费助战技; 两协议可共存
+    v7.2.0 裁决A: 在场即展开境界【拓星视界】永久占据境界位——
+    遐蝶(遗世冥域)/白厄(卡厄斯兰那)的境界类终结技永久无法施放(与实机相同)"""
     if u.char.id != 'himeko_nova':
         return
     from engine.core.combat_sim import (HIMEKO_NOVA_VERDICT, HIMEKO_NOVA_CHARGE,
                                         TimedBuff)
+    state.realm_owner = 'himeko_nova'
+    state.realm_turns = -1
+    state.log.append('  展开【拓星视界】(境界, 在场期间永久): 遐蝶/白厄终结技被封锁')
     ids = {x.char.id for x in state.units}
     if ids & HIMEKO_NOVA_VERDICT:
         state.extra['hn_verdict'] = True
@@ -1138,7 +1158,8 @@ def _trace_hn_protocol(u, state, **kw):
 
 
 def _trace_hn_flag_regen(u, state, **kw):
-    """姬子·启行: 每回合开始——领航旗语期间恢复1次助战技次数; 行迹1(次数=上限时回5能量)"""
+    """姬子·启行: 每回合开始——领航旗语期间恢复1次助战技次数; 行迹1(次数=上限时回5能量)
+    v7.2.0 #5: E2「领航旗语状态下每个回合开始时额外恢复1次」→ 恢复第2次"""
     himeko = next((x for x in state.units
                    if x.char.id == 'himeko_nova' and x.is_alive), None)
     if himeko is None:
@@ -1149,6 +1170,9 @@ def _trace_hn_flag_regen(u, state, **kw):
     if any(getattr(b, 'param_id', '') == 'himeko_nova_flag' for b in himeko.buffs):
         state.extra['hn_support_uses'] = min(cap, state.extra.get('hn_support_uses', 0) + 1)
         state.log.append('  领航旗语: 助战技次数+1')
+        if himeko.eidolon_rank >= 2:  # v7.2.0 #5: E2 额外恢复1次
+            state.extra['hn_support_uses'] = min(cap, state.extra.get('hn_support_uses', 0) + 1)
+            state.log.append('  姬子E2: 领航旗语额外助战技次数+1')
     # 行迹1: 回合开始时若使用次数=上限→回5能量
     if state.extra.get('hn_support_uses', 0) >= cap:
         _gain_energy(himeko, 5.0, state=state)
@@ -1732,6 +1756,21 @@ TRACE_REGISTRY: dict[str, dict] = {
         "action": _trace_fengjin_t3,
         "source_name": "行迹·雷雨轻柔",
     },
+    # v6.11.1 知更鸟·晴歌
+    "qingge_trace1_cr": {
+        "trigger": "on_enter_battle",
+        "action": _trace_qingge_cr,
+        "source_name": "行迹·重构谐乐",
+    },
+    "qingge_trace2_rhythm": {
+        "trigger": "on_heal",
+        "action": _trace_qingge_rhythm,
+        "source_name": "行迹·即兴蓝调（护盾侧由 combat_sim on_shield 内联同一处理）",
+    },
+    "qingge_trace3_chord": {
+        "trigger": None, "action": None,
+        "source_name": "行迹·偏离和弦（内联: _qingge_atmo_from_action→_qingge_trace3）",
+    },
     # v5.3 开拓者·同谐
     "tbh_harmony_trace1_ult_mult": {
         # 行迹1·为我起舞: 伴舞超击破按敌人数+20%~60% — 引擎内联(_apply_toughness_damage tbh_mult)
@@ -1924,8 +1963,12 @@ TRACE_REGISTRY: dict[str, dict] = {
         "source_name": "天赋·同行协议(裁决/歼破判定)",
     },
     "himeko_nova_trace1": {
-        "trigger": None, "action": None,
-        "source_name": "行迹·人类该向何处去(助战技不耗次数/回合回能, flag_regen内联)",
+        # v7.2.0 #1: 此前 on_turn_start 处理器挂在 JSON 未注册的 'himeko_nova_flag_regen'
+        # 上导致从未生效——现直接挂 trace1(人类该向何处去): 旗语每回合+1次(E2额外+1)
+        # + 次数=上限时回5能量
+        "trigger": "on_turn_start",
+        "action": _trace_hn_flag_regen,
+        "source_name": "行迹·人类该向何处去(旗语回合恢复/次数满回5能量)",
     },
     "himeko_nova_trace2": {
         "trigger": None, "action": None,
@@ -1934,11 +1977,6 @@ TRACE_REGISTRY: dict[str, dict] = {
     "himeko_nova_trace3": {
         "trigger": None, "action": None,
         "source_name": "行迹·银轨在旷古中静默(终结技+3源能/脉冲强化, ultimate内联)",
-    },
-    "himeko_nova_flag_regen": {
-        "trigger": "on_turn_start",
-        "action": _trace_hn_flag_regen,
-        "source_name": "领航旗语次数恢复+行迹1回能",
     },
     "himeko_nova_base": {
         "trigger": None, "action": None, "source_name": "基础行迹",
@@ -2000,12 +2038,12 @@ def _lc_sp_recovery(state, interval=2):
         state.extra['lc_sp_counter'] = 0
         state.log.append('  光锥回SP')
 
-def _lc_team_advance(state, ratio):
+def _lc_team_advance(state, ratio, actor=None):
     AV_PER_TURN = 10000.0
+    from engine.core.combat_sim import _effective_spd, _guest_advance_blocked
     navs = state.extra.get('navs', {})
     for i, eu in enumerate(state.units):
-        if eu.is_alive and i in navs:
-            from engine.core.combat_sim import _effective_spd
+        if eu.is_alive and i in navs and not _guest_advance_blocked(state, actor, eu):
             navs[i] = max(0, navs[i] - (AV_PER_TURN / _effective_spd(eu, state)) * ratio)
     state.log.append(f'  光锥拉条: 全队{ratio*100:.0f}%')
 
@@ -2040,7 +2078,7 @@ LC_EFFECT_REGISTRY: dict[str, dict] = {
     },
     "lc_dance_dance_dance_advance": {
         "trigger": "on_ultimate",
-        "action": lambda **kw: _lc_team_advance(kw['state'], 0.24),
+        "action": lambda **kw: _lc_team_advance(kw['state'], 0.24, actor=kw.get('u')),
         "source_name": "舞！舞！舞！·拉条",
     },
     "lc_she_already_shut_her_eyes_heal": {
@@ -2172,6 +2210,31 @@ def _eid_fengjin_e6(u, state, **kw):
     for eu in state.units:
         eu.base_stats.RES_PEN_ALL += 0.20
     state.log.append('  风堇E6: 小伊卡在场→全队RES_PEN+20%')
+
+def _eid_qingge_e1_record(u, state, enemy=None, damage=0.0, damage_type='direct', **kw):
+    """晴歌E1·夏日离群飞鸟: 「晴空乐手」记录我方目标造成的非真实伤害100%
+    （忆灵技施放时消费→真伤, 见 remembrance._use_memsprite_skill_inner 晴歌分支）"""
+    qg = next((x for x in state.units
+               if x.char.id == 'robin_summeretto' and x.is_alive), None)
+    if qg is None or qg.eidolon_rank < 1:
+        return
+    if damage_type in ('true', 'true_damage'):
+        return  # 只记录非真实伤害
+    qg.extra['qingge_record'] = qg.extra.get('qingge_record', 0.0) + max(damage, 0.0)
+
+
+def _eid_qingge_e2(u, state, **kw):
+    """晴歌E2·心似一片湖水: 全队全属性抗性穿透+18%（气氛上限+20 与回合首获气氛额外+2
+    分别由 combat_sim._qingge_atmo_cap / _qingge_atmo_from_action 内联）"""
+    if u.char.id != 'robin_summeretto' or u.eidolon_rank < 2:
+        return
+    if state.extra.get('qingge_e2_respen'):
+        return
+    state.extra['qingge_e2_respen'] = True
+    for eu in state.units:
+        if eu.is_alive:
+            eu.base_stats.RES_PEN_ALL += 0.18
+    state.log.append('  晴歌E2: 全队全属性抗性穿透+18%')
 
 def _eid_bronya_e1(u, state, **kw):
     """布洛妮娅E1: 战技50%概率回1SP"""
@@ -2428,8 +2491,10 @@ def _eid_skill_levels(u, state, **kw):
     v6.10.3 P1-6: 此前简化"全伤害+6%"且永久改面板, 导致未升级技能也吃加成;
     现在按星魂声明提升对应技能倍率/治疗护盾数值（每级+5%, _use_skill 消费）"""
     import re as _re
+    # v7.0.0 A2: 忆灵天赋/忆灵技排最前(最长优先), 防'忆灵天赋+1'误读为'天赋+1'
     _SKILL_KEY = {'普攻': 'basic_attack', '战技': 'skill', '终结技': 'ultimate',
-                  '天赋': 'talent', '欢愉技': 'elation_skill'}
+                  '天赋': 'talent', '欢愉技': 'elation_skill',
+                  '忆灵天赋': 'memsprite_talent', '忆灵技': 'memsprite_skill'}
     boost = {}
     for eid in (u.char.eidolons or []):
         hook = getattr(eid, 'hook_name', '') or ''
@@ -2440,7 +2505,7 @@ def _eid_skill_levels(u, state, **kw):
         if not (hook.endswith('_e3') or hook.endswith('_e5')):
             continue
         desc = getattr(eid, 'description', '') or ''
-        for m in _re.finditer(r'(普攻|战技|终结技|天赋|欢愉技)(?:等级)?\+(\d+)', desc):
+        for m in _re.finditer(r'(忆灵天赋|忆灵技|普攻|战技|终结技|天赋|欢愉技)(?:等级)?\+(\d+)', desc):
             sk = _SKILL_KEY[m.group(1)]
             boost[sk] = boost.get(sk, 0) + int(m.group(2))
     u.extra['skill_level_boost'] = boost
@@ -2646,6 +2711,13 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "fengjin_e4": {"trigger": "on_enter_battle",      "action": _eid_fengjin_e4, "source_name": "风堇E4"},
     "fengjin_e5": {"trigger": "on_enter_battle",      "action": _eid_skill_levels, "source_name": "风堇E5"},
     "fengjin_e6": {"trigger": "on_memsprite_summon",  "action": _eid_fengjin_e6, "source_name": "风堇E6"},
+    # v6.11.1 知更鸟·晴歌
+    "qingge_e1": {"trigger": "on_after_damage",        "action": _eid_qingge_e1_record, "source_name": "晴歌E1"},
+    "qingge_e2": {"trigger": "on_enter_battle",        "action": _eid_qingge_e2, "source_name": "晴歌E2"},
+    "qingge_e3": {"trigger": "on_enter_battle",        "action": _eid_skill_levels, "source_name": "晴歌E3"},
+    "qingge_e4": {"trigger": None, "action": None, "source_name": "晴歌E4（内联: 进Fever+12气氛/晴空乐手速度, combat_sim._qingge_enter_fever）"},
+    "qingge_e5": {"trigger": "on_enter_battle",        "action": _eid_skill_levels, "source_name": "晴歌E5"},
+    "qingge_e6": {"trigger": None, "action": None, "source_name": "晴歌E6（内联: 忆灵技倍率×2/Fever存2次终结技/回140能量）"},
     # v5.3 开拓者·同谐
     "tbh_harmony_e1": {"trigger": "on_skill",         "action": _eid_tbh_e1, "source_name": "开拓者·同谐E1"},
     "tbh_harmony_e2": {"trigger": "on_enter_battle",  "action": _eid_tbh_e2, "source_name": "开拓者·同谐E2"},

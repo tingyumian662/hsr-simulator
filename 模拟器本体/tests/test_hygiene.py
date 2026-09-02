@@ -75,7 +75,8 @@ class TestStatsExposure:
         assert sum(s.action_counts.values()) > 0
 
     def test_roster_counts(self):
-        """口径: 完整 + 空壳（v6.10: 黄泉/飞霄录入 37→39; 空壳 57→55）"""
+        """口径: 完整 + 空壳（v6.10: 黄泉/飞霄录入 37→39; v6.11.1 晴歌录入 39→40; 空壳 57→55→54;
+        v7.5.2: 不死途/千冶•刃空壳重复改 .bak 退场 54→52）"""
         full, shells = [], []
         for f in glob.glob('data/characters/*.json'):
             if f.endswith('_template.json') or f.endswith('.bak.json'):
@@ -84,5 +85,5 @@ class TestStatsExposure:
             skills = d.get('skills') or {}
             has_basic = 'basic_attack' in skills or 'basic_attack_enhanced' in skills
             (full if has_basic else shells).append(d['id'])
-        assert len(full) == 39
-        assert len(shells) == 55
+        assert len(full) == 40
+        assert len(shells) == 52

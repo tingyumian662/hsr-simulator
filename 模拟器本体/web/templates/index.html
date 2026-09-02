@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>星穹铁道战斗模拟器</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v=20260829-1">
 </head>
 <body>
 <header class="app-header">
@@ -69,6 +69,7 @@
 let ALL = {};
 // v6.8: 角色推荐装备映射（/api/list 附带; 选择角色时自动套用）
 let RECOMMENDATIONS = {};
+const CASCADER_STATE = Array.from({length:4},()=>({activePath:'',open:false}));
 
 async function init(){
   const r = await fetch('/api/list');
@@ -139,9 +140,25 @@ function renderTeam(){
         <span>角色</span>
         <div class="search-field">
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input id="char-search${i}" aria-label="搜索角色${i+1}" placeholder="搜索角色" oninput="filterChars(${i})">
+          <input id="char-search${i}" aria-label="搜索角色${i+1}" aria-controls="char-popup${i}" placeholder="搜索角色" oninput="filterChars(${i})">
         </div>
-        <select id="char${i}" aria-label="选择角色${i+1}" onchange="onCharChange(${i})"><option value="">--</option></select>
+        <div class="character-cascader" id="char-cascader${i}">
+          <button type="button" class="char-cascader-trigger" id="char-trigger${i}" role="combobox" aria-label="选择角色${i+1}" aria-haspopup="dialog" aria-expanded="false" aria-controls="char-popup${i}" onclick="toggleCharacterCascader(${i})" onkeydown="onCascaderTriggerKeydown(event,${i})">
+            <span class="char-cascader-value" id="char-value${i}"><span class="char-cascader-placeholder">选择命途与角色</span></span>
+            <svg class="char-cascader-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 5 5 5-5"/></svg>
+          </button>
+          <div class="char-cascader-popup" id="char-popup${i}" role="dialog" aria-label="按命途选择角色${i+1}" onkeydown="onCascaderPanelKeydown(event,${i})" hidden>
+            <section class="char-cascader-column path-column" aria-labelledby="char-path-label${i}">
+              <div class="char-cascader-column-label" id="char-path-label${i}">命途</div>
+              <div class="char-cascader-list" id="char-paths${i}" role="listbox" aria-label="命途"></div>
+            </section>
+            <section class="char-cascader-column character-column" aria-labelledby="char-option-label${i}">
+              <div class="char-cascader-column-label" id="char-option-label${i}">角色</div>
+              <div class="char-cascader-list" id="char-options${i}" role="listbox" aria-label="角色"></div>
+            </section>
+          </div>
+        </div>
+        <select id="char${i}" aria-hidden="true" tabindex="-1" hidden><option value="">--</option></select>
       </div>
       <div class="field" id="lc-div${i}">
         <span>光锥</span>
@@ -185,20 +202,22 @@ function renderTeam(){
       <details open><summary>副词条</summary>
         <div class="details-body">
         <div class="substat-toolbar">
-          <label class="field total-field"><span>总有效词条</span><div class="input-unit"><input id="total${i}" value="30" type="number" min="1" max="50" onchange="checkTotal(${i})"><span>条</span></div></label>
+          <label class="field total-field" title="有效词条数（毕业口径）。总词条固定 50 条，其余按非有效词条均摊；上限 50 = 全部词条均有效"><span>有效词条</span><div class="input-unit"><input id="eff${i}" value="30" type="number" min="1" max="50" onchange="checkTotal(${i})"><span>条</span></div></label>
+          <div class="field total-field total-fixed" title="总词条固定 50 条（6件×8~9条取中值，模拟器默认值，不可修改）。剩余 50−有效词条 按非有效词条均摊"><span>总词条</span><div class="input-unit"><input value="50" type="number" disabled tabindex="-1"><span>条</span></div></div>
           <button type="button" class="button-secondary" onclick="smartRecommend(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9L12 3Z"/></svg><span>智能推荐</span></button>
           <button type="button" class="button-secondary button-icon" title="刷新面板" aria-label="刷新面板" onclick="refreshPreview(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/></svg></button>
           <span class="roll-info" id="info${i}"></span>
         </div>
         <div class="preview-panel" id="preview${i}"></div>
         <div class="stats">
-          ${[['cr','暴击'],['cd','暴伤'],['atk','攻击%'],['spd','速度'],['hp','生命%'],['res','抵抗'],['def','防御%'],['be','击破']].map(([key,name])=>`<div class="stat-field"><label><span>${name}</span><span class="input-unit"><input id="${key}${i}" value="0" type="number" min="0" max="30" onchange="checkTotal(${i});refreshPreview(${i})"><span>条</span></span></label></div>`).join('')}
+          ${[['cr','暴击'],['cd','暴伤'],['atk','攻击%'],['spd','速度'],['hp','生命%'],['res','抵抗'],['def','防御%'],['be','击破'],['ehr','命中']].map(([key,name])=>`<div class="stat-field"><label title="手动调整不受单词条上限约束（v7.5.1 裁决: 60% 规定仅作用于智能推荐算法）"><span>${name}</span><span class="input-unit"><input id="${key}${i}" value="0" type="number" min="0" max="50" onchange="checkTotal(${i});refreshPreview(${i})"><span>条</span></span></label></div>`).join('')}
         </div>
         </div>
       </details>
     </article>`;
     const sel = document.getElementById(`char${i}`);
     sel.innerHTML = '<option value="">--</option>' + charOptgroups(ALL.characters);
+    renderCharacterCascader(i);
   }
   updateRelicLists();
   updateTeamMeta();
@@ -209,26 +228,161 @@ const PATH_ORDER = ['存护','丰饶','同谐','记忆','虚无','毁灭','巡�
 // 中文名拼音排序
 const byName = (a,b)=>a.name.localeCompare(b.name,'zh');
 
+function characterGroups(chars, query=''){
+  const q = query.trim().toLocaleLowerCase();
+  const filtered = q
+    ? chars.filter(c=>c.name.toLocaleLowerCase().includes(q)||c.id.toLocaleLowerCase().includes(q))
+    : chars;
+  return PATH_ORDER.map(path=>({
+    path,
+    characters: filtered.filter(c=>c.path===path).sort(byName),
+  })).filter(group=>group.characters.length);
+}
+
+function resolveCharacterPath(groups, selectedId='', preferredPath=''){
+  if(groups.some(group=>group.path===preferredPath)) return preferredPath;
+  const selectedGroup = groups.find(group=>group.characters.some(c=>c.id===selectedId));
+  return selectedGroup?.path || groups[0]?.path || '';
+}
+
 function charOptgroups(chars){
   // v5.2 问题7: 空壳角色标注（无技能数据）
-  return PATH_ORDER.map(path=>{
-    const list = chars.filter(c=>c.path===path).sort(byName);
-    if(!list.length) return '';
-    return `<optgroup label="${path} (${list.length})">${list.map(c=>{
+  return characterGroups(chars).map(group=>{
+    return `<optgroup label="${group.path} (${group.characters.length})">${group.characters.map(c=>{
       const tag = c.completeness==='full' ? '' : '（空壳）';
       return `<option value="${c.id}">${c.name}${tag}</option>`;
     }).join('')}</optgroup>`;
   }).join('');
 }
 
+function characterValueHtml(char){
+  if(!char) return '<span class="char-cascader-placeholder">选择命途与角色</span>';
+  return `<span class="char-value-path">${char.path}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg><strong>${char.name}</strong>`;
+}
+
+function renderCharacterCascader(i){
+  const sel = document.getElementById(`char${i}`);
+  const search = document.getElementById(`char-search${i}`);
+  const pathList = document.getElementById(`char-paths${i}`);
+  const characterList = document.getElementById(`char-options${i}`);
+  if(!sel || !search || !pathList || !characterList) return;
+
+  const selectedId = sel.value;
+  const selectedChar = (ALL.characters||[]).find(c=>c.id===selectedId);
+  const groups = characterGroups(ALL.characters||[], search.value||'');
+  const state = CASCADER_STATE[i];
+  state.activePath = resolveCharacterPath(groups, selectedId, state.activePath);
+  const activeGroup = groups.find(group=>group.path===state.activePath);
+
+  document.getElementById(`char-value${i}`).innerHTML = characterValueHtml(selectedChar);
+  document.getElementById(`char-trigger${i}`).classList.toggle('has-value', Boolean(selectedChar));
+
+  if(!groups.length){
+    pathList.innerHTML = '<div class="char-cascader-empty">无匹配命途</div>';
+    characterList.innerHTML = '<div class="char-cascader-empty">无匹配角色</div>';
+    return;
+  }
+
+  pathList.innerHTML = groups.map(group=>`
+    <button type="button" class="char-path-option ${group.path===state.activePath?'is-active':''}" role="option" aria-selected="${group.path===state.activePath}" data-path="${group.path}" onclick="setCascaderPath(${i},this.dataset.path)">
+      <span>${group.path}</span><span class="char-path-meta"><span>${group.characters.length}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+    </button>`).join('');
+
+  const clearOption = selectedId ? `
+    <button type="button" class="char-option char-clear-option" onclick="clearCharacter(${i})">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg><span>清空选择</span>
+    </button>` : '';
+  characterList.innerHTML = (activeGroup?.characters||[]).map(char=>{
+    const shellTag = char.completeness==='full' ? '' : '<span class="char-shell-tag">空壳</span>';
+    const selected = char.id===selectedId;
+    return `<button type="button" class="char-option ${selected?'is-selected':''}" role="option" aria-selected="${selected}" data-character-id="${char.id}" onclick="chooseCharacter(${i},this.dataset.characterId)">
+      <span class="char-option-name">${char.name}${shellTag}</span>
+      ${selected?'<svg class="char-selected-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>':''}
+    </button>`;
+  }).join('') + clearOption;
+}
+
+function setCascaderOpen(i, open, returnFocus=false){
+  const state = CASCADER_STATE[i];
+  const popup = document.getElementById(`char-popup${i}`);
+  const trigger = document.getElementById(`char-trigger${i}`);
+  const card = document.getElementById(`slot${i}`);
+  if(!popup || !trigger || !card) return;
+  state.open = open;
+  popup.hidden = !open;
+  trigger.setAttribute('aria-expanded', String(open));
+  card.classList.toggle('is-cascader-open', open);
+  if(returnFocus) trigger.focus();
+}
+
+function toggleCharacterCascader(i, forceOpen){
+  const nextOpen = forceOpen ?? !CASCADER_STATE[i].open;
+  for(let slot=0;slot<4;slot++) if(slot!==i && CASCADER_STATE[slot].open) setCascaderOpen(slot,false);
+  if(nextOpen) renderCharacterCascader(i);
+  setCascaderOpen(i,nextOpen);
+}
+
+function setCascaderPath(i, path){
+  CASCADER_STATE[i].activePath = path;
+  renderCharacterCascader(i);
+}
+
+function chooseCharacter(i, characterId){
+  const sel = document.getElementById(`char${i}`);
+  const char = (ALL.characters||[]).find(c=>c.id===characterId);
+  if(!sel || !char) return;
+  sel.value = char.id;
+  document.getElementById(`char-search${i}`).value = '';
+  CASCADER_STATE[i].activePath = char.path;
+  onCharChange(i);
+  setCascaderOpen(i,false,true);
+}
+
+function clearCharacter(i){
+  document.getElementById(`char${i}`).value = '';
+  document.getElementById(`char-search${i}`).value = '';
+  onCharChange(i);
+  setCascaderOpen(i,false,true);
+}
+
 function filterChars(i){
-  const q = (document.getElementById(`char-search${i}`).value||'').trim();
-  const sel = document.getElementById(`char${i}`).value;
-  const filtered = q ? ALL.characters.filter(c=>c.name.includes(q)||c.id.includes(q)) : ALL.characters;
-  const selEl = document.getElementById(`char${i}`);
-  selEl.innerHTML = '<option value="">--</option>' + charOptgroups(filtered);
-  selEl.value = sel;  // 恢复选中（被过滤掉则自动回退到 --）
-  if(selEl.value !== sel) onCharChange(i);
+  toggleCharacterCascader(i,true);
+}
+
+function focusCascaderButton(container, direction){
+  const buttons = [...container.querySelectorAll('button:not(:disabled)')];
+  if(!buttons.length) return;
+  const current = buttons.indexOf(document.activeElement);
+  const next = current<0 ? 0 : (current+direction+buttons.length)%buttons.length;
+  buttons[next].focus();
+}
+
+function onCascaderTriggerKeydown(event, i){
+  if(event.key==='ArrowDown'){
+    event.preventDefault();
+    toggleCharacterCascader(i,true);
+    requestAnimationFrame(()=>focusCascaderButton(document.getElementById(`char-paths${i}`),1));
+  }else if(event.key==='Escape' && CASCADER_STATE[i].open){
+    event.preventDefault();
+    setCascaderOpen(i,false);
+  }
+}
+
+function onCascaderPanelKeydown(event, i){
+  const list = event.target.closest('.char-cascader-list');
+  if(event.key==='Escape'){
+    event.preventDefault();
+    setCascaderOpen(i,false,true);
+  }else if(list && (event.key==='ArrowDown'||event.key==='ArrowUp')){
+    event.preventDefault();
+    focusCascaderButton(list,event.key==='ArrowDown'?1:-1);
+  }else if(event.key==='ArrowRight' && event.target.classList.contains('char-path-option')){
+    event.preventDefault();
+    focusCascaderButton(document.getElementById(`char-options${i}`),1);
+  }else if(event.key==='ArrowLeft' && event.target.classList.contains('char-option')){
+    event.preventDefault();
+    document.querySelector(`#char-paths${i} .char-path-option.is-active`)?.focus();
+  }
 }
 
 function updateRelicLists(){
@@ -260,6 +414,7 @@ function onCharChange(i){
   populateLightCones(i, '');
   document.getElementById(`slot-name${i}`).textContent = char ? char.name : '未选择角色';
   document.getElementById(`slot${i}`).classList.toggle('is-selected', Boolean(char));
+  renderCharacterCascader(i);
   updateTeamMeta();
   // v6.8: 位面球默认按角色元素推导（修复此前写死量子增伤——火角色默认选错球）;
   // 有推荐映射则自动套用（专属光锥/遗器套装/主词条; 无映射维持其余现状）
@@ -375,6 +530,7 @@ function getConfig(i){
       EFFECT_RES: parseInt(document.getElementById(`res${i}`).value)||0,
       DEF_percent: parseInt(document.getElementById(`def${i}`).value)||0,
       BREAK_EFFECT: parseInt(document.getElementById(`be${i}`).value)||0,
+      EFFECT_HIT_RATE: parseInt(document.getElementById(`ehr${i}`).value)||0,
     }
   };
 }
@@ -486,8 +642,17 @@ function setStats(i, vals){
 }
 
 function usedTotal(i){
-  // v6.11 阶段2: 无效词条（stat-invalid）不计入有效预算
-  const keys = ['cr','cd','atk','spd','hp','res','def','be'];
+  // v7.3.1: 全部 9 格 = 总词条（固定 50）; 另口径统计有效格（未置灰）
+  const keys = ['cr','cd','atk','spd','hp','res','def','be','ehr'];
+  return keys.reduce((s,k)=>{
+    const el = document.getElementById(k + i);
+    if(!el) return s;
+    return s+(parseInt(el.value)||0);
+  }, 0);
+}
+
+function usedEffective(i){
+  const keys = ['cr','cd','atk','spd','hp','res','def','be','ehr'];
   return keys.reduce((s,k)=>{
     const el = document.getElementById(k + i);
     if(!el || el.classList.contains('stat-invalid')) return s;
@@ -495,14 +660,17 @@ function usedTotal(i){
   }, 0);
 }
 
+const TOTAL_ROLLS = 50;  // v7.3.1: 总词条固定 50（模拟器默认值）
+
 function checkTotal(i){
-  const total = parseInt(document.getElementById(`total${i}`).value)||30;
+  const eff = parseInt(document.getElementById(`eff${i}`).value)||30;
+  const usedEff = usedEffective(i);
   const used = usedTotal(i);
   const info = document.getElementById(`info${i}`);
-  info.classList.toggle('is-over', used > total);
-  if(used > total) info.textContent = `超出 ${used-total}`;
-  else if(used === total) info.textContent = '已分配';
-  else info.textContent = `剩余 ${total-used}`;
+  info.classList.toggle('is-over', usedEff > eff || used > TOTAL_ROLLS);
+  if(usedEff > eff) info.textContent = `有效超出 ${usedEff-eff}`;
+  else if(used > TOTAL_ROLLS) info.textContent = `总词条超出 ${used-TOTAL_ROLLS}`;
+  else info.textContent = `有效 ${usedEff}/${eff} · 总 ${used}/${TOTAL_ROLLS}`;
 }
 
 async function refreshPreview(i){
@@ -516,7 +684,7 @@ async function refreshPreview(i){
     const data = await r.json();
     if(data.previews && data.previews[0]){
       const p = data.previews[0];
-      div.innerHTML = `HP:${p.HP} ATK:${p.ATK} DEF:${p.DEF} SPD:${p.SPD}<br>CR:${p.CR}% CD:${p.CD}% RES:${p.RES}% ERR:${p.ERR}% BE:${p.BE}%`;
+      div.innerHTML = `HP:${p.HP} ATK:${p.ATK} DEF:${p.DEF} SPD:${p.SPD}<br>CR:${p.CR}% CD:${p.CD}% RES:${p.RES}% ERR:${p.ERR}% BE:${p.BE}% EHR:${p.EHR??'-'}%`;
     }else{
       div.textContent = '预览不可用';  // v5.5: 后端跳过该角色时不留"计算中"
     }
@@ -526,37 +694,38 @@ async function refreshPreview(i){
 async function smartRecommend(i){
   const info = document.getElementById(`info${i}`);
   info.textContent = '计算中...';
-  const total = parseInt(document.getElementById(`total${i}`).value)||30;
+  const eff = parseInt(document.getElementById(`eff${i}`).value)||30;
   const body = {
     team: [getConfig(i)],
     enemy: {hp:50000,def:800,toughness:20,weakness:[],count:1},
     max_av: 1,
   };
-  // 注入total_rolls
-  body.team[0].total_rolls = total;
+  // 注入有效词条数（v7.3.1: 总词条固定 50）
+  body.team[0].effective_rolls = eff;
   try{
     const r = await fetch('/api/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data = await r.json();
     if(!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
     if(data.recommendations && data.recommendations[0] && data.recommendations[0].rolls){
       const rec = data.recommendations[0];
-      const map = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_PERCENT:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be'};
+      const map = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_PERCENT:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be',EFFECT_HIT_RATE:'ehr'};
       const vals = {};
       for(const [k,v] of Object.entries(rec.rolls)){ const key = map[k]; if(key) vals[key] = v; }
       setStats(i, vals);
-      // v6.11 阶段2: 有效/无效分区（权重=0 的框置灰, 不占预算）
-      const wmap = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_percent:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be'};
+      // v6.11 阶段2 + v7.3: 有效/无效分区（权重=0 的框置灰; 后端 weights 为引擎内部键, 速度键是小写 p 的 SPD_percent）
+      const wmap = {CRIT_RATE:'cr',CRIT_DMG:'cd',ATK_percent:'atk',SPD_percent:'spd',HP_percent:'hp',EFFECT_RES:'res',DEF_percent:'def',BREAK_EFFECT:'be',EFFECT_HIT_RATE:'ehr'};
       for(const [wk,wv] of Object.entries(rec.weights || {})){
         const key = wmap[wk];
         if(!key) continue;
         const el = document.getElementById(key + i);
         if(!el) continue;
-        if(wv <= 0){ el.classList.add('stat-invalid'); el.title='无效词条（该角色不吃此词条, 不占有效预算）'; }
+        if(wv <= 0){ el.classList.add('stat-invalid'); el.title='非有效词条——该角色不吃此词条, 剩余词条默认均摊到此'; }
         else { el.classList.remove('stat-invalid'); el.title=''; }
       }
-      // 约束面板 + 毕业度
+      // 约束面板 + 毕业度（v7.3.1: 有效/总分口径）
       const g = rec.graduation || {};
-      let html = '✓ 有效词条 ' + g.effective_used + '/' + g.budget + ' · 毕业度 ' + g.score_pct + '%';
+      let html = '✓ 有效 ' + g.effective_used + '/' + (g.effective_budget ?? g.budget) + ' · 总 ' + g.budget + ' · 毕业度 ' + g.score_pct + '%';
+      if(g.invalid_used > 0) html += ' · 非有效均摊 ' + g.invalid_used;
       if(g.gap_to_target > 0) html += ' · 距毕业差 ' + g.gap_to_target + ' 条';
       if((rec.constraints || []).length) html += '<div class="constraint-list">';
       for(const c of (rec.constraints || [])){
@@ -569,6 +738,20 @@ async function smartRecommend(i){
     }else throw new Error('推荐结果不可用');
   }catch(e){ info.textContent = '失败: '+e.message; }
 }
+
+document.addEventListener('pointerdown',event=>{
+  for(let i=0;i<4;i++){
+    if(!CASCADER_STATE[i].open) continue;
+    const field = document.getElementById(`char-cascader${i}`)?.closest('.field');
+    if(field && !field.contains(event.target)) setCascaderOpen(i,false);
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key!=='Escape') return;
+  for(let i=0;i<4;i++){
+    if(CASCADER_STATE[i].open) setCascaderOpen(i,false,event.target.closest?.('.char-cascader-popup'));
+  }
+});
 </script>
 </body>
 </html>

@@ -25,18 +25,22 @@ if errorlevel 1 (
     set PYTHON_CMD=py -3
 )
 
-REM  Check dependencies (auto-install on first run)
+REM  Check dependencies (auto-install on first run; mirror fallback if pypi unreachable)
 %PYTHON_CMD% -c "import fastapi, uvicorn, pydantic, jinja2" >nul 2>&1
 if errorlevel 1 (
     echo First run: installing dependencies, please wait...
     %PYTHON_CMD% -m pip install -r requirements.txt
     if errorlevel 1 (
-        echo.
-        echo   [ERROR] Failed to install dependencies.
-        echo   Check your network connection, then run this file again.
-        echo.
-        pause
-        exit /b 1
+        echo Default pip source unreachable, retrying via mirror...
+        %PYTHON_CMD% -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+        if errorlevel 1 (
+            echo.
+            echo   [ERROR] Failed to install dependencies.
+            echo   Check your network connection, then run this file again.
+            echo.
+            pause
+            exit /b 1
+        )
     )
     echo Dependencies installed.
 )

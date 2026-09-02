@@ -40,6 +40,11 @@ MARKER_REGISTRY = {
         "name": "无量忿怒倒计时",
         "base_SPD": 70.0,
     },
+    # v6.11.1 知更鸟·晴歌: Fever倒计时（140速, 行动扣50%气氛至少12点）
+    "qingge_countdown": {
+        "name": "Fever倒计时",
+        "base_SPD": 140.0,
+    },
 
 }
 

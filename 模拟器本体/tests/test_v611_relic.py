@@ -23,17 +23,18 @@ def test_fuxuan_is_tank_not_dps():
 
 
 def test_fuxuan_recommend_no_crit():
-    r = recommend_substats(_load("fu_xuan"), total_rolls=30)
-    assert r["CRIT_RATE"] == 0
-    assert r["CRIT_DMG"] == 0
+    r = recommend_substats(_load("fu_xuan"), effective_rolls=30)
+    # v7.3.1: 双暴对坦无效 → 不进有效分配, 仅剩均摊份额（~2-3 条）
+    assert r["CRIT_RATE"] <= 5
+    assert r["CRIT_DMG"] <= 5
     assert r["HP_percent"] > 0  # 生命为主
-    assert sum(r.values()) == 30
+    assert sum(r.values()) == 50  # 总词条固定 50（有效 30 + 均摊 20）
 
 
 def test_seele_still_dps():
     p = _analyze_character(_load("seele"))
     assert p.role == "dps"
-    r = recommend_substats(_load("seele"), total_rolls=30)
+    r = recommend_substats(_load("seele"), effective_rolls=30)
     assert r["CRIT_RATE"] > 0
     assert r["CRIT_DMG"] > 0
 
@@ -118,9 +119,9 @@ def test_fuxuan_tank_weights():
 
 def test_full_response_contract():
     from engine.core.relic_optimizer import recommend_substats_full
-    full = recommend_substats_full(_load("seele"), total_rolls=30)
+    full = recommend_substats_full(_load("seele"), effective_rolls=30)
     assert set(full.keys()) == {"rolls", "weights", "constraints", "graduation"}
-    assert sum(full["rolls"].values()) == 30
+    assert sum(full["rolls"].values()) == 50  # v7.3.1: 总词条固定 50
 
 
 def test_keel_constraint_panel():
@@ -134,7 +135,7 @@ def test_keel_constraint_panel():
         RelicPiece(slot="head", set_name=keel, main_stat_type=StatType.HP_FLAT, main_stat_value=705),
         RelicPiece(slot="hands", set_name=keel, main_stat_type=StatType.ATK_FLAT, main_stat_value=352),
     ]
-    full = recommend_substats_full(_load("seele"), pieces=pieces, relic_sets=relic_sets, total_rolls=30)
+    full = recommend_substats_full(_load("seele"), pieces=pieces, relic_sets=relic_sets, effective_rolls=30)
     cons = {c["name"]: c for c in full["constraints"]}
     assert "效果抵抗≥30" in cons
     c = cons["效果抵抗≥30"]
@@ -147,16 +148,16 @@ def test_keel_constraint_panel():
 
 def test_graduation_dps_target():
     from engine.core.relic_optimizer import recommend_substats_full
-    full = recommend_substats_full(_load("seele"), total_rolls=30)
+    full = recommend_substats_full(_load("seele"), effective_rolls=30)
     assert full["graduation"]["target_range"] == [30, 35]
     assert full["graduation"]["score_pct"] == 100  # 30/30 达下限
 
 
 def test_invalid_stats_get_zero_rolls():
-    """权重=0 的词条（无效词条）不参与推荐分配（两段制）"""
+    """权重=0 的词条不进有效分配（v7.3.1: 仅获剩余均摊份额 ≤5 条）"""
     from engine.core.relic_optimizer import recommend_substats
-    r = recommend_substats(_load("fu_xuan"), total_rolls=30)
-    assert r["CRIT_RATE"] == 0 and r["CRIT_DMG"] == 0  # 双暴无效 → 0 条
+    r = recommend_substats(_load("fu_xuan"), effective_rolls=30)
+    assert r["CRIT_RATE"] <= 5 and r["CRIT_DMG"] <= 5  # 双暴无效 → 仅均摊
 
 
 def test_substat_weights_json_override():

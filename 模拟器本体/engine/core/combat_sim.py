@@ -184,6 +184,10 @@ def _gain_energy(u: SimUnit, amt: float, *, state=None, percent: bool = False,
               if apply_regen else 1.0)
         raw = amt * er
     cap = u.char.max_energy or 999
+    # v6.11.1 晴歌E6: Fever期间终结技可储存2次(能量上限×2, 放一次扣140保留溢出)
+    if u.char.id == 'robin_summeretto' and u.eidolon_rank >= 6 \
+            and u.extra.get('qingge_fever'):
+        cap = cap * 2
     before = u.current_energy
     u.current_energy = min(cap, u.current_energy + raw)
     gained = u.current_energy - before
@@ -734,6 +738,8 @@ BUFF_REGISTRY = {
     "dahlia_field_buff": {"TOUGHNESS_EFFICIENCY": 50.0},    # 结界: 全队弱点击破效率+50%
     # v6.7 姬子·启行
     "himeko_nova_flag": {"DMG_BONUS_ALL": 20.0},            # 领航旗语: 全队伤害+20%
+    # v6.11.1 知更鸟·晴歌
+    "qingge_guest": {},                                      # 特邀嘉宾: 特殊标记(持有者及其召唤物攻击→晴歌气氛+2; 无法拉条队友)
 }
 
 # 命名 paramId 治疗注册表（藿藿等; 数字编码 "hpPct|flat" 走 split 解析回退）
@@ -982,6 +988,7 @@ def _lingsha_fuyuan_action(state, marker):
                 _fua_damage_hit(tgt, 50.0, 5.0)
     summoner.total_damage_dealt += dmg_total
     state.log.append(f'  浮元: 全队追击+单体 {dmg_total:.0f}')
+    _qingge_notify_attack(state, summoner, dealt=dmg_total > 0)  # v7.1.0 P1: marker行动攻击补气氛
     # 追加攻击动作完成后仅广播一次：温驯/流光、千星、都蓝等均为动作级效果。
     # 浮元此前遗漏光锥侧 on_followup 处理。
     _process_lc_effects(summoner, state, "on_followup")
@@ -1084,6 +1091,7 @@ MARKER_ACTIONS = {
     "firefly_countdown": _firefly_countdown_action,
     "robin_concert": _robin_concert_marker_action,
     "qianye_wrath": _qianye_wrath_marker_action,
+    # "qingge_countdown": 延迟注册（函数定义在模块后部, 见晴歌区块末尾）
 }
 MARKER_DESPAWN = {
     "lingsha_fuyuan": _lingsha_fuyuan_despawn,
@@ -1175,6 +1183,10 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
                     state.log.append(f'  行动提前: {u.char.name} {ratio*100:.0f}%')
             elif target in ('single_ally', 'ally') and single_ally_target is not None \
                     and single_ally_target is not u:
+                # v6.11.1 特邀嘉宾: 持有者无法使其他友方目标获得行动提前
+                if any(getattr(b, 'param_id', '') == 'qingge_guest' for b in u.buffs):
+                    state.log.append('  【特邀嘉宾】: 无法使其他友方获得行动提前')
+                    continue
                 navs = state.extra.get('navs', {})
                 target_idx = (state.units.index(single_ally_target)
                               if single_ally_target in state.units else -1)
@@ -1273,6 +1285,8 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
                 t.shield += shield_val
                 state.hooks.trigger_all("on_shield", u=u, state=state,
                                         targets=[t], shield_amt=shield_val)
+                # v6.11.1 晴歌行迹2·即兴蓝调(护盾侧) + 渠道b气氛（与治疗共享每回合去重）
+                _qingge_on_heal_shield(state, provider=u, targets=[t])
                 state.log.append(f'  护盾: {t.char.name}+{shield_val:.0f}')
                 # 隐士4pc: 持盾队友→CD+15%（受盾者佩戴时激活）
                 if 'shield_ally_cd' in getattr(t, '_active_relic_conditions', set()):
@@ -1450,6 +1464,8 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
         elif param_id == 'himeko_nova_flag':
             # v6.7b: 领航旗语 3回合（此前默认2）+ 立即恢复所有助战技次数（txt）
             duration = 3
+            # v7.2.0 #3: E5战技+2 → 旗语增伤按战技等级消费(每级+5%, 基准Lv10=20%)
+            attrs['DMG_BONUS_ALL'] = 20.0 * _skill_level_factor(u, 'skill')
             if u.char.id == 'himeko_nova':
                 state.extra['hn_support_uses'] = _hn_support_cap(u)
                 state.log.append('  领航旗语: 立即恢复所有助战技使用次数')
@@ -1488,12 +1504,10 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
             continue
 
         # 昔涟战技→结界
+        # v7.2.0 项目主裁决: 昔涟没有境界技能（她是遐蝶/白厄的售后角色）——
+        # 结界不读写 realm_owner, 不参与境界互斥; 独立倒计时存 xilian_field_turns
         if param_id == 'xilian_field' and u.char.id == 'xilian':
-            if state.realm_owner and state.realm_owner != 'xilian':
-                state.log.append(f'  [WARN] 境界已被{state.realm_owner}占据')
-                continue
-            state.realm_owner = 'xilian'
-            state.realm_turns = 2
+            state.extra['xilian_field_turns'] = 2
             # 昔涟E2: 结界真伤=基础24% + 每有1名不同角色获得德谬歌忆灵技增益+6%（上限48%）
             # v6.2: 累计口径——已获增益角色记录于 xilian_e2_gifted, 由 _xilian_support_skill 递增
             gifted = state.extra.get('xilian_e2_gifted', set())
@@ -1516,7 +1530,7 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
             u.base_stats.CRIT_RATE += 0.50
             if u.memsprite_unit:
                 u.memsprite_unit.base_stats.CRIT_RATE += 0.50
-            state.realm_turns = -1  # 结界永久
+            state.extra['xilian_field_turns'] = -1  # v7.2.0: 结界永久(独立于境界系统)
             u.story_points += 1  # 终结技后+1故事
             state.log.append('  进入【往昔的涟漪】: CR+50%, 结界永久, 普攻强化')
             # 首次终结技第二个效果（用户确认实机）: 选择释放 花与箭/此诗献予 共2次忆灵技
@@ -1529,7 +1543,8 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
             if u.eidolon_rank >= 6:
                 navs = state.extra.get('navs', {})
                 for i, eu in enumerate(state.units):
-                    if eu.is_alive and i in navs:
+                    if eu.is_alive and i in navs \
+                            and not _guest_advance_blocked(state, u, eu):
                         navs[i] = state.current_av
                 state.log.append('  昔涟E6: 首次终结技→全队拉条100%')
             # 激活全体队友的终结技（入 X 轴队列排队，不消耗回合）
@@ -1617,11 +1632,11 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
 
 # ---- 光锥效果处理器 ----
 
-def _lc_team_advance(state, ratio):
-    """全队行动提前（各自速度）"""
+def _lc_team_advance(state, ratio, actor=None):
+    """全队行动提前（各自速度）; v7.1.0: actor持【特邀嘉宾】时只拉自己(防永动机)"""
     navs = state.extra.get('navs', {})
     for i, eu in enumerate(state.units):
-        if eu.is_alive and i in navs:
+        if eu.is_alive and i in navs and not _guest_advance_blocked(state, actor, eu):
             navs[i] = max(0, navs[i] - (AV_PER_TURN / _effective_spd(eu, state)) * ratio)
     state.log.append(f'  光锥拉条: 全队{ratio*100:.0f}%')
 
@@ -1661,7 +1676,7 @@ def _lc_wave_heal(state, ratio=0.80):
 LC_TRIGGERS = {
     "lc_but_the_battle_isnt_over_sp": ("on_ult", lambda s, u, ctx: _lc_sp_recovery(s, 2)),
     "lc_but_the_battle_isnt_over_dmg": ("on_skill", lambda s, u, ctx: _lc_ally_buff(s, u, {'DMG_BONUS_ALL': 30.0}, 1)),
-    "lc_dance_dance_dance_advance": ("on_ult", lambda s, u, ctx: _lc_team_advance(s, 0.24)),
+    "lc_dance_dance_dance_advance": ("on_ult", lambda s, u, ctx: _lc_team_advance(s, 0.24, actor=u)),
     "lc_she_already_shut_her_eyes_heal": ("on_wave_start", lambda s, u, ctx: _lc_wave_heal(s, 0.80)),
 }
 
@@ -1802,6 +1817,13 @@ LC_EVENT_ACTIONS = {
     # 爱如此刻永恒: 忆灵技后【空白】/【诗行】（当局永久, 用户确认; 双持×1.6）
     ("this_love_forever", "on_memsprite_attack"):
         lambda s, u: _lc_love_forever(s, u),
+    # v6.11.1 你将起身歌唱(晴歌专属): 终结技后回1战技点
+    ("rise_and_sing", "on_ult"):
+        lambda s, u: (_gain_skill_points(s),
+                      s.log.append('  光锥[你将起身歌唱] 终结技回1战技点')),
+    # 你将起身歌唱: 进战行动提前(叠影档) + 【新声】2回合全队速度提高(叠影档)
+    ("rise_and_sing", "on_battle_start"):
+        lambda s, u: _rise_and_sing_entry(s, u),
 }
 
 
@@ -2962,7 +2984,13 @@ def _use_skill(u: SimUnit, state: SimState, skill_key: str,
             _gain_skill_points(state)
     # 终结技消耗全部能量；其他技能回复能量
     if is_ultimate_action:
-        u.current_energy = 0
+        # v6.11.1 晴歌E6: Fever期终结技扣140保留溢出(储存2次语义)
+        if u.char.id == 'robin_summeretto' and u.eidolon_rank >= 6 \
+                and u.extra.get('qingge_fever'):
+            u.current_energy = max(0.0, u.current_energy
+                                   - (skill.cost.get('energy') or u.char.max_energy or 0))
+        else:
+            u.current_energy = 0
         # v6.10.6 D: 通用终结技后回能——消费 JSON effects 的 energy_regen（26角色声明的"终结技后恢复5能量"此前被静默忽略）
         for eff in (skill.effects or []):
             if getattr(eff, 'type', '') == 'energy_regen':
@@ -3025,6 +3053,13 @@ def _use_skill(u: SimUnit, state: SimState, skill_key: str,
             _hn_ultimate(state, u)
             _ult_post(state, u)
             return  # 伤害已内联结算, 跳过后续通用伤害循环
+        # v6.11.1 晴歌终结技: 拉条+回能+特邀嘉宾内联（无伤害, 跳过通用循环）
+        if u.char.id == 'robin_summeretto':
+            _qingge_ultimate(state, u)
+            _ult_post(state, u)
+            _process_lc_effects(u, state, "on_ult")  # 补通用路径的光锥终结技事件
+            _hn_count_ally_ult(state, u)  # v7.2.0 #6: 提前return前补裁决协议计数
+            return
         # v6.7 大丽花终结技: 300%ATK由敌方全体均分（白厄最后一击先例）
         if u.char.id == 'the_dahlia':
             alive_n = len(state.alive_enemies())
@@ -3454,6 +3489,9 @@ def _use_skill(u: SimUnit, state: SimState, skill_key: str,
         # v6.9 知更鸟: 协奏期每次我方攻击后附加120%ATK物理伤(固定双暴)
         if total_dmg > 0:
             _robin_concert_extra(state, u)
+        # v6.11.1 晴歌: 我方目标施放攻击→晴歌气氛+1(特邀嘉宾持有者额外+2/E2/律动/偏离和弦)
+        if total_dmg > 0:
+            _qingge_on_ally_attack(state, u)
         # v6.9 不死途: 饲饵受其他目标攻击→回8能+耗1充能FUA
         if u.char.id != 'busitu' and total_dmg > 0:
             _busitu_on_ally_attack(state, u)
@@ -3556,6 +3594,7 @@ def _use_skill(u: SimUnit, state: SimState, skill_key: str,
                     state, u, t, base_toughness, "冰", skill_key, u_stats)
         state.log.append(f'  终结技: 迷迷240%ATK全体冰伤')
         u.total_damage_dealt += mimi_damage
+        _qingge_notify_attack(state, u, dealt=mimi_damage > 0)  # v7.1.0 P1: 0倍率终结技补气氛
     u.damage_log.append((skill.name, total_dmg, skill_key))
     state.log.append(f'[{state.current_av:6.0f}AV] {u.char.name} {skill.name}: {total_dmg:.0f}')
     # 行动计数（轮次统计用）
@@ -3976,6 +4015,7 @@ def _use_skill(u: SimUnit, state: SimState, skill_key: str,
                     state.log.append('  白厄E2: 消耗4点毁伤获得额外回合')
                 u.total_damage_dealt += total
                 state.log.append(f'  死星天裁: {total:.0f} (耗毁伤{spent})')
+                _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 0倍率技能补气氛
     # 白厄天赋: 被点名+1火种（队友点名+暴伤30% 3回合）
     # v6.8.1: 判定白厄是否为技能目标（此前任意队友普攻/战技都触发）;
       # v6.8.2: 覆盖 all_allies_but_self 与全队终结技（txt「成为技能目标时」）;
@@ -4233,6 +4273,7 @@ def _register_elation_skill_hooks(skill_hooks):
             u.damage_log.append(((skill.name + "(无敌)") if skill else "elation", total, "elation_inv"))
             state.log.append(f'[{state.current_av:6.0f}AV] {u.char.name} 欢愉技(无敌): {total:.0f}')
             u.extra['yinlang_blindbox_prob'] = 1.0
+            _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 提前return欢愉技补气氛
             return True
 
     def _evanescia_skill_laugh(u: SimUnit, state: SimState, skill_key: str):
@@ -4926,9 +4967,10 @@ def _register_generic_ai(ai_registry: dict, units: list):
                     _use_skill(unit, state, 'ultimate')
                 elif state.skill_points > 0 and target:
                     _use_skill(unit, state, 'skill')
-                    # 战技100%拉条
+                    # 战技100%拉条（v7.1.0: 持特邀嘉宾时封锁——防永动机, 自拉条不受影响）
                     for i, eu in enumerate(state.units):
-                        if eu == target and i in navs:
+                        if eu == target and i in navs \
+                                and not _guest_advance_blocked(state, unit, eu):
                             navs[i] = state.current_av
                             break
                     state.log.append(f'  拉条100% → {target.char.name}')
@@ -5097,6 +5139,8 @@ def _should_ult_now(u, state) -> bool:
     if not isinstance(u, SimUnit) or not u.is_alive:
         return False
     cid = u.char.id
+    if _hn_realm_blocks_ult(state, u):
+        return False  # v7.2.0 裁决A: 拓星视界占境界→遐蝶/白厄永封终结技
     if u.char.path == "欢愉":
         return False  # 欢愉特殊资源，由各自 AI 管理
     if cid == 'firefly' and u.extra.get('combustion'):
@@ -5774,9 +5818,8 @@ def _check_fatal(state, target):
     # v5.3: 阵亡事件（光环失效: 忘归人天赋/同谐E4等）
     state.hooks.trigger_all("on_ally_death", u=target, state=state)
     # v5.7: 昔涟阵亡→结界解除（实机: 当昔涟陷入无法战斗状态时, 结界也会被解除）
-    if target.char.id == 'xilian' and state.realm_owner == 'xilian':
-        state.realm_owner = ''
-        state.realm_turns = 0
+    if target.char.id == 'xilian' and state.extra.get('xilian_field_turns'):
+        state.extra['xilian_field_turns'] = 0
         state.realm_true_dmg = 0
         state.log.append('  昔涟阵亡→结界解除')
     state.log.append(f'  {target.char.name} 阵亡')
@@ -6034,6 +6077,9 @@ def _begin_enemy_turn(state, enemy):
 def _exec_extra_turn(state, unit, kind):
     """X 轴额外回合执行（从左往右）"""
     state.extra['action_ctx'] = 'extra'
+    # v7.2.0 #7: 姬子行迹2额外回合开始→解除防循环标记(此后再使用助战技可再触发)
+    if isinstance(unit, SimUnit):
+        unit.extra.pop('hn_trace2_pending', None)
     # v5.0 P4: 冻结期间禁止额外回合（含已入队行动, 用户实机语义）
     if isinstance(unit, SimUnit) and any(getattr(st, 'name', '') == '冻结'
                                          for st in unit.statuses):
@@ -6146,6 +6192,7 @@ def _dispatch_extra_action(state, unit):
                         ms.total_damage_dealt += total
                         summoner.total_damage_dealt += total
                         state.log.append(f'  乌云乌云: {total:.0f}伤害(累计治疗={ms.cumulative_healing:.0f})')
+                        _qingge_notify_attack(state, summoner, dealt=total > 0)  # v7.1.0 P1: X轴忆灵直伤分支补气氛
                         ms.cumulative_healing *= 0.50
                 # 天赋追加治疗: 2%风堇HP+20 × 全队
                 bonus_heal = summoner.base_stats.HP * 0.02 + 20
@@ -6432,11 +6479,25 @@ def _ai_regular_action(state, u):
                   uidx=state.units.index(u))
         else:
             _default_ai(u, state)
+        _hn_ally_auto_support(state, u)  # v7.2.0 #8: 队友消费助战技次数呼唤拓星者
     except Exception as e:
         state.log.append(f'  [ERROR] {u.char.name} AI崩溃: {e}')
         import traceback
         state.log.append(f'  {traceback.format_exc()}')
         raise
+
+
+def _hn_ally_auto_support(state, u):
+    """v7.2.0 #8: 非姬子我方角色行动后自动使用助战技——
+    姬子·启行在场且全队共享次数>0时呼唤「拓星者」（不占该角色行动, 消耗1次共享次数）。
+    此前助战技次数池只有姬子自己的AI与协议触发在消费, 队友从不使用。"""
+    if not isinstance(u, SimUnit) or u.char.id == 'himeko_nova' or not u.is_alive:
+        return
+    hn = next((x for x in state.units
+               if x.char.id == 'himeko_nova' and x.is_alive), None)
+    if hn is None or state.extra.get('hn_support_uses', 0) <= 0:
+        return
+    _hn_support_skill(state, u)
 
 
 def _ult_post(state, unit):
@@ -6533,8 +6594,10 @@ def simulate(configs: list[dict], enemy_template: Enemy, max_av: float = 1000.0,
 
     # ── v6.7 姬子·启行（助战技子系统）──
     if any(u.char.id == 'himeko_nova' for u in units):
+        hn_nova = next(u for u in units if u.char.id == 'himeko_nova')
         state.extra['hn_support_uses'] = 1  # 天赋: 全队1次助战技使用次数
-        state.extra['hn_protocol_uses'] = 2  # 特殊效果免费助战技（单场2次, 终结技后刷新）
+        # 特殊效果免费助战技（单场2次, 终结技后刷新; E1: 3次）
+        state.extra['hn_protocol_uses'] = 3 if hn_nova.eidolon_rank >= 1 else 2
         ai_registry['himeko_nova'] = _hn_ai
 
     # ── v6.9 批1: 星期日/瓦尔特/阮·梅 ──
@@ -6610,6 +6673,10 @@ def simulate(configs: list[dict], enemy_template: Enemy, max_av: float = 1000.0,
             elif u.char.id == "trailblazer_remembrance":
                 ai_registry["trailblazer_remembrance"] = lambda unit, state, **ctx: (
                     remembrance.tbr_ai(unit, state, **ctx)
+                )
+            elif u.char.id == "robin_summeretto":
+                ai_registry["robin_summeretto"] = lambda unit, state, **ctx: (
+                    remembrance.qingge_ai(unit, state, **ctx)
                 )
 
     # 通用AI注册：非欢愉角色通过此入口注册
@@ -6797,7 +6864,8 @@ def simulate(configs: list[dict], enemy_template: Enemy, max_av: float = 1000.0,
 
 
 def _default_ai(u: SimUnit, state: SimState):
-    if u.current_energy >= u.char.max_energy and u.char.max_energy > 0:
+    if u.current_energy >= u.char.max_energy and u.char.max_energy > 0 \
+            and not _hn_realm_blocks_ult(state, u):  # v7.2.0 裁决A
         _use_skill(u, state, "ultimate")
     elif state.skill_points > 0:
         _use_skill(u, state, "skill")
@@ -6947,6 +7015,7 @@ def _tribbie_talent_fua(state, u):
                              remaining_turns=3, param_id='tribbie_trace1_stack',
                              source_name='行迹1·增伤'))
     state.log.append(f'  缇宝天赋FUA: {total:.0f}(18%HP×{e6_mult:.2f}E6) 行迹1增伤{stacks}/3层')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 天赋FUA路径补气氛
 
 
 # ── 刻律德菈（同谐·风）──
@@ -7082,6 +7151,7 @@ def _dht_longling_action(state, marker):
             if len(eu.statuses) < before:
                 state.log.append(f'  龙灵净化: {eu.char.name} 解除{before - len(eu.statuses)}个负面')
     # 终结技强化: 追加攻击80%ATK + 同袍80%附加（每次行动消耗1层）
+    attacked = False  # v7.1.0 P1: marker行动是否构成攻击(供晴歌气氛触发)
     if u.extra.get('dht_longling_enhanced', 0) > 0:
         u.extra['dht_longling_enhanced'] -= 1
         alive = state.alive_enemies()
@@ -7117,6 +7187,7 @@ def _dht_longling_action(state, marker):
             total += extra.final_damage
         u.total_damage_dealt += total
         state.log.append(f'  龙灵强化攻击: {total:.0f}(剩余强化{u.extra["dht_longling_enhanced"]}次)')
+        attacked = attacked or total > 0
     # 献予「大地」之诗: 龙灵3次攻击附加同袍护盾80%伤害
     if u.extra.get('poem_dadi_attacks', 0) > 0:
         u.extra['poem_dadi_attacks'] -= 1
@@ -7129,7 +7200,9 @@ def _dht_longling_action(state, marker):
                 _commit_enemy_damage(state, u, t, dmg)
                 u.total_damage_dealt += dmg
                 state.log.append(f'  献予「大地」: 龙灵附加{dmg:.0f}(同袍盾80%)')
+                attacked = True
     state.log.append('  龙灵行动: 解控+护盾')
+    _qingge_notify_attack(state, u, dealt=attacked)  # v7.1.0 P1: marker行动攻击补气氛
 
 
 # v6.6c P1: 龙灵行动注册（函数定义在文件后部, 追加注册防 NameError）
@@ -7811,6 +7884,7 @@ def _phainon_kasier_act(state, u):
                 total += d.final_damage
         u.total_damage_dealt += total
         state.log.append(f'  最后一击: {total:.0f}(960%ATK均分)')
+        _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 内联最后一击补气氛
         _phainon_kasier_end(state, u)
         _sweep_ults(state)
         return
@@ -7856,6 +7930,7 @@ def _phainon_shihun_counter(state, u, stacks):
         # v6.8.1: 弹射段击杀统一口径（此前漏计数→白厄E1速度比例漏算）
     u.total_damage_dealt += total
     state.log.append(f'  弑魂反击: {total:.0f} ({stacks}层×20%)')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 反击路径补气氛
 
 
 # ════════════ v6.7 大丽花机制（角色技能介绍/虚无/大丽花.txt）════════════
@@ -8028,12 +8103,13 @@ def _dahlia_fua(state):
         navs = state.extra.get('navs', {})
         for cid in state.extra.get('dahlia_dancers', []):
             partner = next((x for x in state.units if x.char.id == cid and x.is_alive), None)
-            if partner:
+            if partner and not _guest_advance_blocked(state, dahlia, partner):
                 pidx = state.units.index(partner)
                 if pidx in navs:
                     adv = (AV_PER_TURN / _effective_spd(partner, state)) * 0.20
                     _set_av(state, navs, pidx, max(0, navs[pidx] - adv))
         state.log.append('  大丽花E6: 共舞者行动提前20%')
+    _qingge_notify_attack(state, dahlia, dealt=total > 0)  # v7.1.0 P1: 天赋FUA路径补气氛
 
 
 def _dahlia_e1_flat(state, dahlia):
@@ -8153,6 +8229,7 @@ def _evanescia_fox_teacher_fua(state, u):
             elation.grant_good_show(state, 'evanescia', 10.0, source='evanescia_e1')
         state.log.append('  绯英E1: 额外欢愉技 + 10好活当赏')
     state.log.append(f'  狐狸老师FUA: {total:.0f} (100%ATK全体, 回10能量)')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 天赋FUA路径补气氛
 
 
 def _evanescia_goodshow_extra(state, u, skill_key):
@@ -8289,6 +8366,14 @@ def _sparxie_enhanced_settle(state, u):
 
 # 开拓同行角色定义（txt: 开拓者(所有命途)/姬子/姬子•启行/三月七(存护/巡猎)/长夜月/
 # 丹恒/丹恒•饮月/丹恒•腾荒/瓦尔特/星期日）
+def _hn_realm_blocks_ult(state, u) -> bool:
+    """v7.2.0 裁决A: 姬子·启行在场=境界【拓星视界】永久占据境界位——
+    遐蝶(遗世冥域)/白厄(卡厄斯兰那)的境界类终结技永久无法施放(与实机相同)。"""
+    if not isinstance(u, SimUnit) or u.char.id not in ('xiadie', 'phainon'):
+        return False
+    return any(x.char.id == 'himeko_nova' and x.is_alive for x in state.units)
+
+
 HIMEKO_NOVA_COMPANIONS = {
     'trailblazer_destruction', 'trailblazer_elation', 'trailblazer_harmony',
     'trailblazer_preservation', 'trailblazer_remembrance',
@@ -8336,9 +8421,11 @@ def _hn_support_skill(state, user, *, no_charge=False):
     stats = _build_effective_stats(himeko, state)
     if is_self:
         # 天赋: 姬子使用时全抗穿透20%/30%(E4)+暴伤80%（均不可叠加, 技能级）
+        # v7.2.0 #3: E5天赋+2 → 每级+5%惯例消费
+        talent_factor = _skill_level_factor(himeko, 'talent')
         stats = copy.deepcopy(stats)
-        stats.RES_PEN_ALL += 0.30 if himeko.eidolon_rank >= 4 else 0.20
-        stats.CRIT_DMG += 0.80
+        stats.RES_PEN_ALL += (0.30 if himeko.eidolon_rank >= 4 else 0.20) * talent_factor
+        stats.CRIT_DMG += 0.80 * talent_factor
     elif himeko.eidolon_rank >= 4:
         # E4: 非姬子使用→全队全抗穿透（姬子额外+10%）; 百分比按原始数值口径
         for eu in state.units:
@@ -8401,102 +8488,130 @@ def _hn_support_skill(state, user, *, no_charge=False):
     else:
         # 非姬子使用者: 回4能量 + 行迹2额外回合（可插入施放终结技）
         _gain_energy(user, 4.0, state=state)
-        if user.char.id in HIMEKO_NOVA_COMPANIONS \
-                and not user.extra.get('hn_trace2_used'):
-            user.extra['hn_trace2_used'] = True
+        # v7.2.0 #7: 行迹2按次触发（原实现每角色全场仅1次=误读防循环条款）;
+        # E2: 非开拓同行角色使用助战技也获得额外回合
+        trace2_ok = (user.char.id in HIMEKO_NOVA_COMPANIONS
+                     or himeko.eidolon_rank >= 2)
+        already_queued = any(x is user for x, k in state.extra.get('extra_turns', []))
+        if trace2_ok and not already_queued \
+                and not user.extra.get('hn_trace2_pending'):
+            user.extra['hn_trace2_pending'] = True  # 额外回合内不再触发(防循环)
             state.extra.setdefault('extra_turns', []).append((user, 'ult'))
             state.log.append(f'  姬子行迹2: {user.char.name}获得额外回合(终结技位)')
     state.log.append(f'  助战技·开拓与你同行: {user.char.name} {total:.0f}'
                      f'({"姬子面板" if is_self else "回4能量"})')
+    _qingge_notify_attack(state, user, dealt=total > 0)  # v7.1.0 P1: 助战技(不调_use_skill)补气氛
 
 
 def _hn_ultimate(state, u):
-    """姬子·启行终结技: 行迹3先+3源能 → 6次光束(16%全体, E6每段+2源能, 上限3/6)
-    → 脉冲(10%全体+每额外源能15%弹射, 行迹3源能≥3×1.3, E6源能≥6额外160%全体)
-    → 最后一击3×80%; 击杀立即最后一击; 结束后特殊效果次数重置2"""
+    """姬子·启行终结技·我们，亦是逐星的巨人（v7.2.0 裁决B 输出手法）:
+    行迹3开局+3源能 → 脉冲 → 3×光束 → 脉冲 → 3×光束 → 脉冲 → 最后一击
+    脉冲: 消耗当前全部源能——基础10%全体 + 每额外1点1次15%随机单体
+          (行迹3当次源能≥3→单体倍率×1.3; E6当次源能≥6→额外160%全体);
+    光束: 16%全体 +1源能(E6+2), 上限3(E6:6);
+    最后一击: 3×80%随机单体; 任意段清场(无存活敌)→跳过剩余段直接收尾。
+    v7.2.0 #3: E3终结技+2 → 全部内联倍率×_skill_level_factor(ultimate)(每级+5%)"""
     stats = _build_effective_stats(u, state)
     alive = state.alive_enemies()
     cap = 6 if u.eidolon_rank >= 6 else 3
     mult = 1.30 if u.eidolon_rank >= 2 else 1.0  # E2: 终结技伤害×130%
-    # 行迹3: 施放终结技立即+3源能
-    if any(getattr(tr, 'hook_name', '') == 'himeko_nova_trace3'
-           for tr in (u.char.traces or [])):
-        u.extra['hn_source_energy'] = min(cap, u.extra.get('hn_source_energy', 0) + 3)
-    total = 0.0
-    # 6次超频粒子光束
-    for _ in range(6):
-        alive_now = [e for e in alive if e.HP > 0]
-        if not alive_now:
-            break
-        for t in alive_now:
-            before = t.HP
-            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 16.0 * mult,
-                                 'direct', '火', 80, stats.CRIT_RATE >= 0.5,
-                                 skill_type='ultimate', crit_mode='expected')
-            _commit_enemy_damage(state, u, t, d.final_damage)
-            total += d.final_damage
-            # v6.8.1: 削韧2走统一击破结算（txt 光束削韧2; 天赋无视弱点）
-            _flat_toughness_with_break(state, u, t, 2.0, '火', 'ultimate', stats)
-        gain = 2 if u.eidolon_rank >= 6 else 1  # E6: 光束额外+1源能
-        u.extra['hn_source_energy'] = min(cap, u.extra.get('hn_source_energy', 0) + gain)
-        if not [e for e in alive if e.HP > 0]:
-            state.log.append('  光束清场: 立即发动最后一击')
-            break
-    # 轨道歼灭脉冲: 消耗全部源能（v6.7b: 各段击杀统一口径）
-    src = u.extra.get('hn_source_energy', 0)
-    u.extra['hn_source_energy'] = 0
-    alive_now = [e for e in alive if e.HP > 0]
-    for t in alive_now:
-        before = t.HP
-        d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 10.0 * mult,
-                             'direct', '火', 80, stats.CRIT_RATE >= 0.5,
-                             skill_type='ultimate', crit_mode='expected')
-        _commit_enemy_damage(state, u, t, d.final_damage)
-        total += d.final_damage
-        # v6.8.1: 脉冲削韧2走统一击破结算
-        _flat_toughness_with_break(state, u, t, 2.0, '火', 'ultimate', stats)
-    bounce_scale = 15.0 * mult
+    ult_factor = _skill_level_factor(u, 'ultimate')  # v7.2.0 #3: E3终结技+2
+    beam_scale = 16.0 * ult_factor
+    pulse_scale = 10.0 * ult_factor
+    last_scale = 80.0 * ult_factor
     trace3 = any(getattr(tr, 'hook_name', '') == 'himeko_nova_trace3'
                  for tr in (u.char.traces or []))
-    if trace3 and src >= 3:
-        bounce_scale *= 1.3  # 行迹3: 源能≥3时脉冲单体倍率+30%
-    for _ in range(max(0, src - 1)):  # 每额外源能1次随机单体
-        alive_now = [e for e in alive if e.HP > 0]
-        if not alive_now:
-            break
-        t = random.choice(alive_now)
-        before = t.HP
-        d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, bounce_scale,
-                             'direct', '火', 80, stats.CRIT_RATE >= 0.5,
-                             skill_type='ultimate', crit_mode='expected')
-        _commit_enemy_damage(state, u, t, d.final_damage)
-        total += d.final_damage
-    # E6: 源能≥6时额外160%全体（v6.7b: 重算存活目标, 不打脉冲刚击杀的尸体）
-    if u.eidolon_rank >= 6 and src >= 6:
-        for t in [e for e in alive if e.HP > 0]:
-            before = t.HP
-            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 160.0 * mult,
+    # 行迹3: 施放终结技立即+3源能（=手法启动资源）
+    if trace3:
+        u.extra['hn_source_energy'] = min(cap, u.extra.get('hn_source_energy', 0) + 3)
+    total = 0.0
+    src_used = 0
+    cleared = [False]
+
+    def _alive_now():
+        return [e for e in alive if e.HP > 0]
+
+    def _beam_volley(times):
+        """超频粒子光束: 每次全体16%+削韧2, 每次+1源能(E6+2)"""
+        nonlocal total
+        for _ in range(times):
+            if not _alive_now():
+                cleared[0] = True
+                return
+            for t in _alive_now():
+                d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, beam_scale * mult,
+                                     'direct', '火', 80, stats.CRIT_RATE >= 0.5,
+                                     skill_type='ultimate', crit_mode='expected')
+                _commit_enemy_damage(state, u, t, d.final_damage)
+                total += d.final_damage
+                _flat_toughness_with_break(state, u, t, 2.0, '火', 'ultimate', stats)
+            gain = 2 if u.eidolon_rank >= 6 else 1  # E6: 光束额外+1源能
+            u.extra['hn_source_energy'] = min(
+                cap, u.extra.get('hn_source_energy', 0) + gain)
+
+    def _pulse():
+        """轨道歼灭脉冲: 消耗全部源能——10%全体 + 每额外1点1次15%随机单体(行迹3≥3×1.3)"""
+        nonlocal total, src_used
+        src = u.extra.get('hn_source_energy', 0)
+        u.extra['hn_source_energy'] = 0
+        src_used += src
+        for t in _alive_now():
+            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, pulse_scale * mult,
                                  'direct', '火', 80, stats.CRIT_RATE >= 0.5,
                                  skill_type='ultimate', crit_mode='expected')
             _commit_enemy_damage(state, u, t, d.final_damage)
             total += d.final_damage
+            _flat_toughness_with_break(state, u, t, 2.0, '火', 'ultimate', stats)
+        bounce_scale = 15.0 * ult_factor
+        if trace3 and src >= 3:
+            bounce_scale *= 1.3  # 行迹3: 当次源能≥3时脉冲单体倍率+30%
+        for _ in range(max(0, src - 1)):  # 每额外1点源能1次随机单体
+            if not _alive_now():
+                cleared[0] = True
+                return
+            t = random.choice(_alive_now())
+            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, bounce_scale * mult,
+                                 'direct', '火', 80, stats.CRIT_RATE >= 0.5,
+                                 skill_type='ultimate', crit_mode='expected')
+            _commit_enemy_damage(state, u, t, d.final_damage)
+            total += d.final_damage
+        # E6: 当次源能≥6→额外160%全体
+        if u.eidolon_rank >= 6 and src >= 6:
+            for t in _alive_now():
+                d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK,
+                                     160.0 * ult_factor * mult,
+                                     'direct', '火', 80, stats.CRIT_RATE >= 0.5,
+                                     skill_type='ultimate', crit_mode='expected')
+                _commit_enemy_damage(state, u, t, d.final_damage)
+                total += d.final_damage
+
+    # 裁决B 手法: 脉冲-3光束-脉冲-3光束-脉冲-最后一击
+    _pulse()
+    if not cleared[0]:
+        _beam_volley(3)
+    if not cleared[0]:
+        _pulse()
+    if not cleared[0]:
+        _beam_volley(3)
+    if not cleared[0]:
+        _pulse()
     # 最后一击: 3次×80%随机单体
     for _ in range(3):
-        alive_now = [e for e in alive if e.HP > 0]
-        if not alive_now:
+        if not _alive_now():
             break
-        t = random.choice(alive_now)
-        before = t.HP
-        d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 80.0 * mult,
+        t = random.choice(_alive_now())
+        d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, last_scale * mult,
                              'direct', '火', 80, stats.CRIT_RATE >= 0.5,
                              skill_type='ultimate', crit_mode='expected')
         _commit_enemy_damage(state, u, t, d.final_damage)
         total += d.final_damage
     u.total_damage_dealt += total
     u.damage_log.append(('我们，亦是逐星的巨人', total, 'ultimate'))
-    # 终结技后: 特殊效果额外助战技次数刷新（2次）
-    state.extra['hn_protocol_uses'] = 2
-    state.log.append(f'  姬子·启行终结技: {total:.0f} (光束+脉冲+最后一击, 源能消耗{src})')
+    # 终结技后: 特殊效果额外助战技次数刷新（2次/E1:3次）
+    state.extra['hn_protocol_uses'] = 3 if u.eidolon_rank >= 1 else 2
+    state.log.append(f'  姬子·启行终结技: {total:.0f} '
+                     f'(脉冲-3光束-脉冲-3光束-脉冲-最后一击, 源能消耗{src_used})')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 内联终结技路径补气氛
 
 
 def _hn_count_ally_ult(state, u):
@@ -8545,12 +8660,14 @@ def _hn_try_protocol_support(state, himeko):
 
 def _hn_ai(u, state, *, elation=None, max_av=1000, navs=None, uidx=0, **__):
     """姬子·启行 AI: 满能量→终结技; 助战技轮转（自身不耗次数但1回合CD, 期间战技维持
-    领航旗语+恢复次数）; 战技/普攻兜底"""
+    领航旗语+恢复次数）; 战技/普攻兜底
+    v7.2.0 #2: cd 置2——置1后同回合末尾减1=无效CD, 导致永远助战技、旗语3回合后
+    永久丢失; 置2后实际序列=助战技→战技→助战技→战技(旗语持续维持)"""
     if u.current_energy >= u.char.max_energy:
         _use_skill(u, state, "ultimate")
     elif u.extra.get('hn_skill_cd', 0) <= 0:
         _hn_support_skill(state, u)
-        u.extra['hn_skill_cd'] = 1
+        u.extra['hn_skill_cd'] = 2
     elif state.skill_points > 0:
         _use_skill(u, state, "skill")
     else:
@@ -8655,7 +8772,7 @@ def _sunday_skill(state, u):
     if target.char.path != '同谐':
         navs = state.extra.get('navs', {})
         tgt_idx = state.units.index(target)
-        if tgt_idx in navs:
+        if tgt_idx in navs and not _guest_advance_blocked(state, u, target):
             _set_av(state, navs, tgt_idx, state.current_av)
             state.log.append(f'  星期日战技: {target.char.name} 立即行动')
         # 忆灵立即行动
@@ -9197,7 +9314,8 @@ def _robin_ult(state, u):
     # 除自身外队友立即行动
     navs = state.extra.get('navs', {})
     for idx, eu in enumerate(state.units):
-        if eu.is_alive and eu is not u and idx in navs:
+        if eu.is_alive and eu is not u and idx in navs \
+                and not _guest_advance_blocked(state, u, eu):
             _set_av(state, navs, idx, state.current_av)
             state.log.append(f'  协奏: {eu.char.name} 立即行动')
     # 协奏期间知更鸟不进入自己的常规回合；倒计时结束时再插回当前AV。
@@ -9319,7 +9437,425 @@ def _robin_ai(u, state, *, elation=None, max_av=1000, navs=None, uidx=0, **__):
 
 
 
+
+# ════════════ v6.11.1 知更鸟·晴歌（记忆, 晴空乐手+Fever倒计时）════════════
+# 数据源: 角色技能介绍/记忆/知更鸟·晴歌.txt (用户原稿 v2)
+# v7.1.0 项目主澄清: 贝茜/啾米/派丁仅为「晴空乐手」的状态档位, 实机按一只忆灵计算
+# 核心循环: 战技召唤晴空乐手(贝茜档) → 攻击/治疗/护盾攒气氛 → 6/12点升档(啾米/派丁登台)
+# → 全员登台(3档)进Fever(晴歌离场, 晴空乐手入行动条+140速倒计时扣气氛) → 气氛归零散场
+
+def _qingge_find(state):
+    """存活的知更鸟·晴歌"""
+    return next((x for x in state.units
+                 if x.char.id == 'robin_summeretto' and x.is_alive), None)
+
+
+def _qingge_ms(state):
+    """唯一的「晴空乐手」忆灵实体（贝茜/啾米/派丁是它的状态档位, v7.1.0 合一）"""
+    return next((m for m in state.memsprites
+                 if m.summoner_id == 'robin_summeretto' and m.is_alive), None)
+
+
+def _qingge_members(state):
+    """晴空乐手成员档位数: 1=贝茜, 2=+啾米, 3=+派丁(全员登台)"""
+    ms = _qingge_ms(state)
+    return ms.extra.get('qingge_members', 0) if ms is not None else 0
+
+
+def _qingge_atmo_cap(qg):
+    """气氛上限: 50, E2→70"""
+    return 70.0 if qg.eidolon_rank >= 2 else 50.0
+
+
+def _qingge_gain_atmo(state, gain, cause=None):
+    """气氛统一入口: 上限截断 + 阈值召唤检查 + Fever检查 + 动态效果刷新"""
+    qg = _qingge_find(state)
+    if not qg or gain <= 0:
+        return 0.0
+    old = qg.extra.get('qingge_atmo', 0.0)
+    new = min(_qingge_atmo_cap(qg), old + gain)
+    qg.extra['qingge_atmo'] = new
+    added = new - old
+    if added > 0:
+        state.log.append(f'  晴歌气氛+{added:.0f} → {new:.0f}/{_qingge_atmo_cap(qg):.0f}'
+                         + (f' ({cause})' if cause else ''))
+    _qingge_check_variant_spawn(state, qg)
+    _qingge_check_fever(state, qg)
+    if added > 0:
+        _qingge_refresh_fever_effects(state)
+    return added
+
+
+def _qingge_check_variant_spawn(state, qg):
+    """天赋: 晴空乐手(贝茜档)在场时, 气氛≥6→啾米登台; ≥12→派丁登台。
+    v7.1.0 项目主澄清: 贝茜/啾米/派丁为状态档位——升档只改成员数并刷新易伤档,
+    不触发新召唤（+20能量/on_memsprite_summon 仅实体首次被召唤时）。"""
+    ms = _qingge_ms(state)
+    if ms is None:
+        return
+    members = ms.extra.get('qingge_members', 0)
+    atmo = qg.extra.get('qingge_atmo', 0.0)
+    changed = False
+    if members < 2 and atmo >= 6:
+        members = 2
+        changed = True
+        state.log.append('  「晴空乐手」啾米登台 (成员2/3)')
+    if members < 3 and atmo >= 12:
+        members = 3
+        changed = True
+        state.log.append('  「晴空乐手」派丁登台 (成员3/3)')
+    if changed:
+        ms.extra['qingge_members'] = members
+        _qingge_refresh_fever_effects(state)
+
+
+def _qingge_check_fever(state, qg):
+    """全员登台(成员档位3)→进入【Fever】"""
+    if qg.extra.get('qingge_fever'):
+        return
+    if _qingge_members(state) < 3:
+        return
+    _qingge_enter_fever(state, qg)
+
+
+def _qingge_enter_fever(state, qg):
+    """全员登台: 解控 + 进入Fever + 展开结界 + 晴空乐手入行动条 + 倒计时入场;
+    晴歌离开行动条(Fever结束前不进自己回合)。"""
+    qg.extra['qingge_fever'] = True
+    state.log.append('  全员登台! 进入【Fever】')
+    ms = _qingge_ms(state)
+    # 解控: 晴歌与晴空乐手（忆灵无 statuses, 由召唤者侧清控覆盖）
+    for h in [qg] + ([ms] if ms is not None else []):
+        if hasattr(h, 'statuses'):
+            h.statuses = [s for s in h.statuses
+                          if getattr(s, 'category', '') != 'control']
+    # E4: 立即+12气氛
+    if qg.eidolon_rank >= 4:
+        _qingge_gain_atmo(state, 12.0, cause='E4')
+    # E6: 本场第一次进Fever→回140能量
+    if qg.eidolon_rank >= 6 and not qg.extra.get('qingge_e6_fever_energy'):
+        qg.extra['qingge_e6_fever_energy'] = True
+        _gain_energy(qg, 140.0, state=state)
+        state.log.append('  晴歌E6: 首次进入Fever, 回140能量')
+    # 晴歌离场: 从行动条摘除, 退出Fever时恢复
+    navs = state.extra.get('navs', {})
+    uidx = state.units.index(qg)
+    qg.extra['qingge_suspended'] = navs.pop(uidx, None)
+    # 晴空乐手入行动条(SPD激活) — v7.1.0 单实体一条
+    if ms is not None:
+        ms.runtime_spd = _qingge_ms_spd(state, qg, ms)
+        ms.extra['next_av'] = state.current_av + AV_PER_TURN / max(ms.runtime_spd, 1.0)
+        _stamp_av_key(state, ('ms', id(ms)))
+        state.log.append(f'  「晴空乐手」登台行动 (SPD={ms.runtime_spd:.0f}, 成员3/3)')
+    # 倒计时入场(140速)
+    sys = _ensure_marker_system(state)
+    if qg.marker and qg.marker.marker_id == 'qingge_countdown' and qg.marker.is_alive:
+        sys.despawn(state, qg.marker)
+    sys.spawn(state, qg, 'qingge_countdown')
+    # 动态效果: 结界无视防御 + Fever伤害加成 + 成员数易伤
+    _qingge_refresh_fever_effects(state)
+    state.log.append('  Fever: 展开结界(我方伤害无视防御15%+气氛×0.5%), 晴歌&晴空乐手免疫控制')
+
+
+def _qingge_exit_fever(state, qg):
+    """气氛归零: 晴空乐手全部消失 + 退出Fever + 行动提前50%恢复行动条
+    v7.0.0 B3: 行动提前基于摘除时快照(qingge_suspended)减半,
+    max(current_av, susp-half)兜底; 消除死变量。"""
+    qg.extra['qingge_fever'] = False
+    state.log.append('  气氛归零: 退出【Fever】')
+    rem = state.extra.get('_rem_sys')
+    ms = _qingge_ms(state)
+    if ms is not None:
+        if rem is not None:
+            rem.despawn_memsprite(state, qg, ms, reason='Fever结束')
+        elif ms in state.memsprites:
+            state.memsprites.remove(ms)
+    qg.memsprite_unit = None
+    # 忆灵天赋·乘上夏夜晚风: 晴歌行动提前50% + 恢复行动条
+    navs = state.extra.get('navs', {})
+    uidx = state.units.index(qg)
+    susp = qg.extra.pop('qingge_suspended', None)
+    half = AV_PER_TURN / max(_effective_spd(qg, state), 1.0) * 0.5
+    if susp is not None:
+        _set_av(state, navs, uidx, max(state.current_av, susp - half))
+    else:
+        _set_av(state, navs, uidx, state.current_av + half)
+    # 倒计时退场
+    sys = state.extra.get('_marker_sys')
+    if sys and qg.marker and qg.marker.marker_id == 'qingge_countdown' \
+            and qg.marker.is_alive:
+        sys.despawn(state, qg.marker)
+    # 动态效果回退（结界/伤害/易伤归零）
+    _qingge_refresh_fever_effects(state)
+    state.log.append('  乘上夏夜晚风: 晴歌行动提前50%')
+
+
+def _qingge_countdown_action(state, marker):
+    """Fever倒计时行动(140速): 扣50%气氛(至少12点); 气氛归零→散场"""
+    qg = _qingge_find(state)
+    sys = state.extra.get('_marker_sys')
+    if qg is None or not qg.extra.get('qingge_fever'):
+        # 晴歌阵亡/状态异常: 清理残留晴空乐手与倒计时
+        rem = state.extra.get('_rem_sys')
+        owner = next((x for x in state.units if x.char.id == 'robin_summeretto'), None)
+        ms = _qingge_ms(state)
+        if ms is not None and rem is not None and owner is not None:
+            rem.despawn_memsprite(state, owner, ms, reason='晴歌离场')
+        if sys:
+            sys.despawn(state, marker)
+        return
+    # E6: 倒计时回合开始→回140能量
+    if qg.eidolon_rank >= 6:
+        _gain_energy(qg, 140.0, state=state)
+        state.log.append('  晴歌E6: Fever倒计时回合开始, 回140能量')
+    atmo = qg.extra.get('qingge_atmo', 0.0)
+    deduct = min(atmo, max(int(atmo * 0.5), 12))
+    qg.extra['qingge_atmo'] = atmo - deduct
+    state.log.append(f'  Fever倒计时: 气氛-{deduct:.0f} → {qg.extra["qingge_atmo"]:.0f}')
+    if qg.extra['qingge_atmo'] <= 0:
+        _qingge_exit_fever(state, qg)
+    else:
+        _qingge_refresh_fever_effects(state)
+
+
+def _qingge_ms_spd(state, qg, ms):
+    """晴空乐手行动速度: 晴歌SPD×180%; E4 Fever期×(1+20%+气氛×0.5%)"""
+    base = _effective_spd(qg, state) * 1.80
+    if qg.eidolon_rank >= 4 and qg.extra.get('qingge_fever'):
+        base *= 1.0 + 0.20 + qg.extra.get('qingge_atmo', 0.0) * 0.005
+    return base
+
+
+def _qingge_refresh_fever_effects(state):
+    """动态刷新四组数值（先减旧值再加新值, 幂等）:
+    1) 结界: 全队含忆灵 DEF_PEN = Fever? (15%+气氛×0.5%)×天赋factor : 0
+    2) Fever伤害加成: 晴歌+晴空乐手 DMG_BONUS_ALL = Fever? (60%+气氛×2%)×忆灵天赋factor : 0 (Lv10)
+    3) 成员数易伤: 全队含忆灵 VULNERABILITY_APPLIED = 8%/12%/16%×忆灵天赋factor (成员档位1/2/3, Lv10, 在场即生效)
+    4) E4速度: Fever期晴空乐手 runtime_spd 跟随气氛
+    v7.0.0 A3: E3天赋+2/忆灵天赋+1 → _skill_level_factor/boost 消费(每级+5%惯例)
+    v7.1.0: 三忆灵合一——易伤档位按成员档位状态取值, 不再数实体数"""
+    qg = _qingge_find(state)
+    if not qg:
+        return
+    atmo = qg.extra.get('qingge_atmo', 0.0)
+    fever = bool(qg.extra.get('qingge_fever'))
+    ms = _qingge_ms(state)
+    ms_list = [ms] if ms is not None else []
+    team = [x for x in state.units if x.is_alive] + ms_list
+
+    talent_factor = _skill_level_factor(qg, 'talent')
+    ms_talent_factor = 1.0 + 0.05 * (qg.extra.get('skill_level_boost', {}) or {}).get(
+        'memsprite_talent', 0)
+
+    pen = ((0.15 + atmo * 0.005) * talent_factor) if fever else 0.0
+    old_pen = state.extra.get('qingge_field_pen', 0.0)
+    if abs(pen - old_pen) > 1e-9:
+        for x in team:
+            x.base_stats.DEF_PEN += pen - old_pen
+        state.extra['qingge_field_pen'] = pen
+
+    boost = ((0.60 + atmo * 0.02) * ms_talent_factor) if fever else 0.0
+    for h in [qg] + ms_list:
+        old = h.extra.get('qingge_dmg_boost', 0.0)
+        if abs(boost - old) > 1e-9:
+            h.base_stats.DMG_BONUS_ALL += boost - old
+            h.extra['qingge_dmg_boost'] = boost
+
+    vuln_map = {1: 0.08 * ms_talent_factor, 2: 0.12 * ms_talent_factor,
+                3: 0.16 * ms_talent_factor}
+    vuln = vuln_map.get(_qingge_members(state), 0.0)
+    old_vuln = state.extra.get('qingge_presence_vuln', 0.0)
+    if abs(vuln - old_vuln) > 1e-9:
+        for x in team:
+            x.base_stats.VULNERABILITY_APPLIED += vuln - old_vuln
+        state.extra['qingge_presence_vuln'] = vuln
+
+    if fever and ms is not None:
+        ms.runtime_spd = _qingge_ms_spd(state, qg, ms)
+
+
+def _qingge_atmo_from_action(state, cause):
+    """其他单位行动使晴歌获得气氛后的统一附加:
+    E2(任意目标回合内第一次施放技能使晴歌获得气氛→额外+2) + 律动消耗(行迹2) + 偏离和弦(行迹3)"""
+    qg = _qingge_find(state)
+    if qg is None:
+        return
+    first_this_turn = qg.extra.get('qingge_atmo_turn', -1) != state.turn_count
+    qg.extra['qingge_atmo_turn'] = state.turn_count
+    if first_this_turn and qg.eidolon_rank >= 2:
+        _qingge_gain_atmo(state, 2.0, cause='E2额外')
+    if first_this_turn:
+        _qingge_rhythm_consume(state, qg)
+    _qingge_trace3(state, qg, cause)
+
+
+def _qingge_rhythm_consume(state, qg):
+    """行迹2·即兴蓝调: 任意目标回合内第一次获得气氛时, 消耗1层律动→回3能量"""
+    if not any(getattr(t, 'hook_name', '') == 'qingge_trace2_rhythm'
+               for t in (qg.char.traces or [])):
+        return
+    if qg.extra.get('qingge_rhythm', 0) <= 0:
+        return
+    qg.extra['qingge_rhythm'] = qg.extra['qingge_rhythm'] - 1
+    _gain_energy(qg, 3.0, state=state)
+    state.log.append(f'  即兴蓝调: 消耗1层律动(剩{qg.extra["qingge_rhythm"]}层), 回3能量')
+
+
+def _qingge_trace3(state, qg, cause):
+    """行迹3·偏离和弦: 使我方目标获得气氛时——
+    ATK>晴歌→ATK+晴歌HP×(16%+气氛×0.4%); 否则CD+40%+气氛×1.5% (2回合, 数值随当时气氛快照)"""
+    if cause is None or cause is qg:
+        return
+    if not any(getattr(t, 'hook_name', '') == 'qingge_trace3_chord'
+               for t in (qg.char.traces or [])):
+        return
+    atmo = qg.extra.get('qingge_atmo', 0.0)
+    if cause.base_stats.ATK > qg.base_stats.ATK:
+        amt = qg.base_stats.HP * (0.16 + atmo * 0.004)
+        cause.buffs = [b for b in cause.buffs
+                       if getattr(b, 'param_id', '') != 'qingge_chord_atk']
+        cause.buffs.append(TimedBuff(source_id='robin_summeretto',
+                                     attributes={'ATK': amt},
+                                     remaining_turns=2, param_id='qingge_chord_atk',
+                                     source_name='偏离和弦'))
+        state.log.append(f'  偏离和弦: {cause.char.name} ATK+{amt:.0f} (2回合)')
+    else:
+        cd = 40.0 + atmo * 1.5
+        cause.buffs = [b for b in cause.buffs
+                       if getattr(b, 'param_id', '') != 'qingge_chord_cd']
+        cause.buffs.append(TimedBuff(source_id='robin_summeretto',
+                                     attributes={'CRIT_DMG': cd},
+                                     remaining_turns=2, param_id='qingge_chord_cd',
+                                     source_name='偏离和弦'))
+        state.log.append(f'  偏离和弦: {cause.char.name} 暴伤+{cd:.1f}% (2回合)')
+
+
+def _qingge_on_ally_attack(state, attacker, via_memsprite=False):
+    """我方目标施放攻击结算后: 晴歌气氛+1;
+    特邀嘉宾持有者及其召唤物攻击→额外+2 (attacker=召唤者, 忆灵攻击同入口);
+    然后统一处理 E2/律动/偏离和弦(attacker≠晴歌)。
+    v7.0.0 A4: 晴歌自己的忆灵施放忆灵技(via_memsprite=True, attacker=晴歌)时,
+    按"我方目标(忆灵)施放技能使晴歌获得气氛"触发E2额外+2与律动消耗;
+    行迹3目标=忆灵无增益意义(_qingge_trace3 对 cause=None 直接返回)。"""
+    qg = _qingge_find(state)
+    if qg is None:
+        return
+    _qingge_gain_atmo(state, 1.0, cause='攻击')
+    if attacker is not None and attacker is not qg \
+            and any(getattr(b, 'param_id', '') == 'qingge_guest' for b in attacker.buffs):
+        _qingge_gain_atmo(state, 2.0, cause='特邀嘉宾')
+    if attacker is not None and attacker is not qg:
+        _qingge_atmo_from_action(state, attacker)
+    elif via_memsprite:
+        _qingge_atmo_from_action(state, None)
+
+
+def _qingge_notify_attack(state, attacker, dealt=True):
+    """v7.1.0 P1: 独立攻击路径(天赋FUA/助战技/内联终结技/0倍率技能等, 不经
+    _use_skill 通用循环结尾)的气氛触发入口——每次调用代表一次完整攻击动作,
+    与通用循环(total_dmg>0)口径一致。"""
+    if not dealt or attacker is None:
+        return
+    _qingge_on_ally_attack(state, attacker)
+
+
+def _guest_advance_blocked(state, actor, target):
+    """v7.1.0 特邀嘉宾防永动机规则(项目主澄清②): 持有【特邀嘉宾】的角色
+    不得使**其他**友方获得行动提前; 自拉条放行(翔鹰4pc/各类自加速均不受影响)。"""
+    if actor is None or target is None or target is actor:
+        return False
+    if not isinstance(actor, SimUnit):
+        return False
+    if any(getattr(b, 'param_id', '') == 'qingge_guest' for b in actor.buffs):
+        state.log.append(f'  【特邀嘉宾】: {actor.char.name}无法使其他友方获得行动提前')
+        return True
+    return False
+
+
+
+def _qingge_on_heal_shield(state, provider=None, targets=None):
+    """渠道b + 行迹2·即兴蓝调（治疗侧 on_heal hook 与护盾侧 on_shield 内联共用）:
+    队友提供的治疗/护盾作用于晴歌/晴空乐手→【律动】直接满12层(用户确认);
+    任意目标回合内第一次提供治疗/护盾→晴歌气氛+1(治疗与护盾共享每回合去重)。"""
+    qg = _qingge_find(state)
+    if qg is None:
+        return
+    if provider is not None and provider is not qg:
+        qg_ms = _qingge_ms(state)
+        if any(t is qg or t is qg_ms for t in (targets or [])):
+            qg.extra['qingge_rhythm'] = 12
+            state.log.append('  即兴蓝调: 受队友治疗/护盾→律动12层')
+    if qg.extra.get('qingge_heal_turn', -1) != state.turn_count:
+        qg.extra['qingge_heal_turn'] = state.turn_count
+        _qingge_gain_atmo(state, 1.0, cause='治疗/护盾')
+        if provider is not None and provider is not qg:
+            _qingge_atmo_from_action(state, provider)
+
+
+def _qingge_ult_target(state, u):
+    """终结技目标(用户确认规则): 姬子·启行队→姬子; 遐蝶风堇队→风堇;
+    其他队伍暂按主C惯例(希儿)→第一个队友, 具体情况待用户细化。"""
+    for cid in ('himeko_nova',):
+        t = next((x for x in state.units if x.char.id == cid and x.is_alive), None)
+        if t is not None:
+            return t
+    has_xiadie = any(x.char.id == 'xiadie' and x.is_alive for x in state.units)
+    if has_xiadie:
+        fj = next((x for x in state.units if x.char.id == 'fengjin' and x.is_alive), None)
+        if fj is not None:
+            return fj
+    seele = next((x for x in state.units if x.char.id == 'seele' and x.is_alive), None)
+    if seele is not None:
+        return seele
+    return next((x for x in state.units if x.is_alive and x is not u), u)
+
+
+def _qingge_ultimate(state, u):
+    """终结技·跃入这片蔚蓝狂想: 目标行动提前100% + 固定回20%能量上限 + 【特邀嘉宾】2回合
+    v7.0.0 A1: 自身'能量恢复:5'经通用路径消费JSON effects(energy_regen, 见 _use_skill
+    终结技分支)——与姬子·启行等26角色同模式, 此处不再内联回能(曾双重回能+10, GLM验收P1);
+    v7.0.0 A3: 目标回能×_skill_level_factor(E5终结技+2→每级+5%)"""
+    target = _qingge_ult_target(state, u)
+    navs = state.extra.get('navs', {})
+    t_idx = state.units.index(target) if target in state.units else -1
+    if t_idx >= 0 and t_idx in navs:
+        _set_av(state, navs, t_idx, state.current_av)  # 行动提前100%
+        state.log.append(f'  晴歌终结技: {target.char.name}行动提前100%')
+    # 固定恢复20%能量上限(不吃能量恢复效率)
+    _gain_energy(target, (target.char.max_energy or 0) * 0.20
+                 * _skill_level_factor(u, 'ultimate'), state=state,
+                 apply_regen=False)
+    target.buffs = [b for b in target.buffs
+                    if getattr(b, 'param_id', '') != 'qingge_guest']
+    target.buffs.append(TimedBuff(source_id='robin_summeretto', attributes={},
+                                  remaining_turns=2, param_id='qingge_guest',
+                                  source_name='特邀嘉宾'))
+    state.log.append(f'  【特邀嘉宾】→ {target.char.name} (2回合: 攻击时晴歌气氛+2, 无法拉条队友)')
+
+
+# 晴歌倒计时 marker 延迟注册（MARKER_ACTIONS 在模块前部构建, 函数定义在后方）
+MARKER_ACTIONS["qingge_countdown"] = _qingge_countdown_action
+
+
+def _rise_and_sing_entry(state, u):
+    """光锥[你将起身歌唱]: 进战行动提前(叠影档30-40%) + 【新声】2回合全队速度(叠影档20-40%)"""
+    adv = _lc_rank_value(u, 0.30, code='rise_and_sing_advance')
+    spd = _lc_rank_value(u, 0.20, code='rise_and_sing_spd')
+    u.extra['initial_action_advance_ratio'] = max(
+        u.extra.get('initial_action_advance_ratio', 0.0), adv)
+    for eu in state.units:
+        if eu.is_alive:
+            eu.buffs = [b for b in eu.buffs
+                        if getattr(b, 'param_id', '') != 'rise_and_sing_newsound']
+            eu.buffs.append(TimedBuff(source_id='rise_and_sing',
+                                      attributes={'SPD_PERCENT': spd * 100.0},
+                                      remaining_turns=2, param_id='rise_and_sing_newsound',
+                                      source_name='新声'))
+    state.log.append(f'  光锥[你将起身歌唱] 进战: 行动提前{adv * 100:.0f}% + 新声(全队速度+{spd * 100:.0f}%, 2回合)')
+
+
 # ════════════ v6.9 不死途机制（角色技能介绍/巡猎/不死途.txt）════════════
+
 
 def _busitu_apply_bait(state, u, target):
     """【饲饵】: 仅最新被施加的目标生效"""
@@ -9463,6 +9999,7 @@ def _busitu_fua(state, u, target, enhanced=False):
     u.damage_log.append(('宿怨，切齿奉还', total, 'follow_up'))
     state.log.append(f'  不死途FUA: {total:.0f} (200%ATK{", 强化" if enhanced else ""})'
                      f' 婪酣{u.extra["busitu_lanhan"]}层')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 天赋FUA路径补气氛
 
 
 def _busitu_ult(state, u, target):
@@ -9614,6 +10151,7 @@ def _qianye_extra_skill(state, u):
         total += d.final_damage
     u.total_damage_dealt += total
     state.log.append(f'  千冶·刃额外战技: {total:.0f} (72%HP全体+4×24%, FUA)')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 额外战技(FUA)补气氛
     # E1: 额外战技后无量忿怒倒计时延后15%
     if u.eidolon_rank >= 1 and u.marker and u.marker.marker_id == 'qianye_wrath':
         u.marker.extra['next_av'] += AV_PER_TURN / max(u.marker.action_spd, 1.0) * 0.15
@@ -9975,6 +10513,7 @@ def _acheron_ult(state, u):
     u.total_damage_dealt += total
     u.damage_log.append(('残梦尽染，一刀缭断', total, 'ultimate'))
     state.log.append(f'  黄泉终结技: {total:.0f} (3×啼泽雨斩+返渡)')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 0倍率终结技补气氛
 
 
 def _acheron_tick(state, u):
@@ -10066,6 +10605,7 @@ def _feixiao_fua(state, u, target, from_skill=False):
             state.log.append(f'  飞霄E2: FUA+1飞黄({u.extra["feixiao_fly"]}/12)')
     _feixiao_count_attack(state, u)
     state.log.append(f'  飞霄FUA: {d.final_damage:.0f} (110%ATK{"×2.4" if u.eidolon_rank >= 6 else ""})')
+    _qingge_notify_attack(state, u, dealt=d.final_damage > 0)  # v7.1.0 P1: 天赋FUA路径补气氛
 
 
 def _feixiao_count_attack(state, u, is_ult=False):
@@ -10193,6 +10733,7 @@ def _feixiao_ult(state, u):
     u.total_damage_dealt += total
     u.damage_log.append(('凿破大荒', total, 'ultimate'))
     state.log.append(f'  飞霄终结技: {total:.0f} (6段60%×1.3+160%, 飞黄{u.extra["feixiao_fly"]}/12)')
+    _qingge_notify_attack(state, u, dealt=total > 0)  # v7.1.0 P1: 0倍率终结技补气氛
 
 
 def _feixiao_tick(state, u):

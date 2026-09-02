@@ -68,7 +68,9 @@ class TestHimekoNova:
         assert hn2.total_damage_dealt > d0 * 1.3  # 同比提升(防御曲线下近似)
 
     def test_support_regen_and_trace2(self):
-        """非姬子使用者回4能量; 开拓同行(开拓者·记忆)→行迹2额外回合"""
+        """非姬子使用者回4能量; 开拓同行(开拓者·记忆)→行迹2额外回合
+        v7.2.0 #7: 行迹2按次触发——防循环=额外回合内不重触(pending标记),
+        额外回合执行后清除, 可再次触发"""
         state = _hn_state('trailblazer_remembrance')
         ally = state.units[1]
         e0 = ally.current_energy
@@ -76,12 +78,19 @@ class TestHimekoNova:
         assert ally.current_energy - e0 == pytest.approx(4.0)
         kinds = [k for _, k in state.extra.get('extra_turns', [])]
         assert 'ult' in kinds
-        assert ally.extra.get('hn_trace2_used') is True
-        # 不重复触发
+        assert ally.extra.get('hn_trace2_pending') is True
+        # 防循环: 额外回合尚未执行(pending在身)→不重复入队
         state.extra['hn_support_uses'] = 5
         _hn_support_skill(state, ally)
         kinds2 = [k for _, k in state.extra.get('extra_turns', [])]
         assert kinds2.count('ult') == 1
+        # 额外回合执行→pending清除→再次使用助战技可再触发
+        # (_exec_extra_turn 开头会 pop 该标记, 此处直接模拟清除)
+        state.extra['extra_turns'] = []
+        ally.extra.pop('hn_trace2_pending', None)
+        _hn_support_skill(state, ally)
+        kinds3 = [k for _, k in state.extra.get('extra_turns', [])]
+        assert kinds3.count('ult') == 1
 
     def test_verdict_protocol(self):
         """裁决协议（开拓者·记忆）: 激活+姬子伤害+100%; 队友终结技计数→免费助战技"""

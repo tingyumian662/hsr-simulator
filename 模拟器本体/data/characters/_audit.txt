@@ -1,15 +1,16 @@
 Total: 93 files (12 full, 81 stubs)
 
 NAME CONFLICTS (stub same name as full):
-  长夜月: full=changyeyue stub=evernight
-  风堇: full=fengjin stub=hyacine
+  长夜月: full=changyeyue stub=evernight (→ _evernight.json.bak)
+  风堇: full=fengjin stub=hyacine (→ _hyacine.json.bak)
+  不死途: full=busitu stub=ashveil (v7.5.2 → _ashveil.json.bak)
+  千冶•刃: full=qianye stub=mortenax_blade (v7.5.2 → _mortenax_blade.json.bak)
 
 All stubs (81):
   archer: Archer 
   saber: Saber 
   mydei: 万敌 
   march_7th: 三月七 
-  ashveil: 不死途 
   dan_heng: 丹恒 
   dan_heng_permansor_terrae: 丹恒•腾荒 
   dan_heng_imbibitor_lunae: 丹恒•饮月 
@@ -21,7 +22,6 @@ All stubs (81):
   blade: 刃 
   cerydra: 刻律德菈 
   gallagher: 加拉赫 
-  mortenax_blade: 千冶•刃 
   kafka: 卡芙卡 
   luka: 卢卡 
   gilgamesh: 吉尔伽美什 

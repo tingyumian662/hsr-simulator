@@ -108,11 +108,12 @@ class TestSupportTechniques:
         assert any('醇醉' in l for l in s.log)
 
     def test_xilian_realm(self):
-        """昔涟秘技: 展开结界(真伤24% 2回合)"""
+        """昔涟秘技: 展开结界(真伤24% 2回合)
+        v7.2.0: 结界与境界系统解耦(昔涟无境界技能)→独立 xilian_field_turns"""
         s = _sim(['xilian'])
-        assert s.realm_owner == 'xilian'
+        assert s.realm_owner == ''
+        assert s.extra.get('xilian_field_turns') == 2
         assert s.realm_true_dmg == pytest.approx(0.24)
-        assert s.realm_turns == 2
 
 
 class TestBattleStartTechniques:

@@ -6,6 +6,7 @@
 3. 双暴自动 1:2 配比，稀释感知
 """
 import copy
+import math
 import re
 from collections import Counter
 from dataclasses import dataclass, field
@@ -13,6 +14,7 @@ from engine.constants import (
     RELIC_MAIN_STAT_POOL, RELIC_MAIN_STAT_VALUES,
     SUB_STAT_TYPES, SUB_STAT_VALUES, StatType, Element,
     ELEMENT_DMG_STAT_TO_ELEMENT, ELATION_BASE_DAMAGE, BREAK_BASE_DAMAGE,
+    SUBSTAT_ROLL_FACTOR, SUBSTAT_SINGLE_SHARE,
 )
 from engine.models.character import Character
 from engine.models.equipment import RelicPiece
@@ -32,9 +34,15 @@ DEFAULT_PRIORITY = {
     "HP_flat": 2, "ATK_flat": 2, "DEF_flat": 1,
 }
 
-# 前端推荐响应契约的 8 个键（大写 SPD_PERCENT，与前端 map 一致）
+# 前端推荐响应契约键（大写 SPD_PERCENT，与前端 map 一致）
+# v7.3: 效果命中也是遗器副词条（项目主裁决）→ 8 键扩为 9 键
 FRONTEND_ROLL_KEYS = ["CRIT_RATE", "CRIT_DMG", "ATK_percent", "SPD_PERCENT",
-                      "HP_percent", "EFFECT_RES", "DEF_percent", "BREAK_EFFECT"]
+                      "HP_percent", "EFFECT_RES", "DEF_percent", "BREAK_EFFECT",
+                      "EFFECT_HIT_RATE"]
+
+# v7.3.1（项目主纠正）: 总词条固定 50（6件×8~9条中值, 模拟器默认值, 不可调）;
+# 用户可调的是有效词条数——默认 30, 上限 50（=全部词条均有效, 无非有效词条）
+TOTAL_ROLLS = 50
 
 # 内部分配使用的 key（StatType.value，SPD_percent 小写 p）
 _FRONTEND_TO_INTERNAL = {k: (StatType.SPD_PERCENT.value if k == "SPD_PERCENT" else k)
@@ -79,6 +87,11 @@ class CharProfile:
     direct_scale: float = 0.0      # v6.11: 非普攻直伤总倍率
     dot_scale: float = 0.0         # v6.11: DOT 总倍率
     dot_signal: bool = False       # v6.11: DOT 输出型（含行迹文本识别）
+    spd_convert: float = 0.0       # v7.3: 换算型行迹比率（攻击力等同速度×720% → 720.0）
+    spd_tank_only: bool = False    # v7.3: 速度权重仅来自 tank 保底（跨第一个断点即止, 8-19 裁决"其他词条达标后适当分配"）
+    stat_converts: dict = field(default_factory=dict)  # v7.4: 通用换算投资 {源属性: 比率%}（爆伤转拐等）
+    atk_per_point: list = field(default_factory=list)  # v7.4: [(目标属性, 每N点攻击, 每份加成%, 上限加成%)] 攻击阈值连续换算
+    atk_threshold: float = 0.0     # v7.4: 攻击力阈值行迹（>2000 等）
 
 
 # v5.5: 击破角色副词条策略配置（数据驱动）
@@ -90,7 +103,12 @@ BREAK_CHAR_CONFIG = {
     "lingsha": {"spd_target": 134.0},
     "fugue": {"spd_target": 134.0},
     "trailblazer_harmony": {"spd_target": 134.0},
+    "boothill": {"spd_target": 134.0},  # v7.3: 击破C 速度达标
+    "rappa": {"spd_target": 134.0},
 }
+
+# v7.3: 击破定位显式配置（乱破 BE 行迹仅 13.3 不足 30 且纯空壳无文本信号）
+BREAK_CHAR_IDS = {"boothill", "rappa"}
 
 # 命途兜底角色定位（仅空壳角色使用）
 _PATH_ROLE = {
@@ -102,8 +120,29 @@ _PATH_ROLE = {
 _SPD_THRESHOLD_RE = re.compile(
     r"(?:SPD|速度)\s*(?:≥|>=|≧|>|大于等于|大于|不低于|超过)\s*(\d{2,3})\s*点?"
 )
-# "每超1点" 连续加成正则
-_SPD_PER_POINT_RE = re.compile(r"每超1点(?:SPD|速度)?[^。；;]*?(?:([^。；;]*?)(\d+(?:\.\d+)?)\s*%)")
+# "每超1点" 连续加成正则（v7.4: 兼容"超额每1点"变体——银狼Lv.999 欢愉度换算）
+_SPD_PER_POINT_RE = re.compile(r"(?:每超|超额每)1点(?:SPD|速度)?[^。；;]*?(?:([^。；;]*?)(\d+(?:\.\d+)?)\s*%)")
+# v7.3: 击破文本信号细化——裸"击破"二字会误伤银狼（"敌弱点被击破时植入缺陷"是 debuff 机制），
+# 收窄为 击破特攻/超击破/击破伤害 关键词（阮·梅"冰击破伤害"/大丽花"击破特攻"仍命中）
+_BREAK_TEXT_RE = re.compile(r"击破特攻|超击破|击破伤害")
+
+# v7.4: 通用换算投资信号——"X提高…等同于（自身/角色名）Y的N%" → Y 持续投入（花火/布洛妮娅爆伤转拐）。
+# 双锚点防误伤: ①目标属性+提高 在前（排除符玄"回复等同于生命上限5%"），②源属性+的N% 在后
+# （排除希儿"等同于终结技伤害30%真伤"——"伤害"非子属性关键词）
+_STAT_CONVERT_RE = re.compile(
+    r"(?:暴击伤害|暴击率|攻击力|生命上限|防御力|速度)(?:提高|提高效果)[^。；;]*?"
+    r"等同于[^。；;]*?(暴击伤害|暴击率|攻击力|速度|生命上限|防御力)的(\d+(?:\.\d+)?)%")
+_KEYWORD_TO_STAT = {"暴击伤害": "CRIT_DMG", "暴击率": "CRIT_RATE", "攻击力": "ATK_percent",
+                    "速度": "SPD_percent", "生命上限": "HP_percent", "防御力": "DEF_percent"}
+
+# v7.4: 攻击力阈值行迹（火花>2000→欢愉度、刻律德菈>2000→暴伤、开拓者·欢愉>1000、流萤>1800）
+_ATK_THRESHOLD_RE = re.compile(r"(?:攻击力|ATK)\s*[≥>＞]+\s*(\d{3,4})")
+# 每超N点→目标属性+M%（N≠1 的攻击口径; "每超200→"可无点字; 上限K%/最多+K% 可选封顶）
+_ATK_PER_POINT_RE = re.compile(
+    r"每超(\d+)点?[^。；;]*?(欢愉度|暴伤|暴击伤害|击破特攻|治疗量)\s*\+\s*(\d+(?:\.\d+)?)%"
+    r"(?:[^。；;]*?(?:上限|最多\+?)(\d+(?:\.\d+)?)%)?")
+_ATK_PP_TARGET = {"欢愉度": "ELATION_LEVEL", "暴伤": "CRIT_DMG", "暴击伤害": "CRIT_DMG",
+                  "击破特攻": "BREAK_EFFECT", "治疗量": "HEAL_BONUS"}
 
 # 阈值奖励关键词 → 属性
 _KEYWORD_STAT = {
@@ -142,9 +181,9 @@ RELIC_CONDITION_CONSTRAINTS = {
 
 
 def _mid(stat_type: str) -> float:
-    """副词条中档值"""
+    """副词条中档值（v7.5: ×SUBSTAT_ROLL_FACTOR 上调——小毕业平均档口径）"""
     v = SUB_STAT_VALUES.get(stat_type)
-    return v[1] if v else 0.0
+    return (v[1] * SUBSTAT_ROLL_FACTOR) if v else 0.0
 
 
 def _main_val(slot: str, stat_type) -> float:
@@ -248,7 +287,8 @@ def _cap(stat: str, mains: dict) -> int:
         if not mv:
             c += 1  # 空槽位可分配
             continue
-        if mv.value if hasattr(mv, 'value') else mv != stat:
+        mv_val = mv.value if hasattr(mv, 'value') else mv
+        if mv_val != stat:  # v7.3: 此前条件式运算符优先级错误恒真, 主词条冲突件从不排除
             c += 1
     return c
 
@@ -272,6 +312,8 @@ def _solve_constraints(character: Character, mains: dict, constraints: list[Cons
         if base_stats is not None:
             if c.stat == StatType.SPD_PERCENT.value:
                 current = base_stats.SPD  # SPD 阈值=最终速度值
+            elif c.stat == StatType.ATK_PERCENT.value:
+                current = base_stats.ATK  # v7.4: ATK 阈值=面板攻击值
             elif c.stat in (StatType.EFFECT_RES.value, StatType.EFFECT_HIT_RATE.value):
                 current = getattr(base_stats, c.stat, 0.0) * 100.0  # 面板小数→百分数
             else:
@@ -286,12 +328,18 @@ def _solve_constraints(character: Character, mains: dict, constraints: list[Cons
             # 行迹贡献（SPD 行迹按旧口径折入 base_SPD 的 flat 值, 与修复前语义一致）
             trace_contrib = character.trace_stats.get(c.stat, 0.0)
             current = (character.base_SPD if c.stat == StatType.SPD_PERCENT.value
+                       else character.base_ATK * (1 + character.trace_stats.get("ATK_percent", 0.0) / 100.0)
+                       if c.stat == StatType.ATK_PERCENT.value
                        else 0.0) + main_contrib + trace_contrib
 
         if c.op in ("gte", "gt"):
             deficit = c.value - current
             if deficit > 0:
                 roll_val = _mid(c.stat)
+                # v7.4: ATK 阈值的缺口是面板攻击点数, 中档词条换算为白值百分比
+                if c.stat == StatType.ATK_PERCENT.value and roll_val > 0:
+                    base_atk = (getattr(base_stats, "_base_ATK", 0) or character.base_ATK)
+                    roll_val = base_atk * roll_val / 100.0
                 if roll_val > 0:
                     needed = int(deficit / roll_val) + (1 if deficit % roll_val > 0 else 0)
                     cap_limit = cap_fn(c.stat, mains)
@@ -331,24 +379,41 @@ def _memsprite_skills(char: Character) -> dict:
     return {}
 
 
+def _fallback_primary(char: Character, role: str) -> str:
+    """v7.3: 空壳角色主缩放判据改基础白值结构。此前按行迹百分比判断, 但
+    ATK+28%/HP+10%/DEF+22.5% 是人手一条的通用行迹, 导致 20 个角色主属性推错
+    （银枝/克拉拉等攻击C全推了生命, 杰帕德等防御T推了攻击）。阈值已对全部
+    空壳角色逐一核对: DEF≥600 全是防御缩放, HP≥1300且ATK<600 全是生命缩放。"""
+    if role == "healer":
+        return "ATK" if char.base_ATK >= 700 else "HP"  # 罗刹 757 ATK 基数治疗
+    if char.base_DEF >= 600:
+        return "DEF"
+    if char.base_HP >= 1300 and char.base_ATK < 600:
+        return "HP"
+    if role == "shielder" or char.path == "存护":
+        return "DEF"
+    return "ATK"
+
+
 def _fallback_profile_from_path(char: Character) -> CharProfile:
-    """空壳角色（无技能数据）的兜底定位：命途定角色，行迹线索修正缩放"""
+    """空壳角色（无技能数据）的兜底定位：命途定角色, 白值结构定缩放（v7.3）"""
     role = _PATH_ROLE.get(char.path, "support")
-    ts = char.trace_stats or {}
-    has_crit = ts.get("CRIT_RATE", 0) > 0 or ts.get("CRIT_DMG", 0) > 0
-    if ts.get("HP_percent", 0) > 0 and not has_crit:
-        primary = "HP"
-    elif ts.get("DEF_percent", 0) > 15:
-        primary = "DEF"
-    else:
-        primary = "ATK"
+    primary = _fallback_primary(char, role)
+    # v7.3: 击破信号在兜底路径同样生效（波提欧 BE 行迹 37.3 / 乱破显式配置）;
+    # 输出权重镜像真实击破角色口径（直伤×0.3 归一后 break ≈0.8）
+    is_break = (char.id in BREAK_CHAR_IDS
+                or (char.trace_stats or {}).get("BREAK_EFFECT", 0) >= 30)
+    weights = ({"direct": 0.2, "heal": 0.0, "break": 0.8, "shield": 0.0, "elation": 0.0}
+               if is_break
+               else {"direct": 1.0, "heal": 0.0, "break": 0.0, "shield": 0.0, "elation": 0.0})
     return CharProfile(
         role=role, primary_stat=primary, scaling_stats={primary},
         is_dps=(role == "dps"),
         has_heal=(role == "healer"), has_shield=(role == "shielder"),
         has_debuff=(role == "debuffer"), needs_ehr=(role == "debuffer"),
+        is_break=is_break,
         is_elation=(role == "dps" and char.path == "欢愉"),
-        weights={"direct": 1.0, "heal": 0.0, "break": 0.0, "shield": 0.0, "elation": 0.0},
+        weights=weights,
     )
 
 
@@ -368,12 +433,14 @@ def _parse_spd_threshold_reward(desc: str, threshold: int) -> dict:
 
 
 def _parse_spd_per_point(desc: str) -> list:
-    """解析"每超1点SPD→XX+1%"连续加成"""
+    """解析"每超1点SPD→XX+1%"连续加成（v7.4: 目标属性可能在前文——
+    银狼Lv.999"欢愉度+50%，超额每1点+2%"的+2%子句本身无关键词, 回看前文取目标）"""
     results = []
     for m in _SPD_PER_POINT_RE.finditer(desc):
         kw_text, num = m.group(1), float(m.group(2))
+        ctx = desc[max(0, m.start() - 24):m.start()] + kw_text
         for kw, st in _KEYWORD_STAT.items():
-            if kw in kw_text:
+            if kw in ctx:
                 results.append((st, num / 100.0))
                 break
     return results
@@ -408,7 +475,11 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
                       for m in (sk.multipliers or []) for mm in _expand(m)]
     non_basic_dmg = [m.damage_type for m in non_basic_muls]
     has_direct = any(t in ("direct", "dot", "additional", "true_damage") for t in non_basic_dmg)
-    is_break = any(t in ("break", "super_break") for t in dmg_types) or "击破" in trace_text
+    # v7.3: 击破文本信号细化（_BREAK_TEXT_RE 注释见上）+ BE 行迹≥30 + 显式配置
+    is_break = bool(any(t in ("break", "super_break") for t in dmg_types)
+                    or _BREAK_TEXT_RE.search(trace_text)
+                    or (char.trace_stats or {}).get("BREAK_EFFECT", 0) >= 30
+                    or char.id in BREAK_CHAR_IDS)
     needs_ehr = has_debuff or "效果命中" in trace_text
     # v6.11 阶段0: 非普攻直伤总倍率（hits 已展开）——dps 门槛依据
     non_basic_total_scale = sum(getattr(m, 'scale', 0.0) or 0.0 for m in non_basic_muls)
@@ -448,7 +519,8 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
     elif has_buff:
         role = "support"
     else:
-        role = "unknown"
+        # v7.3: unknown 且同谐/欢愉 → support（阮·梅等 buff 效果引擎手写, JSON effects 为空）
+        role = "support" if char.path in ("同谐", "欢愉") else "unknown"
 
     # 主缩放属性：按伤害倍率 stat 加权（非普攻技能）
     stat_weight = {"ATK": 0.0, "HP": 0.0, "DEF": 0.0}
@@ -505,6 +577,36 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
     for t in (char.traces or []):
         spd_per_point += _parse_spd_per_point(t.description)
 
+    # v7.3: 换算型行迹比率（"攻击力…等同…速度的720%" → 720.0）
+    m_convert = _SPD_CONVERT_RE.search(trace_text)
+    spd_convert = float(m_convert.group(1)) if m_convert else 0.0
+    # v7.3: 速度信号仅 tank 保底（无换算/阈值/每超1点）→ 只允许跨第一个行动断点
+    spd_tank_only = (role == "tank" and spd_convert <= 0 and not spd_per_point
+                     and not _SPD_THRESHOLD_RE.search(trace_text))
+
+    # v7.4: 通用换算投资——扫描行迹+技能文本（花火战技"暴击伤害提高等同于花火暴击伤害的24%"）
+    kit_text = trace_text + " " + " ".join(
+        " ".join(filter(None, (getattr(sk, "desc_text", ""), getattr(sk, "mech_text", ""))))
+        for sk in skills.values())
+    stat_converts = {}
+    for m in _STAT_CONVERT_RE.finditer(kit_text):
+        src = _KEYWORD_TO_STAT[m.group(1)]
+        stat_converts[src] = max(stat_converts.get(src, 0.0), float(m.group(2)))
+
+    # v7.4: 攻击力阈值行迹 + 每超N点连续换算（火花>2000每超100点欢愉度+5%等）
+    atk_per_point, atk_threshold = [], 0.0
+    for t in (char.traces or []):
+        desc = t.description or ""
+        m_t = _ATK_THRESHOLD_RE.search(desc)
+        if not m_t:
+            continue
+        atk_threshold = max(atk_threshold, float(m_t.group(1)))
+        m_pp = _ATK_PER_POINT_RE.search(desc)
+        if m_pp:
+            n_atk, per = int(m_pp.group(1)), float(m_pp.group(3))
+            cap_pct = float(m_pp.group(4)) if m_pp.group(4) else None
+            atk_per_point.append((_ATK_PP_TARGET[m_pp.group(2)], n_atk, per, cap_pct))
+
     return CharProfile(
         role=role, primary_stat=primary, scaling_stats={k for k, v in stat_weight.items() if v > 0},
         is_dps=(role == "dps"), has_heal=has_heal, has_shield=has_shield,
@@ -512,7 +614,8 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
         is_elation=any(t == "elation" for t in dmg_types),
         weights=weights, spd_per_point=spd_per_point,
         direct_scale=non_basic_total_scale, dot_scale=dot_total_scale,
-        dot_signal=dot_signal,
+        dot_signal=dot_signal, spd_convert=spd_convert, spd_tank_only=spd_tank_only,
+        stat_converts=stat_converts, atk_per_point=atk_per_point, atk_threshold=atk_threshold,
     )
 
 
@@ -546,19 +649,31 @@ def _compute_substat_weights(char: Character, profile: CharProfile) -> dict:
     trace_text = " ".join(t.description for t in (char.traces or []))
     w: dict = {}
 
-    # 双暴: dps 且（直伤总量≥300 或 暴伤行迹≥20）且非 DOT 输出型 → 1.0; 否则 0
+    # 双暴: dps 且（直伤总量≥300 或 暴伤行迹≥20 或 暴击率行迹≥10）且非 DOT 输出型 → 1.0; 否则 0
     # （海瑟音 DOT 核心: 直伤是载体, 双暴不作用于 DOT 伤害）
-    crit = 1.0 if (profile.role == "dps" and not profile.dot_signal
-                   and (profile.direct_scale >= 300 or ts.get("CRIT_DMG", 0) >= 20)) else 0.0
+    # v7.3: 补暴击率行迹≥10 第三信号——JSON 占位倍率的暴击C（遐蝶224%/长夜月278%/姬子·启行116%）
+    # 此前被误杀推纯生命/攻击; 海瑟音暴击率行迹 0 仍排除
+    # v7.4: 欢愉主导角色按输出核心对待（欢愉伤害吃暴击）; 盾C（护盾按白值结算, 全库仅丹恒·腾荒
+    # ATK 转盾）不堆双暴
+    elation_dom = (profile.weights.get("elation", 0.0) > 0
+                   and profile.weights["elation"] >= profile.weights.get("direct", 1.0) * 0.9)
+    crit = 1.0 if ((profile.role == "dps" or elation_dom) and not profile.dot_signal
+                   and (profile.direct_scale >= 300 or ts.get("CRIT_DMG", 0) >= 20
+                        or ts.get("CRIT_RATE", 0) >= 10)) else 0.0
+    if profile.has_shield:
+        crit = 0.0
     w["CRIT_RATE"] = crit
     w["CRIT_DMG"] = crit
 
-    # EHR: 行迹换算 → 1.0; DOT 输出且行迹送命中 → 1.0; 有 debuff → 0.6; 无 → 0
+    # EHR: 行迹换算 → 1.0; DOT 输出且行迹送命中 → 1.0; 虚无命途/debuffer 定位的
+    # debuff 套件 → 0.6; 无 → 0
+    # （v7.3: EHR 边际量纲修复后 0.6 有了真实竞争力, 收窄适用面——藿藿/灵砂/流萤等
+    # "附带 debuff"的奶/输出不再被推一堆命中, 进剩余均摊池）
     if _EHR_CONVERT_RE.search(trace_text):
         w["EFFECT_HIT_RATE"] = 1.0
     elif profile.dot_scale > 0 and ts.get("EFFECT_HIT_RATE", 0) > 0:
         w["EFFECT_HIT_RATE"] = 1.0
-    elif profile.has_debuff:
+    elif profile.has_debuff and (char.path == "虚无" or profile.role == "debuffer"):
         w["EFFECT_HIT_RATE"] = 0.6
     else:
         w["EFFECT_HIT_RATE"] = 0.0
@@ -567,9 +682,13 @@ def _compute_substat_weights(char: Character, profile: CharProfile) -> dict:
     w["SPD_percent"] = _spd_signal_weight(char, profile, trace_text)
 
     # 主缩放: primary 0.8 / 其他缩放 0.3 / 非缩放 0
+    # v7.4: 欢愉主导（欢愉伤害 stat=NONE 不吃白值）→ 白值缩放词条清零（银狼Lv.999/爻光）
+    # v7.4: 换算投资角色的其余缩放词条压到 0.3（花火/布洛妮娅的构建核心是换算源属性）
     for st in ("ATK_percent", "HP_percent", "DEF_percent"):
-        if st == profile.primary_stat + "_percent":
-            w[st] = 0.8
+        if elation_dom:
+            w[st] = 0.0
+        elif st == profile.primary_stat + "_percent":
+            w[st] = 0.8 if not profile.stat_converts else 0.3
         elif st in {s + "_percent" for s in profile.scaling_stats}:
             w[st] = 0.3
         else:
@@ -579,7 +698,11 @@ def _compute_substat_weights(char: Character, profile: CharProfile) -> dict:
     w["BREAK_EFFECT"] = 1.0 if profile.is_break else 0.0
     w["EFFECT_RES"] = 0.6 if profile.role == "tank" else 0.0
 
-    # JSON 手动覆盖（防未来信号失灵）
+    # v7.4: 通用换算投资信号（花火/布洛妮娅爆伤转全队拐、阿格莱雅速度转攻击）→ 源属性 1.0。
+    # 仅单属性 1.0（爆伤换算不连带暴击对）
+    for src in profile.stat_converts:
+        if src in w:
+            w[src] = max(w.get(src, 0.0), 1.0)    # JSON 手动覆盖（防未来信号失灵）
     for k, v in (char.substat_weights or {}).items():
         if k in w:
             w[k] = float(v)
@@ -760,29 +883,76 @@ def _marginal_benefit(stats: CombatStats, char: Character, profile: CharProfile,
     e_old = _expected_output(stats, char, profile)
 
     if stat_type == "SPD_percent":
-        # v5.5: 实机回合离散行动次数（星铁 150 行动值/回合）: N = floor(150×Spd/10000)
-        # 速度词条只在跨行动次数边界时有效（阈值 134/200/267...）, 达标后让位输出词条
+        # v5.5: 实机回合离散行动次数（星铁 150 行动值回合）: N = floor(150×Spd/10000)
+        # v7.3(a方案): 单条收益 = 连投 k 条到下一断点的均值收益——此前逐条口径下距断点
+        # 多于 1 条时每条收益恒 0, 贪心永远起步不了（阿格莱雅基础102速到134需11条 → 30条全攻击）
         def _turns(spd_v):
             return int(150.0 * spd_v / AV_PER_TURN)
-        n_old, n_new = _turns(spd), _turns(spd + roll_value)
-        gain = e_old * (n_new - n_old) * (AV_PER_TURN / ACTION_WINDOW_AV)
-        # "每超1点" 行迹加成
+        n_old = _turns(spd)
+        # v7.3: tank 保底速度只跨第一个行动断点（2026-08-19 裁决: 其他词条达标后适当分配）
+        if profile.spd_tank_only and n_old >= 2:
+            return 0.0
+        next_bp = (n_old + 1) * AV_PER_TURN / 150.0  # 下一断点速度值
+        k = max(1, math.ceil((next_bp - spd) / roll_value))
+        n_new = _turns(spd + k * roll_value)
+        # v7.5: 跨档收益衰减——第一档全额, 第二档起 ×0.5（抑制"跨完一档继续追下一档
+        # 直到上限"的链条; 与单词条 60% 上限双保险）
+        tier_factor = 1.0 if n_old < 2 else 0.5
+        gain = e_old * (n_new - n_old) * (AV_PER_TURN / ACTION_WINDOW_AV) / k * tier_factor
+        # "每超1点" 行迹加成（连续, 按条计）
         for st, per in profile.spd_per_point:
             if st == StatType.ELATION_LEVEL.value:
                 gain += e_old * (roll_value * per) / (1.0 + stats.ELATION_LEVEL)
             else:
                 gain += e_old * (roll_value * per)
+        # v7.3: 换算型行迹（攻击力等同速度×720%）连续收益——三语义权重 1.0 此前形同虚设
+        if profile.spd_convert > 0:
+            conv_atk = roll_value * profile.spd_convert / 100.0
+            gain += e_old * conv_atk / max(stats.ATK, 1.0)
         return gain
 
     e_new = _expected_output(_with_roll(stats, stat_type, roll_value), char, profile)
     gain = (e_new - e_old) * (AV_PER_TURN / spd)
 
+    # v7.4: 攻击阈值后的连续换算收益（火花>2000每超100点欢愉度+5% / 刻律德菈每超100点暴伤+18% 等,
+    # 与攻击本体收益叠加; 阈值以下不触发——达标由约束 mandatory 硬优先）
+    if (stat_type == "ATK_percent" and profile.atk_per_point
+            and stats.ATK >= profile.atk_threshold):
+        base_atk = getattr(stats, "_base_ATK", 0) or char.base_ATK
+        atk_pts = base_atk * roll_value / 100.0
+        window = AV_PER_TURN / spd
+        for target, n_pts, per, cap_pct in profile.atk_per_point:
+            delta = atk_pts / n_pts * per / 100.0
+            if cap_pct is not None:
+                delta = min(delta, cap_pct / 100.0)
+            if target == "ELATION_LEVEL":
+                gain += e_old * delta / (1.0 + stats.ELATION_LEVEL) * window
+            elif target == "CRIT_DMG":
+                gain += e_old * min(stats.CRIT_RATE, 1.0) * delta * window
+            elif target == "BREAK_EFFECT":
+                gain += e_old * profile.weights.get("break", 0.0) * delta \
+                    / (1.0 + stats.BREAK_EFFECT) * window
+            elif target == "HEAL_BONUS":
+                gain += e_old * profile.weights.get("heal", 0.0) * delta \
+                    / (1.0 + stats.HEAL_BONUS) * window
+
+    # v7.4: 通用换算投资收益（爆伤转全队拐等）——源属性本体对自身输出的贡献已计入
+    # e_new-e_old, 此处补团队放大份额: 每条源属性词条 × 换算比率 × 受益队友数(≈3)。
+    # 花火 CD 24% 换算: 每条 ≈ 5.8%×24% = 1.4% 团队暴伤, 压过自身生命/攻击词条
+    conv_pct = profile.stat_converts.get(stat_type)
+    if conv_pct:
+        gain += e_old * 3.0 * (roll_value / 100.0) * (conv_pct / 100.0) * (AV_PER_TURN / spd)
+
     # EHR：debuff 覆盖率近似
+    # v7.3: 兜底式补行动窗口因子（此前少乘 AV/SPD, 量纲差百倍——黑天鹅 ATK: EHR
+    # = 1897:6.75, 全部虚无/DOT/debuffer 角色一条命中都推不到）
     if stat_type == "EFFECT_HIT_RATE" and profile.needs_ehr:
-        gain = max(gain, e_old * 0.3 * (roll_value / 100.0) / (1.0 + stats.EFFECT_HIT_RATE))
-    # EFFECT_RES：生存向低价值兜底
+        gain = max(gain, e_old * 0.3 * (roll_value / 100.0)
+                   / (1.0 + stats.EFFECT_HIT_RATE) * (AV_PER_TURN / spd))
+    # EFFECT_RES：生存向低价值兜底（同补窗口因子）
     elif stat_type == "EFFECT_RES":
-        gain = e_old * 0.1 * (roll_value / 100.0) / (1.0 + stats.EFFECT_RES)
+        gain = e_old * 0.1 * (roll_value / 100.0) \
+            / (1.0 + stats.EFFECT_RES) * (AV_PER_TURN / spd)
 
     return gain
 
@@ -1175,7 +1345,7 @@ def _trim_mandatory(mandatory: dict, constraints: list, total_rolls: int) -> dic
 
 
 _STAT_LABEL = {"SPD_percent": "速度", "EFFECT_RES": "效果抵抗",
-               "EFFECT_HIT_RATE": "效果命中"}
+               "EFFECT_HIT_RATE": "效果命中", "ATK_percent": "攻击力"}
 # v6.11 阶段2: 毕业词条数按定位分档（项目主口径: dps 30~35 / 副C 28~32 / 辅助 25~28 / 击破 30+）
 _GRADUATION_TARGET = {"dps": (30, 35), "break": (30, 35), "tank": (25, 28),
                       "healer": (25, 28), "shielder": (25, 28), "support": (25, 28),
@@ -1183,9 +1353,12 @@ _GRADUATION_TARGET = {"dps": (30, 35), "break": (30, 35), "tank": (25, 28),
 
 
 def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=None,
-                            total_rolls: int = 30) -> dict:
-    """v6.11 阶段2: 完整推荐响应——rolls + weights + constraints + graduation。
-    recommend_substats 保留 8 键契约（向后兼容）。"""
+                            effective_rolls: int = 30,
+                            total_rolls: int = TOTAL_ROLLS) -> dict:
+    """v6.11 阶段2 + v7.3/7.3.1: 完整推荐响应——rolls + weights + constraints + graduation。
+    v7.3.1 口径（项目主纠正）: 总词条固定 50; `effective_rolls` 是用户可调的有效词条数
+    （默认 30, 上限 50）——有效词条分配至上限后, 剩余（50−有效）在权重=0 的非有效
+    词条间最大余数法均摊（受 roll_cap 约束）。recommend_substats 返回 9 键契约 rolls。"""
     profile = _analyze_character(char, lc, pieces, relic_sets)
     cons = _extract_spd_constraints(char, relic_sets, pieces)
     mains = {}
@@ -1198,29 +1371,34 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     spd_target = break_cfg.get("spd_target")
     if spd_target:
         cons = list(cons) + [Constraint(StatType.SPD_PERCENT.value, "gte", spd_target, {})]
+    # v7.4: 攻击力阈值行迹 → ATK 约束（火花>2000 等）; exclude_atk 角色（流萤, 用户裁决
+    # 放弃攻击词条）不加, 阈值换算不推翻既有裁决
+    if profile.atk_threshold > 0 and not break_cfg.get("exclude_atk"):
+        cons = list(cons) + [Constraint(StatType.ATK_PERCENT.value, "gte",
+                                       profile.atk_threshold, {})]
 
     mandatory, rewards = _solve_constraints(
         char, mains, cons, strict_lt=True,
         cap_fn=lambda s, m: _roll_cap(s, m, total_rolls), base_stats=base,
     )
-    mandatory = _trim_mandatory(mandatory, cons, total_rolls)
+    mandatory = _trim_mandatory(mandatory, cons, effective_rolls)
 
-    # 内部分配池：统一用 StatType.value（SPD_percent 小写 p）
+    # 内部分配池：统一用 StatType.value（SPD_percent 小写 p）; EHR 已随 9 键契约入池
     internal_keys = [_FRONTEND_TO_INTERNAL[k] for k in FRONTEND_ROLL_KEYS]
     if break_cfg.get("exclude_atk"):
         internal_keys = [k for k in internal_keys if k != "ATK_percent"]
         mandatory.pop("ATK_percent", None)
-    pool = [s for s in internal_keys + ["EFFECT_HIT_RATE"]
-            if _roll_cap(s, mains, total_rolls) > 0]
+    pool = [s for s in internal_keys if _roll_cap(s, mains, total_rolls) > 0]
     # v6.11 阶段1: 个体化权重链——权重=0 的词条移出分配池（tank 双暴/EHR 无信号/SPD 无需求等）
     sub_weights = _compute_substat_weights(char, profile)
     pool = [s for s in pool if sub_weights.get(s, 0.0) > 0.0]
-    if not pool:
-        return {k: 0 for k in FRONTEND_ROLL_KEYS}
 
-    stat_caps = {s: _roll_cap(s, mains, total_rolls) for s in pool}
+    # v7.5: 单词条占有效词条数上限 60%（实机一件最多 4 种副词条类型, 全堆一个属性
+    # 不真实——银狼Lv.999"30 条全速度"问题）; mandatory 约束达标不受此限（配装需求）
+    stat_caps = {s: min(_roll_cap(s, mains, total_rolls),
+                        math.ceil(effective_rolls * SUBSTAT_SINGLE_SHARE)) for s in pool}
     dist = _distribute_marginal(
-        char, mains, pool, total_rolls, mandatory, rewards, cons,
+        char, mains, pool, effective_rolls, mandatory, rewards, cons,
         profile=profile, base_stats=base, stat_caps=stat_caps,
         weights=sub_weights,
     )
@@ -1230,7 +1408,23 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     for fk in FRONTEND_ROLL_KEYS:
         ik = _FRONTEND_TO_INTERNAL[fk]
         result[fk] = dist.get(ik, 0)
-    # 兜底：保证 sum == total_rolls（塞入主缩放属性）
+
+    # v7.3 裁决: 剩余词条在非有效词条（权重=0）间平均分配（最大余数法, cap 内均摊）
+    leftover = total_rolls - sum(result.values())
+    spread_total = 0
+    if leftover > 0:
+        idle_keys = [_FRONTEND_TO_INTERNAL[fk] for fk in FRONTEND_ROLL_KEYS
+                     if sub_weights.get(_FRONTEND_TO_INTERNAL[fk], 0.0) <= 0.0]
+        share, extra = divmod(leftover, len(idle_keys)) if idle_keys else (0, 0)
+        for i, ik in enumerate(idle_keys):
+            fk = _INTERNAL_TO_FRONTEND[ik]
+            add = share + (1 if i < extra else 0)
+            room = max(0, _roll_cap(ik, mains, total_rolls) - result.get(fk, 0))
+            add = min(add, room)
+            result[fk] = result.get(fk, 0) + add
+            spread_total += add
+
+    # 兜底：非有效词条也塞满后仍有缺口 → 塞入主缩放属性（保留旧语义）
     gap = total_rolls - sum(result.values())
     if gap > 0:
         primary_key = profile.primary_stat + "_percent"
@@ -1253,6 +1447,8 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     for c in cons:
         if c.stat == StatType.SPD_PERCENT.value:
             current = base.SPD
+        elif c.stat == StatType.ATK_PERCENT.value:
+            current = base.ATK  # v7.4: ATK 阈值=面板攻击值
         elif c.stat in (StatType.EFFECT_RES.value, StatType.EFFECT_HIT_RATE.value):
             current = getattr(base, c.stat, 0.0) * 100.0
         else:
@@ -1264,6 +1460,8 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
             met = current >= c.value
             need = max(0.0, c.value - current)
             mid = _mid(c.stat)
+            if c.stat == StatType.ATK_PERCENT.value and mid > 0:
+                mid = (getattr(base, "_base_ATK", 0) or char.base_ATK) * mid / 100.0  # v7.4: 点数口径
             suggest = int(need / mid) + (1 if need % mid > 0 else 0) if mid > 0 else 0
         op_label = "≥" if c.op in ("gte", "gt") else "＜"
         constraints_info.append({
@@ -1275,11 +1473,16 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     lo, hi = _GRADUATION_TARGET.get(profile.role, (25, 28))
     if profile.is_break:
         lo, hi = 30, 35
-    effective_used = sum(result.values())
+    # v7.3: 有效/非有效分口径统计——有效=优化器分配（约束达标+贪心+兜底回填）,
+    # 非有效=均摊份额（流萤约束达标的速度此前被权重口径误计入非有效）
+    # v7.3.1: budget=总词条(50 固定), effective_budget=用户可调有效词条数
+    effective_used = sum(result.values()) - spread_total
+    invalid_used = spread_total
     graduation = {
         "effective_used": effective_used,
+        "effective_budget": effective_rolls,
         "budget": total_rolls,
-        "invalid_used": 0,
+        "invalid_used": invalid_used,
         "score_pct": min(100, round(effective_used / lo * 100)) if lo else 100,
         "gap_to_target": max(0, lo - effective_used),
         "target_range": [lo, hi],
@@ -1290,6 +1493,9 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
 
 
 def recommend_substats(char: Character, lc=None, pieces=None, relic_sets=None,
-                       total_rolls: int = 30) -> dict:
-    """唯一推荐入口（8 键契约, 向后兼容）——完整响应见 recommend_substats_full。"""
-    return recommend_substats_full(char, lc, pieces, relic_sets, total_rolls)["rolls"]
+                       effective_rolls: int = 30,
+                       total_rolls: int = TOTAL_ROLLS) -> dict:
+    """唯一推荐入口（9 键契约）——完整响应见 recommend_substats_full。
+    effective_rolls: 有效词条数（用户可调, 默认 30, 上限 50）; 总词条固定 50。"""
+    return recommend_substats_full(char, lc, pieces, relic_sets,
+                                   effective_rolls, total_rolls)["rolls"]

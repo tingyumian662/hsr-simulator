@@ -38,6 +38,19 @@ class Skill:
     multipliers: list = field(default_factory=list)  # list[SkillMultiplier]
     effects: list = field(default_factory=list)      # list[SkillEffect]
     technique_category: str = ""       # 仅秘技使用: "battle_start" / "support"
+    desc_text: str = ""                # v7.4: JSON `_description` 原文（推荐器换算信号扫描用）
+    mech_text: str = ""                # v7.4: JSON `_mechanism` 原文/递归拼接（同上）
+
+
+def _flatten_json_text(value) -> str:
+    """递归拼接 dict/list 中的字符串叶子（_mechanism 可能是嵌套 dict）"""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        return "；".join(_flatten_json_text(v) for v in value.values())
+    if isinstance(value, list):
+        return "；".join(_flatten_json_text(v) for v in value)
+    return ""
 
 
 @dataclass
@@ -150,6 +163,8 @@ class Character:
                 multipliers=multipliers,
                 effects=effects,
                 technique_category=skill_data.get("technique_category", ""),
+                desc_text=skill_data.get("_description", "") or "",
+                mech_text=_flatten_json_text(skill_data.get("_mechanism", "")),
             )
 
         traces = [

@@ -388,6 +388,24 @@ def _tech_robin(state, u, is_opener):
     state.log.append('[秘技] 酣醉序曲: 每波次开始知更鸟回5能量')
 
 
+def _tech_qingge(state, u, is_opener):
+    """知更鸟·晴歌: 开战行动提前20% + 立即6气氛 + 全队伤害+30% 2回合（进战·我们自成旋律）"""
+    from engine.core.combat_sim import TimedBuff, _qingge_gain_atmo
+    # 开战行动提前20%（navs 尚未创建, 由 initial_action_advance_ratio 暂存机制消费）
+    u.extra['initial_action_advance_ratio'] = max(
+        u.extra.get('initial_action_advance_ratio', 0.0), 0.20)
+    _qingge_gain_atmo(state, 6.0, cause='秘技')
+    for eu in state.units:
+        if eu.is_alive:
+            eu.buffs = [b for b in eu.buffs
+                        if getattr(b, 'param_id', '') != 'qingge_tech']
+            eu.buffs.append(TimedBuff(source_id='robin_summeretto',
+                                      attributes={'DMG_BONUS_ALL': 30.0},
+                                      remaining_turns=2, param_id='qingge_tech',
+                                      source_name='我们自成旋律'))
+    state.log.append('[秘技] 我们自成旋律: 开战行动提前20% + 6气氛 + 全队伤害+30% 2回合')
+
+
 def _tech_busitu(state, u, is_opener):
     """不死途: 全敌100%ATK雷伤+1充能（非进战·吃吧，可憎的手）"""
     from engine.core.combat_sim import calculate_damage, _commit_enemy_damage
@@ -614,6 +632,7 @@ TECHNIQUE_EFFECTS = {
     'welt': _tech_welt,          # v6.9
     'ruan_mei': _tech_ruanmei,   # v6.9
     'robin': _tech_robin,        # v6.9
+    'robin_summeretto': _tech_qingge,  # v6.11.1 进战
     'busitu': _tech_busitu,      # v6.9
     'qianye': _tech_qianye,      # v6.9 进战
     'acheron': _tech_acheron,    # v6.10 进战

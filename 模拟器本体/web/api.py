@@ -14,9 +14,30 @@ from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, RelicPiece, RelicSet
 from engine.core.attributes import compute_combat_stats
 from engine.core.combat_sim import simulate
+from engine.constants import (RELIC_MAIN_STAT_VALUES, SUB_STAT_VALUES, StatType,
+                              SUBSTAT_ROLL_FACTOR)
 
 router = APIRouter()
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+# v7.3: 主词条满级值/副词条中档值统一取自 engine.constants（此前三处硬编码副本）;
+# 副词条键含效果命中（9 键契约, 项目主裁决）
+MAIN_VALUES = {}
+for _pool in RELIC_MAIN_STAT_VALUES.values():
+    for _st, _val in _pool.items():
+        MAIN_VALUES.setdefault(_st.name, _val)
+
+# v7.5: 副词条中档值 ×SUBSTAT_ROLL_FACTOR（与推荐器 _mid 同口径）
+SUB_MID_VALUES = {st.value: vals[1] * SUBSTAT_ROLL_FACTOR
+                  for st, vals in SUB_STAT_VALUES.items()}  # 引擎内部键（SPD_percent 小写 p）
+
+# 前端副词条键 → 引擎内部键（仅速度大小写差异）
+SUBSTAT_KEY_MAP = {
+    "CRIT_RATE": "CRIT_RATE", "CRIT_DMG": "CRIT_DMG", "ATK_percent": "ATK_percent",
+    "HP_percent": "HP_percent", "DEF_percent": "DEF_percent", "SPD_PERCENT": "SPD_percent",
+    "EFFECT_RES": "EFFECT_RES", "BREAK_EFFECT": "BREAK_EFFECT",
+    "EFFECT_HIT_RATE": "EFFECT_HIT_RATE",
+}
 
 # 生成 ID 映射（文件名→中文名）
 def _build_file_index(subdir):
@@ -128,7 +149,8 @@ class TeamMember(BaseModel):
     eidolon: int = Field(0, ge=0, le=6)
     relics: dict = {}
     substats: dict = {}
-    total_rolls: int = Field(30, ge=1, le=50)
+    # v7.3.1（项目主纠正）: 总词条固定 50; 可调值为有效词条数（默认 30, 上限 50=无非有效词条）
+    effective_rolls: int = Field(30, ge=1, le=50)
 
 
 class EnemyConfig(BaseModel):
@@ -161,14 +183,6 @@ async def recommend_substats(req: SimRequest):
     """根据角色当前配装推荐最优副词条分配"""
     from engine.constants import StatType
 
-    MAIN_VALUES = {
-        "CRIT_RATE": 32.4, "CRIT_DMG": 64.8, "ATK_percent": 43.2, "HP_percent": 43.2,
-        "DEF_percent": 54.0, "SPD_PERCENT": 25.0, "BREAK_EFFECT": 64.8, "ENERGY_REGEN": 19.4,
-        "HEAL_BONUS": 34.5, "EFFECT_HIT_RATE": 43.2,
-        "DMG_BONUS_PHYSICAL": 38.8, "DMG_BONUS_FIRE": 38.8, "DMG_BONUS_ICE": 38.8,
-        "DMG_BONUS_LIGHTNING": 38.8, "DMG_BONUS_WIND": 38.8, "DMG_BONUS_QUANTUM": 38.8,
-        "DMG_BONUS_IMAGINARY": 38.8,
-    }
     MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
 
     relic_sets = {}
@@ -204,13 +218,13 @@ async def recommend_substats(req: SimRequest):
         ]:
             pieces.append(RelicPiece(slot=slot, set_name=sn, main_stat_type=mt, main_stat_value=mv))
 
-        total_rolls = member.total_rolls
+        effective_rolls = member.effective_rolls
 
         # 统一推荐入口：技能结构定位 + SPD阈值约束 + 边际效益贪心
-        # v6.11 阶段2: 完整响应含 weights/constraints/graduation（旧字段保持兼容）
+        # v6.11 阶段2 + v7.3.1: 完整响应含 weights/constraints/graduation（有效词条口径）
         from engine.core.relic_optimizer import recommend_substats_full
         try:
-            full = recommend_substats_full(char, lc, pieces, relic_sets, total_rolls)
+            full = recommend_substats_full(char, lc, pieces, relic_sets, effective_rolls)
         except Exception as e:
             # v5.5: 记录日志防静默失败（此前 except: continue 导致角色从推荐中消失无痕迹）
             logger.exception('recommend_substats 失败: char=%s err=%s', char.name, e)
@@ -233,17 +247,7 @@ async def preview_stats(req: SimRequest):
     """预览角色面板（含副词条）"""
     from engine.constants import StatType
 
-    MAIN_VALUES = {
-        "CRIT_RATE": 32.4, "CRIT_DMG": 64.8, "ATK_percent": 43.2, "HP_percent": 43.2,
-        "DEF_percent": 54.0, "SPD_PERCENT": 25.0, "BREAK_EFFECT": 64.8, "ENERGY_REGEN": 19.4,
-        "HEAL_BONUS": 34.5, "EFFECT_HIT_RATE": 43.2,
-        "DMG_BONUS_PHYSICAL": 38.8, "DMG_BONUS_FIRE": 38.8, "DMG_BONUS_ICE": 38.8,
-        "DMG_BONUS_LIGHTNING": 38.8, "DMG_BONUS_WIND": 38.8, "DMG_BONUS_QUANTUM": 38.8,
-        "DMG_BONUS_IMAGINARY": 38.8,
-    }
     MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
-    mid_val = {"CRIT_RATE": 3.0, "CRIT_DMG": 5.8, "ATK_percent": 2.5, "HP_percent": 2.5,
-               "DEF_percent": 3.1, "SPD_PERCENT": 3.0, "EFFECT_RES": 2.5, "BREAK_EFFECT": 4.8}
 
     relic_sets = {}
     for f in _build_file_index("relics"):
@@ -267,15 +271,12 @@ async def preview_stats(req: SimRequest):
             rope_type = MAIN_STAT_TYPE.get(cfg.get("rope", ""), "")
 
             sub_rolls = member.substats
-            # 映射前端大写key→引擎小写key
-            KEY_MAP = {"CRIT_RATE":"CRIT_RATE","CRIT_DMG":"CRIT_DMG","ATK_percent":"ATK_percent",
-                       "HP_percent":"HP_percent","DEF_percent":"DEF_percent","SPD_PERCENT":"SPD_percent",
-                       "EFFECT_RES":"EFFECT_RES","BREAK_EFFECT":"BREAK_EFFECT"}
+            # v7.3: 前端键→引擎键统一走 SUBSTAT_KEY_MAP（含效果命中）; 中档值取 constants
             sub_per_piece = {}
             for k, v in sub_rolls.items():
                 if v > 0:
-                    ek = KEY_MAP.get(k, k)
-                    sub_per_piece[ek] = round(v * mid_val.get(k, 2.5) / 6.0, 2)
+                    ek = SUBSTAT_KEY_MAP.get(k, k)
+                    sub_per_piece[ek] = round(v * SUB_MID_VALUES.get(ek, 2.5) / 6.0, 2)
 
             pieces = []
             for slot, sn, mt, mv in [
@@ -298,7 +299,7 @@ async def preview_stats(req: SimRequest):
             "SPD": round(stats.SPD, 1),
             "CR": round(stats.CRIT_RATE * 100, 1), "CD": round(stats.CRIT_DMG * 100, 1),
             "RES": round(stats.EFFECT_RES * 100, 1), "ERR": round(stats.ENERGY_REGEN * 100, 1),
-            "BE": round(stats.BREAK_EFFECT * 100, 1),
+            "BE": round(stats.BREAK_EFFECT * 100, 1), "EHR": round(stats.EFFECT_HIT_RATE * 100, 1),
         })
 
     return {"previews": results}
@@ -310,14 +311,6 @@ async def run_simulation(req: SimRequest):
     from engine.constants import StatType
 
     # 主词条数值
-    MAIN_VALUES = {
-        "CRIT_RATE": 32.4, "CRIT_DMG": 64.8, "ATK_percent": 43.2, "HP_percent": 43.2,
-        "DEF_percent": 54.0, "SPD_PERCENT": 25.0, "BREAK_EFFECT": 64.8, "ENERGY_REGEN": 19.4,
-        "HEAL_BONUS": 34.5, "EFFECT_HIT_RATE": 43.2,
-        "DMG_BONUS_PHYSICAL": 38.8, "DMG_BONUS_FIRE": 38.8, "DMG_BONUS_ICE": 38.8,
-        "DMG_BONUS_LIGHTNING": 38.8, "DMG_BONUS_WIND": 38.8, "DMG_BONUS_QUANTUM": 38.8,
-        "DMG_BONUS_IMAGINARY": 38.8,
-    }
     MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
 
     # 加载遗器套装
@@ -345,16 +338,12 @@ async def run_simulation(req: SimRequest):
         rope_type = MAIN_STAT_TYPE.get(cfg.get("rope", ""), "")
 
         sub_rolls = member.substats
-        mid_val = {"CRIT_RATE": 3.0, "CRIT_DMG": 5.8, "ATK_percent": 2.5, "HP_percent": 2.5,
-                   "DEF_percent": 3.1, "SPD_PERCENT": 3.0, "EFFECT_RES": 2.5, "BREAK_EFFECT": 4.8}
-        KEY_MAP = {"CRIT_RATE":"CRIT_RATE","CRIT_DMG":"CRIT_DMG","ATK_percent":"ATK_percent",
-                   "HP_percent":"HP_percent","DEF_percent":"DEF_percent","SPD_PERCENT":"SPD_percent",
-                   "EFFECT_RES":"EFFECT_RES","BREAK_EFFECT":"BREAK_EFFECT"}
+        # v7.3: 前端键→引擎键统一走 SUBSTAT_KEY_MAP（含效果命中）; 中档值取 constants
         sub_per_piece = {}
         for k, v in sub_rolls.items():
             if v > 0:
-                ek = KEY_MAP.get(k, k)
-                sub_per_piece[ek] = round(v * mid_val.get(k, 2.5) / 6.0, 2)
+                ek = SUBSTAT_KEY_MAP.get(k, k)
+                sub_per_piece[ek] = round(v * SUB_MID_VALUES.get(ek, 2.5) / 6.0, 2)
 
         pieces = []
         for slot, sn, mt, mv in [

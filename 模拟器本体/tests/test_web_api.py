@@ -22,7 +22,7 @@ def test_recommend_accepts_frontend_null_lightcone():
     response = client.post(
         "/api/recommend",
         json=_request({
-            "char_id": "seele", "lc_id": None, "total_rolls": 30,
+            "char_id": "seele", "lc_id": None, "effective_rolls": 30,
             "relics": {}, "substats": {},
         }),
     )
@@ -30,7 +30,7 @@ def test_recommend_accepts_frontend_null_lightcone():
     assert response.status_code == 200
     recommendations = response.json()["recommendations"]
     assert len(recommendations) == 1
-    assert recommendations[0]["total"] == 30
+    assert recommendations[0]["total"] == 50  # v7.3.1: 总词条固定 50（有效 30 + 均摊 20）
 
 
 def test_simulate_accepts_frontend_null_lightcone():
@@ -78,7 +78,7 @@ def test_recommend_reports_optimizer_failure(monkeypatch):
     response = client.post(
         "/api/recommend",
         json=_request({
-            "char_id": "seele", "lc_id": None, "total_rolls": 30,
+            "char_id": "seele", "lc_id": None, "effective_rolls": 30,
             "relics": {}, "substats": {},
         }),
     )
@@ -89,7 +89,7 @@ def test_recommend_reports_optimizer_failure(monkeypatch):
 
 def test_recommended_break_character_speed_meets_its_target_in_preview():
     request = _request({
-        "char_id": "lingsha", "lc_id": None, "total_rolls": 30,
+        "char_id": "lingsha", "lc_id": None, "effective_rolls": 30,
         "relics": {}, "substats": {},
     })
     recommendation = client.post("/api/recommend", json=request)

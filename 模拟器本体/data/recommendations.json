@@ -725,6 +725,33 @@
       "HP_percent"
     ]
   },
+  "robin_summeretto": {
+    "light_cone": "rise_and_sing",
+    "set4": [
+      "再创天地的救世主"
+    ],
+    "set2": [
+      "永恒之地翁法罗斯",
+      "生命的翁瓦克",
+      "沉陆海域露莎卡"
+    ],
+    "body": [
+      "CRIT_DMG",
+      "HP_percent"
+    ],
+    "feet": [
+      "HP_percent",
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "HP_percent",
+      "DMG_BONUS_WIND"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "HP_percent"
+    ]
+  },
   "sunday": {
     "light_cone": "a_grounded_ascent",
     "set4": [

@@ -19,7 +19,6 @@ Stubs (79):
   [archer] Archer
   [argenti] 银枝
   [arlan] 阿兰
-  [ashveil] 不死途
   [asta] 艾丝妲
   [aventurine] 砂金
   [aventurine_waveflair] 砂金•戏浪
@@ -59,7 +58,6 @@ Stubs (79):
   [lynx] 玲可
   [march_7th] 三月七
   [misha] 米沙
-  [mortenax_blade] 千冶•刃
   [moze] 貊泽
   [mydei] 万敌
   [natasha] 娜塔莎

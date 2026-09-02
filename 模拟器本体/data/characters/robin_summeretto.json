@@ -6,19 +6,228 @@
   "level": 80,
   "ascension": 6,
   "base_HP": 1203,
-  "base_ATK": 602,
+  "base_ATK": 601,
   "base_DEF": 485,
-  "base_SPD": 98,
+  "base_SPD": 95,
   "taunt": 100,
   "max_energy": 140,
   "trace_stats": {
-    "CRIT_RATE": 6.7,
-    "HP_percent": 18.0,
-    "SPD_percent": 14
+    "SPD_percent": 14,
+    "HP_percent": 18,
+    "CRIT_RATE": 6.7
   },
-  "skills": {},
-  "traces": [],
-  "eidolons": [],
-  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
-  "_source": "fribbels/hsr-optimizer (base stats verified)"
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·音浪，为海风定调",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "HP",
+          "scale": 50,
+          "damageType": "direct",
+          "element": "风"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10
+        }
+      ]
+    },
+    "skill": {
+      "name": "战技·盛夏是灵魂的乐手",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "summon_memsprite",
+          "target": "self",
+          "value": 1
+        }
+      ],
+      "_mechanism": {
+        "summon": "召唤「晴空乐手」贝茜",
+        "heal_if_present": "若任意「晴空乐手」已在场: 回血=晴空乐手HP上限100%(Lv10), 晴歌气氛+6"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·跃入这片蔚蓝狂想",
+      "type": "ultimate",
+      "cost": {
+        "energy": 140
+      },
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "value": 5,
+          "_doc": "txt L42 终结技'能量恢复:5'——施放后晴歌自身+5能量(v7.0.0 A1 补录)"
+        }
+      ],
+      "_mechanism": {
+        "advance": "指定我方单体行动提前100%",
+        "energy": "固定恢复目标20%能量上限(Lv10)",
+        "self_energy": "施放后自身+5能量(txt L42)",
+        "guest": "【特邀嘉宾】2回合: 持有者及其召唤物攻击→晴歌气氛+2; 持有者无法使其他友方获得行动提前"
+      }
+    },
+    "talent": {
+      "name": "天赋·巡游在无界的天空",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "memsprite_stats": "晴空乐手HP=晴歌HP×70%, SPD=晴歌SPD×180%",
+        "atmo": "我方目标施放攻击/任意目标回合首次提供治疗或护盾→气氛+1(上限50, E2→70)",
+        "spawn": "晴空乐手在场: 气氛≥6→啾米登台(档位2); ≥12→派丁登台(档位3)。三档=状态非新实体(v7.1.0 合一)",
+        "fever": "全员登台(成员3档)→解控+【Fever】+结界(我方伤害无视防御10%/15%+气氛×0.5%)",
+        "fever_passive": "Fever期晴歌与晴空乐手免疫控制; Fever结束前晴歌不进自己回合"
+      }
+    },
+    "technique": {
+      "name": "秘技·我们自成旋律",
+      "type": "technique",
+      "technique_category": "battle_start",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "advance": "开战行动提前20%",
+        "atmo": "立即+6气氛",
+        "buff": "全队伤害+30% 2回合"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "重构谐乐",
+      "description": "晴歌与「晴空乐手」暴击率+50%。",
+      "hook_name": "qingge_trace1_cr"
+    },
+    {
+      "name": "即兴蓝调",
+      "description": "晴歌或晴空乐手受队友治疗/护盾→【律动】12层(上限12)。任意目标回合内首次获得气氛时: 消耗1层律动→固定回3能量。",
+      "hook_name": "qingge_trace2_rhythm"
+    },
+    {
+      "name": "偏离和弦",
+      "description": "我方目标使晴歌获得气氛时: 该目标ATK>晴歌→ATK+晴歌HP×(16%+气氛×0.4%); 否则CD+40%+气氛×1.5%。持续2回合。",
+      "hook_name": "qingge_trace3_chord"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "夏日离群飞鸟",
+      "description": "「晴空乐手」记录我方非真实伤害100%; 施放忆灵技→对HP最高敌真伤=记录×(11%+气氛×0.1%), 后清空50%记录。",
+      "hook_name": "qingge_e1"
+    },
+    {
+      "rank": 2,
+      "name": "心似一片湖水",
+      "description": "全队全属性抗性穿透+18%; 气氛上限+20; 任意目标回合内首次施放技能使晴歌获得气氛时额外+2。",
+      "hook_name": "qingge_e2"
+    },
+    {
+      "rank": 3,
+      "name": "拾取沿途遗音",
+      "description": "战技+2/天赋+2/忆灵天赋+1。",
+      "hook_name": "qingge_e3"
+    },
+    {
+      "rank": 4,
+      "name": "聆听众弦的变奏",
+      "description": "进Fever立即+12气氛; 「晴空乐手」速度+20%+气氛×0.5%。",
+      "hook_name": "qingge_e4"
+    },
+    {
+      "rank": 5,
+      "name": "然后再次共逐新晨",
+      "description": "终结技+2/普攻+1/忆灵技+1。",
+      "hook_name": "qingge_e5"
+    },
+    {
+      "rank": 6,
+      "name": "唱一首未命名的歌",
+      "description": "忆灵技伤害倍率×2; Fever期终结技最多储存2次; 本场首次进Fever后或倒计时回合开始→固定回140能量。",
+      "hook_name": "qingge_e6"
+    }
+  ],
+  "memsprite": {
+    "name": "晴空乐手",
+    "element": "风",
+    "base_HP": 0,
+    "base_ATK": 0,
+    "base_DEF": 0,
+    "base_SPD": 0,
+    "max_taunt": 0,
+    "inherit_ratios": {
+      "_doc": "HP=晴歌HP×70%; SPD=晴歌SPD×180%(召唤时快照)。Fever前不在行动条(runtime_spd=0)。",
+      "HP": 0.7
+    },
+    "position_offset": 0,
+    "is_backup": true,
+    "skills": {
+      "memsprite_basic": {
+        "name": "忆灵技·叽叽啾啾四重奏",
+        "type": "basic_attack",
+        "cost": {},
+        "target": "all_enemies",
+        "multipliers": [
+          {
+            "stat": "HP",
+            "scale": 150,
+            "damageType": "direct",
+            "element": "风"
+          }
+        ],
+        "effects": [
+          {
+            "type": "toughness_reduction",
+            "target": "all_enemies",
+            "value": 10
+          }
+        ],
+        "_mechanism": {
+          "damage": "对敌全体造成「晴空乐手」150%HP风伤(Lv10; E6→×2)",
+          "energy": "晴歌+20能量",
+          "e1": "E1: 对HP最高敌附加真伤=记录×(11%+气氛×0.1%), 后记录×50%"
+        }
+      }
+    },
+    "_talent_skills": {
+      "talent_1": {
+        "name": "忆灵天赋·扑翅雀跃的和声",
+        "effect": "Fever时「晴空乐手」与倒计时入行动条; 晴歌+自身伤害+60%+气氛×2%(Lv10); 晴空乐手回合开始施放忆灵技; 倒计时140速, 行动扣50%气氛(至少12), 气氛0→晴空乐手消失+退出Fever; 在场时按成员数全敌受伤+8%/12%/16%(Lv10, 1/2/3只)"
+      },
+      "talent_2": {
+        "name": "忆灵天赋·贴近海的心跳",
+        "effect": "「晴空乐手」被召唤时, 晴歌+20能量。"
+      },
+      "talent_3": {
+        "name": "忆灵天赋·乘上夏夜晚风",
+        "effect": "「晴空乐手」消失时, 晴歌行动提前50%。"
+      }
+    },
+    "_qingge_variants": [
+      "贝茜",
+      "啾米",
+      "派丁"
+    ],
+    "_qingge_note": "v7.1.0 项目主澄清: 贝茜/啾米/派丁仅为「晴空乐手」的状态档位, 实机计算按一只忆灵——档位3(全员登台)进【Fever】, 每循环一个忆灵实体行动"
+  },
+  "_pending": "",
+  "_source": "知更鸟·晴歌.txt 用户原稿 v2"
 }

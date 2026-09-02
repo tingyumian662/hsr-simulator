@@ -105,8 +105,10 @@ class TestTribbieKillPipeline:
 
 
 class TestMainEntry:
-    def test_main_uses_import_string_for_reload(self):
-        """P2-2: python main.py 必须使用 import string 才能开 reload。"""
+    def test_main_uses_app_object_no_reload(self):
+        """v6.11.0 修复: python main.py 传 app 对象 + reload=False
+        （Python 3.14 下 import string 子进程 cwd 不含项目目录 → No module named 'web'）"""
         with open('main.py', encoding='utf-8') as f:
             source = f.read()
-        assert 'uvicorn.run("web.app:app"' in source
+        assert 'uvicorn.run(app' in source
+        assert 'reload=False' in source
