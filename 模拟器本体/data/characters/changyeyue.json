@@ -16,6 +16,9 @@
     "HP_percent": 18.0,
     "CRIT_DMG": 13.3
   },
+  "combat_passive_stats": {
+    "CRIT_RATE": 35.0
+  },
   "skills": {
     "basic_attack": {
       "name": "普攻·从此岁月朦胧",

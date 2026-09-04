@@ -16,6 +16,16 @@
     "CRIT_DMG": 37.3,
     "HP_percent": 18.0
   },
+  "combat_passive_stats": {
+    "CRIT_RATE": 48.0
+  },
+  "hp_crit_convert": {
+    "threshold": 4000,
+    "per_points": 100,
+    "crit_rate_pct": 1.2,
+    "max_points": 4000,
+    "_note": "血祥罩衫按满额48%入推荐预算（项目主 2026-09-04 裁决）; 生命条按每100生命附带1.2%暴击率加权（窗口4000~8000）"
+  },
   "gold_offspring": true,
   "skills": {
     "basic_attack": {

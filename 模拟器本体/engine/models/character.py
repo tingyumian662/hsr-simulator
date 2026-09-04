@@ -93,6 +93,21 @@ class Character:
     # 行迹属性加成（已解锁的属性节点，永久加成）
     trace_stats: dict = field(default_factory=dict)  # {StatType: value}
 
+    # v7.18.1: 战斗内常驻被动属性（角色模块在 rem_init/INIT 相位直加 base_stats 的
+    # 无条件加成, 如长夜月「天黑黑，月寂寂」+35% 暴击率）——compute_combat_stats 不可见,
+    # 推荐层并入满爆预算; 仅收无条件常驻加成, 条件性buff不入此表
+    combat_passive_stats: dict = field(default_factory=dict)  # {StatType: value}
+
+    # v7.19.0: 生命阈值→暴击率连续换算（万敌「血祥罩衫」: 每100生命附带1.2%暴击率,
+    # 4000起步/超出部分最多计4000点）——推荐层据此给生命条加权; 战斗层由角色模块开战按面板一次性计算
+    hp_crit_convert: dict = field(default_factory=dict)
+    # {threshold, per_points, crit_rate_pct, max_points}
+
+    # v7.19.0: 组队条件型常驻被动（那刻夏「必要的留白」: 队内智识<2 → 自身CD+140%）——
+    # 推荐层按请求队伍命途计数应用（team_paths 上下文）; 战斗层由角色模块实时判定
+    team_path_passives: list = field(default_factory=list)
+    # [{path, count_lt, stats: {StatType: 百分数}}]
+
     # 技能
     skills: dict = field(default_factory=dict)  # {"basic_attack": Skill, "skill": Skill, ...}
     traces: list = field(default_factory=list)  # list[Trace]
@@ -191,6 +206,9 @@ class Character:
             max_energy=data.get("max_energy", 120),
             energy_type=data.get("energy_type", "regular"),
             trace_stats=data.get("trace_stats", {}),
+            combat_passive_stats=data.get("combat_passive_stats", {}),
+            hp_crit_convert=data.get("hp_crit_convert", {}),
+            team_path_passives=data.get("team_path_passives", []),
             skills=skills,
             traces=traces,
             eidolons=eidolons,

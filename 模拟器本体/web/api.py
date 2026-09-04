@@ -275,6 +275,8 @@ async def recommend_substats(req: SimRequest):
             pass  # 跳过损坏的遗器文件
 
     results = []
+    # v7.19.0: 队伍命途上下文（组队条件型常驻被动: 那刻夏智识计数, 口径含自身）
+    team_paths = [_load_character_or_404(m.char_id).path for m in req.team]
     for i, member in enumerate(req.team):
         cid = member.char_id
         char = _load_character_or_404(cid)
@@ -305,7 +307,8 @@ async def recommend_substats(req: SimRequest):
         # v6.11 阶段2 + v7.3.1: 完整响应含 weights/constraints/graduation（有效词条口径）
         from engine.core.relic_optimizer import recommend_substats_full
         try:
-            full = recommend_substats_full(char, lc, pieces, relic_sets, effective_rolls)
+            full = recommend_substats_full(char, lc, pieces, relic_sets,
+                                           effective_rolls, team_paths=team_paths)
         except Exception as e:
             # v5.5: 记录日志防静默失败（此前 except: continue 导致角色从推荐中消失无痕迹）
             logger.exception('recommend_substats 失败: char=%s err=%s', char.name, e)

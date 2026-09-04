@@ -183,6 +183,17 @@ def _main_val(slot: str, stat_type) -> float:
     return RELIC_MAIN_STAT_VALUES.get(slot, {}).get(st, 0.0)
 
 
+def _combat_passive_crit(character: Character) -> tuple:
+    """v7.18.1: 战斗内常驻被动双暴（JSON combat_passive_stats）→ (CR, CD) 小数。
+
+    这类加成由角色模块在 rem_init/INIT 相位直加 base_stats（无条件、不上面板）,
+    compute_combat_stats 不可见——不并入则满爆预算按 5%+面板行迹计算:
+    长夜月 +35% 暴击率被动被无视, 15 条暴击率堆到 108.2% 溢出。"""
+    cps = getattr(character, "combat_passive_stats", None) or {}
+    return (float(cps.get(StatType.CRIT_RATE.value, 0.0)) / 100.0,
+            float(cps.get(StatType.CRIT_DMG.value, 0.0)) / 100.0)
+
+
 def _pick_main_stats(character: Character, effective_stats: list[str],
                      constraints: list[Constraint] = None,
                      rewards: dict = None, crit_target: float = 0.0) -> dict:
@@ -203,6 +214,7 @@ def _pick_main_stats(character: Character, effective_stats: list[str],
         non_sub_cr = 0.05  # 基础
         non_sub_cr += character.trace_stats.get(StatType.CRIT_RATE.value, 0) / 100.0
         non_sub_cr += rew.get(StatType.CRIT_RATE.value, 0) / 100.0
+        non_sub_cr += _combat_passive_crit(character)[0]  # v7.18.1 战斗内常驻被动
         # sub 最大暴击率（6件各一条中档 3%）
         max_sub_cr = 6 * _mid(StatType.CRIT_RATE.value) / 100.0
 
@@ -305,6 +317,8 @@ def _solve_constraints(character: Character, mains: dict, constraints: list[Cons
                 current = base_stats.SPD  # SPD 阈值=最终速度值
             elif c.stat == StatType.ATK_PERCENT.value:
                 current = base_stats.ATK  # v7.4: ATK 阈值=面板攻击值
+            elif c.stat == StatType.HP_PERCENT.value:
+                current = base_stats.HP  # v7.19.0: HP 阈值=面板生命值
             elif c.stat in (StatType.EFFECT_RES.value, StatType.EFFECT_HIT_RATE.value):
                 current = getattr(base_stats, c.stat, 0.0) * 100.0  # 面板小数→百分数
             else:
@@ -328,9 +342,13 @@ def _solve_constraints(character: Character, mains: dict, constraints: list[Cons
             if deficit > 0:
                 roll_val = _mid(c.stat)
                 # v7.4: ATK 阈值的缺口是面板攻击点数, 中档词条换算为白值百分比
+                # v7.19.0: HP 阈值同口径（万敌血祥罩衫 4000 点）
                 if c.stat == StatType.ATK_PERCENT.value and roll_val > 0:
                     base_atk = (getattr(base_stats, "_base_ATK", 0) or character.base_ATK)
                     roll_val = base_atk * roll_val / 100.0
+                elif c.stat == StatType.HP_PERCENT.value and roll_val > 0:
+                    base_hp = (getattr(base_stats, "_base_HP", 0) or character.base_HP)
+                    roll_val = base_hp * roll_val / 100.0
                 if roll_val > 0:
                     needed = int(deficit / roll_val) + (1 if deficit % roll_val > 0 else 0)
                     cap_limit = cap_fn(c.stat, mains)
@@ -927,6 +945,23 @@ def _marginal_benefit(stats: CombatStats, char: Character, profile: CharProfile,
                 gain += e_old * profile.weights.get("heal", 0.0) * delta \
                     / (1.0 + stats.HEAL_BONUS) * window
 
+    # v7.19.0: 生命阈值→暴击率连续换算（万敌「血祥罩衫」, JSON hp_crit_convert）——
+    # 生命条附带暴击价值。边界三重: 阈值以下不计 / 超出上限点数不计 / 暴击率满100%后无增量
+    if stat_type == "HP_percent":
+        hcc = getattr(char, "hp_crit_convert", None) or {}
+        if hcc:
+            lo = float(hcc.get("threshold", 0.0))
+            hi = lo + float(hcc.get("max_points", 0.0))
+            base_hp = getattr(stats, "_base_HP", 0) or char.base_HP
+            delta_hp = base_hp * (roll_value / 100.0)
+            usable = min(stats.HP + delta_hp, hi) - max(stats.HP, lo)
+            if usable > 0:
+                d_cr = usable / float(hcc.get("per_points", 100)) \
+                    * float(hcc.get("crit_rate_pct", 0.0)) / 100.0
+                d_cr = min(d_cr, max(0.0, 1.0 - min(stats.CRIT_RATE, 1.0)))
+                if d_cr > 0:
+                    gain += e_old * stats.CRIT_DMG * d_cr
+
     # v7.4: 通用换算投资收益（爆伤转全队拐等）——源属性本体对自身输出的贡献已计入
     # e_new-e_old, 此处补团队放大份额: 每条源属性词条 × 换算比率 × 受益队友数(≈3)。
     # 花火 CD 24% 换算: 每条 ≈ 5.8%×24% = 1.4% 团队暴伤, 压过自身生命/攻击词条
@@ -1129,6 +1164,11 @@ def _build_stats_for_marginal(character: Character, mains: dict,
             stats.CRIT_DMG += v / 100.0
         elif k == "SPD_percent":
             stats.SPD += v  # flat SPD from traces
+
+    # v7.18.1: 战斗内常驻被动双暴（见 _combat_passive_crit）
+    p_cr, p_cd = _combat_passive_crit(character)
+    stats.CRIT_RATE += p_cr
+    stats.CRIT_DMG += p_cd
 
     # 主词条
     for slot, mt in mains.items():
@@ -1336,7 +1376,8 @@ def _trim_mandatory(mandatory: dict, constraints: list, total_rolls: int) -> dic
 
 
 _STAT_LABEL = {"SPD_percent": "速度", "EFFECT_RES": "效果抵抗",
-               "EFFECT_HIT_RATE": "效果命中", "ATK_percent": "攻击力"}
+               "EFFECT_HIT_RATE": "效果命中", "ATK_percent": "攻击力",
+               "HP_percent": "HP"}
 # v6.11 阶段2: 毕业词条数按定位分档（项目主口径: dps 30~35 / 副C 28~32 / 辅助 25~28 / 击破 30+）
 _GRADUATION_TARGET = {"dps": (30, 35), "break": (30, 35), "tank": (25, 28),
                       "healer": (25, 28), "shielder": (25, 28), "support": (25, 28),
@@ -1345,17 +1386,39 @@ _GRADUATION_TARGET = {"dps": (30, 35), "break": (30, 35), "tank": (25, 28),
 
 def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=None,
                             effective_rolls: int = 30,
-                            total_rolls: int = TOTAL_ROLLS) -> dict:
+                            total_rolls: int = TOTAL_ROLLS,
+                            team_paths: list = None) -> dict:
     """v6.11 阶段2 + v7.3/7.3.1: 完整推荐响应——rolls + weights + constraints + graduation。
     v7.3.1 口径（项目主纠正）: 总词条固定 50; `effective_rolls` 是用户可调的有效词条数
     （默认 30, 上限 50）——有效词条分配至上限后, 剩余（50−有效）在权重=0 的非有效
-    词条间最大余数法均摊（受 roll_cap 约束）。recommend_substats 返回 9 键契约 rolls。"""
+    词条间最大余数法均摊（受 roll_cap 约束）。recommend_substats 返回 9 键契约 rolls。
+    v7.19.0: team_paths=完整队伍命途列表（含自身）→ 组队条件型常驻被动生效; 缺省不应用。"""
     profile = _analyze_character(char, lc, pieces, relic_sets)
     cons = _extract_spd_constraints(char, relic_sets, pieces)
     mains = {}
     for p in (pieces or []):
         mains[p.slot] = p.main_stat_type
     base = compute_combat_stats(char, lc, pieces or [], relic_sets or {})
+    # v7.18.1: 战斗内常驻被动双暴并入推荐基态（见 _combat_passive_crit）——
+    # 分配器的满爆口径与溢出判断都读这个基态
+    p_cr, p_cd = _combat_passive_crit(char)
+    if p_cr:
+        base.CRIT_RATE = min(base.CRIT_RATE + p_cr, 1.0)
+    if p_cd:
+        base.CRIT_DMG += p_cd
+
+    # v7.19.0: 组队条件型常驻被动（JSON team_path_passives, 那刻夏「必要的留白」）——
+    # 队内对应命途计数 < count_lt 时并入自身基态（战斗层口径: 计数含自身）;
+    # 无队伍上下文（team_paths=None）不应用
+    if team_paths:
+        for rule in (getattr(char, "team_path_passives", None) or []):
+            n = sum(1 for p in team_paths if p == rule.get("path"))
+            if n < rule.get("count_lt", 1):
+                for k, v in (rule.get("stats") or {}).items():
+                    if k == StatType.CRIT_DMG.value:
+                        base.CRIT_DMG += v / 100.0
+                    elif k == StatType.CRIT_RATE.value:
+                        base.CRIT_RATE = min(base.CRIT_RATE + v / 100.0, 1.0)
 
     # v5.5: 击破角色策略配置（流萤: 完全燃烧四动速度达标 + 放弃攻击词条）
     break_cfg = BREAK_CHAR_CONFIG.get(char.id, {})
@@ -1367,6 +1430,12 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     if profile.atk_threshold > 0 and not break_cfg.get("exclude_atk"):
         cons = list(cons) + [Constraint(StatType.ATK_PERCENT.value, "gte",
                                        profile.atk_threshold, {})]
+    # v7.19.0: 生命阈值行迹（万敌血祥罩衫 4000）→ HP 约束, 达标后换算收益才启动
+    # （atk_threshold 同款 mandatory 硬优先口径, 点数单位由 _solve_constraints 换算）
+    hcc = getattr(char, "hp_crit_convert", None) or {}
+    if hcc.get("threshold"):
+        cons = list(cons) + [Constraint(StatType.HP_PERCENT.value, "gte",
+                                       float(hcc["threshold"]), {})]
 
     mandatory, rewards = _solve_constraints(
         char, mains, cons, strict_lt=True,
@@ -1440,6 +1509,8 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
             current = base.SPD
         elif c.stat == StatType.ATK_PERCENT.value:
             current = base.ATK  # v7.4: ATK 阈值=面板攻击值
+        elif c.stat == StatType.HP_PERCENT.value:
+            current = base.HP  # v7.19.0: HP 阈值=面板生命值
         elif c.stat in (StatType.EFFECT_RES.value, StatType.EFFECT_HIT_RATE.value):
             current = getattr(base, c.stat, 0.0) * 100.0
         else:
@@ -1451,8 +1522,13 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
             met = current >= c.value
             need = max(0.0, c.value - current)
             mid = _mid(c.stat)
-            if c.stat == StatType.ATK_PERCENT.value and mid > 0:
-                mid = (getattr(base, "_base_ATK", 0) or char.base_ATK) * mid / 100.0  # v7.4: 点数口径
+            if c.stat in (StatType.ATK_PERCENT.value, StatType.HP_PERCENT.value) and mid > 0:
+                # v7.4/v7.19.0: ATK/HP 阈值缺口为面板点数口径
+                if c.stat == StatType.ATK_PERCENT.value:
+                    base_val = getattr(base, "_base_ATK", 0) or char.base_ATK
+                else:
+                    base_val = getattr(base, "_base_HP", 0) or char.base_HP
+                mid = base_val * mid / 100.0
             suggest = int(need / mid) + (1 if need % mid > 0 else 0) if mid > 0 else 0
         op_label = "≥" if c.op in ("gte", "gt") else "＜"
         constraints_info.append({

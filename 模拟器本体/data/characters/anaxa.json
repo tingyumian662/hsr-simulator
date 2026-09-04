@@ -16,6 +16,14 @@
     "CRIT_RATE": 12.0,
     "HP_percent": 10.0
   },
+  "team_path_passives": [
+    {
+      "path": "智识",
+      "count_lt": 2,
+      "stats": {"CRIT_DMG": 140.0},
+      "_note": "必要的留白: 队内智识1名→自身CD+140%; ≥2名→全队伤害+50%（不影响副词条口径, 不建模）"
+    }
+  ],
   "skills": {
     "basic_attack": {
       "name": "楚痛，酿造实识",

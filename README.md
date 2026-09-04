@@ -37,7 +37,7 @@ python main.py
     characters/    # 角色专属逻辑模块（相位表单轨注册）
   web/             # FastAPI 后端 + 前端 SPA
   data/            # 角色/光锥/遗器/敌人 JSON 数据
-  tests/           # pytest 测试（1270 用例）
+  tests/           # pytest 测试（1291 用例）
   角色技能介绍/     # 角色技能 TXT 原文（录入数据源）
 ```
 
