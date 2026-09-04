@@ -2,12 +2,11 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _apply_enemy_taunt, _select_enemy_target,
-    AV_PER_TURN, _effective_spd,
-)
+from engine.core.combat_engine import _use_skill, _apply_enemy_taunt, _select_enemy_target, _effective_spd
+from engine.runtime import SimState, SimUnit, AV_PER_TURN
 from engine.core.attributes import compute_combat_stats
 from engine.systems.remembrance import RemembranceSystem
+from engine.characters.trailblazer_remembrance import _tbr_support_skill
 
 
 def _enemy(hp=500000, toughness=200):
@@ -66,11 +65,11 @@ class TestTbrEidolons:
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
         ms.extra['charge'] = 100
-        rem._tbr_support_skill(state, u, ms)
+        _tbr_support_skill(state, u, ms)
         assert any(b.attributes.get('CRIT_RATE') == 10.0 for b in ally.buffs)
 
     def test_e2_memsprite_action_gains_energy_once(self):
-        from engine.core.effect_resolver import _eid_tbr_e2
+        from engine.characters.trailblazer_remembrance import _eid_tbr_e2
         u = _unit('trailblazer_remembrance', eidolon=2)
         fengjin = _unit('fengjin', position=2)
         state = SimState(enemies=[_enemy()], units=[u, fengjin])
@@ -84,7 +83,7 @@ class TestTbrEidolons:
         assert u.current_energy == pytest.approx(e0 + 8, rel=1e-6)
 
     def test_e2_ignores_own_mimi(self):
-        from engine.core.effect_resolver import _eid_tbr_e2
+        from engine.characters.trailblazer_remembrance import _eid_tbr_e2
         u = _unit('trailblazer_remembrance', eidolon=2)
         state = SimState(enemies=[_enemy()], units=[u])
         rem = RemembranceSystem()
@@ -136,7 +135,7 @@ class TestDespawnAdvance:
 
 class TestXilianHelloWorld:
     def test_summon_cleanses_controls(self):
-        from engine.core.combat_sim import PlayerStatus
+        from engine.runtime import PlayerStatus
         u = _unit('xilian')
         ally = _unit('seele', position=2)
         ally.statuses.append(PlayerStatus(id='frozen', name='冻结', category='control',

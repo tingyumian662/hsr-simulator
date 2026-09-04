@@ -5,10 +5,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _gain_energy, _apply_player_status, PlayerStatus,
-    simulate,
-)
+from engine.core.combat_engine import _gain_energy, _apply_player_status, simulate
+from engine.runtime import SimUnit, SimState, PlayerStatus
 
 
 def _enemy(hp=500000, attacks=None):
@@ -53,7 +51,7 @@ class TestEvents:
                           remaining_turns=1)
         _apply_player_status(state, u, st)
         assert len(entered) == 1
-        from engine.core.combat_sim import _check_control_status
+        from engine.core.combat_engine import _check_control_status
         _check_control_status(state, u)
         assert len(exited) == 1
 

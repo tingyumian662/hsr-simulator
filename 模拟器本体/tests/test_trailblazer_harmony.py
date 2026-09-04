@@ -3,9 +3,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _apply_toughness_damage, _super_break_rate,
-)
+from engine.core.combat_engine import _use_skill, _apply_toughness_damage, _super_break_rate
+from engine.runtime import SimUnit, SimState
 
 
 def _enemy(hp=500000, toughness=200):
@@ -31,7 +30,7 @@ def _sim_tbh(max_av=800, **cfg):
 
 
 def simulate_like(max_av, c, **cfg):
-    from engine.core.combat_sim import simulate
+    from engine.core.combat_engine import simulate
     return simulate([{'char': c, 'position': 1, **cfg}], _enemy(), max_av=max_av)
 
 
@@ -86,7 +85,7 @@ class TestBandDance:
     def test_trace1_super_break_mult_by_enemy_count(self):
         """行迹1: 伴舞超击破按敌人数增伤（1敌 ×1.6）"""
         u = _unit('trailblazer_harmony')
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
         u.buffs.append(TimedBuff(source_id='t', attributes={'_tbh_super_break': 1},
                                  remaining_turns=3, param_id='tbh_band_dance'))
         e = _enemy()

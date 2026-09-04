@@ -6,19 +6,13 @@ from pathlib import Path
 import pytest
 
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState,
-    SimUnit,
-    PlayerStatus,
-    _begin_regular_turn,
-    _enemy_attack,
-    simulate,
-    _use_skill,
-)
+from engine.core.combat_engine import _begin_regular_turn, _enemy_attack, simulate, _use_skill
+from engine.runtime import SimState, SimUnit, PlayerStatus
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.effect_resolver import resolve_character_effects
-from engine.systems.elation import ElationSystem, _tb_ai
+from engine.systems.elation import ElationSystem
+from engine.characters.trailblazer_elation import _tb_ai
 
 
 def _enemy(hp=1_000_000.0):

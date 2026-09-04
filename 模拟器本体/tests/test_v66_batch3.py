@@ -5,11 +5,11 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill,
-    _phainon_gain_huozhong, _phainon_transform,
-)
+from engine.core.combat_engine import _use_skill
+from engine.characters.phainon import _phainon_gain_huozhong, _phainon_transform
+from engine.runtime import SimState, SimUnit
 from engine.systems.remembrance import RemembranceSystem
+from engine.characters.xilian import _xilian_support_skill
 
 
 def _enemy(hp=500000, toughness=200):
@@ -39,7 +39,7 @@ class TestPhainon:
 
     def test_trace1_start_huozhong(self):
         """行迹1: 开局+1火种"""
-        from engine.core.effect_resolver import _trace_phainon_trace1
+        from engine.characters.phainon import _trace_phainon_trace1
         u = _unit('phainon')
         state = SimState(enemies=[_enemy()], units=[u])
         _trace_phainon_trace1(u, state)
@@ -94,7 +94,7 @@ class TestPoemFushi:
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)
-        rem._xilian_support_skill(state, u, u.memsprite_unit)
+        _xilian_support_skill(state, u, u.memsprite_unit)
         assert ph.extra.get('poem_fushi') is True
         assert ph.extra.get('huozhong', 0) >= 6
         assert ph.extra.get('huishang', 0) >= 4
@@ -122,7 +122,7 @@ class TestPhainonPrecise:
         """8 额外回合均分: 间隔 = AV_PER_TURN/(基础速度×0.6)/8"""
         u = _unit('phainon')
         state = SimState(enemies=[_enemy()], units=[u])
-        from engine.core.combat_sim import _phainon_transform
+        from engine.characters.phainon import _phainon_transform
         base = u.base_stats._base_SPD
         _phainon_transform(state, u)
         interval = 10000.0 / (base * 0.60) / 8.0
@@ -136,7 +136,7 @@ class TestPhainonPrecise:
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
         state.extra['navs'] = {0: 100.0, 1: 200.0}
-        from engine.core.combat_sim import _phainon_transform, _phainon_kasier_end
+        from engine.characters.phainon import _phainon_transform, _phainon_kasier_end
         _phainon_transform(state, u)
         assert 0 not in state.extra['navs']  # 白厄自身脱离
         assert 1 not in state.extra['navs']  # 队友离场
@@ -149,7 +149,7 @@ class TestPhainonPrecise:
         """火种返还无延迟: 变身结束溢出+行迹1的3直接计入"""
         u = _unit('phainon')
         state = SimState(enemies=[_enemy()], units=[u])
-        from engine.core.combat_sim import _phainon_gain_huozhong, _phainon_transform, _phainon_kasier_end
+        from engine.characters.phainon import _phainon_gain_huozhong, _phainon_transform, _phainon_kasier_end
         _phainon_gain_huozhong(state, u, 14)  # 12消耗+2溢出
         _phainon_transform(state, u)
         assert u.extra.get('huozhong_overflow') == 2
@@ -161,7 +161,8 @@ class TestPhainonPrecise:
         u = _unit('phainon')
         e = _enemy()
         state = SimState(enemies=[e], units=[u])
-        from engine.core.combat_sim import _phainon_gain_huishang, _enemy_exec_action, _enemy_turn_end
+        from engine.core.combat_engine import _enemy_exec_action, _enemy_turn_end
+        from engine.characters.phainon import _phainon_gain_huishang
         _phainon_gain_huishang(state, u, 2)
         u.extra['kasier'] = True
         _use_skill(u, state, 'skill_enhanced')

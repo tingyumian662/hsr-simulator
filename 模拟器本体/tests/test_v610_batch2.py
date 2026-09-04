@@ -5,11 +5,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats,
-    _feixiao_gain_fly, _feixiao_fua, _feixiao_count_attack,
-    _feixiao_on_ally_attack, _feixiao_ult, _feixiao_skill, _feixiao_tick,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats
+from engine.characters.feixiao import _feixiao_gain_fly, _feixiao_fua, _feixiao_count_attack, _feixiao_on_ally_attack, _feixiao_ult, _feixiao_skill, _feixiao_tick
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(hp=500000, toughness=200, broken=False):
@@ -36,7 +34,7 @@ def _unit(cid, position=1, eidolon=0, **extra):
 class TestFeixiao:
     def test_start_3_fly(self):
         """行迹1: 开局3飞黄（simulate 内联）"""
-        from engine.core.combat_sim import simulate
+        from engine.core.combat_engine import simulate
         s = simulate([{'char': load_character('feixiao', 'data/characters'),
                        'position': 1}], _enemy(), max_av=0)
         # 3(行迹1) + 1(进战秘技岚身) = 4

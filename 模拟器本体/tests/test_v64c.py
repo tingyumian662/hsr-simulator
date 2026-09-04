@@ -10,9 +10,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus, load_enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate, _begin_enemy_turn, _enemy_pending_step,
-)
+from engine.core.combat_engine import simulate, _begin_enemy_turn, _enemy_pending_step
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(**kw):

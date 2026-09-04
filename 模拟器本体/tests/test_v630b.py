@@ -9,11 +9,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate,
-    _enemy_attack_stats, _enemy_eff_spd, _use_skill, _respawn_wave,
-    _silver_wolf_implant_defect, _apply_silver_wolf_weakness,
-)
+from engine.core.combat_engine import simulate, _enemy_attack_stats, _enemy_eff_spd, _use_skill, _respawn_wave
+from engine.characters.silver_wolf import _silver_wolf_implant_defect, _apply_silver_wolf_weakness
+from engine.runtime import SimState, SimUnit
 from engine.core.damage import _calc_def_mult
 
 

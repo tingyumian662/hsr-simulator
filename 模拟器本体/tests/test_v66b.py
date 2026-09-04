@@ -8,12 +8,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate, _build_effective_stats, _use_skill,
-    _begin_enemy_turn, _phainon_transform, _phainon_kasier_end,
-    _phainon_kasier_act, _phainon_implant_phys_weak, _phainon_shihun_counter,
-    _enemy_turn_end, _record_enemy_kill,
-)
+from engine.core.combat_engine import simulate, _build_effective_stats, _use_skill, _begin_enemy_turn, _enemy_turn_end, _record_enemy_kill
+from engine.characters.phainon import _phainon_transform, _phainon_kasier_end, _phainon_kasier_act, _phainon_implant_phys_weak, _phainon_shihun_counter
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(hp=500000, tough=200, phys_res=0.2, frozen=False, attacks=None):

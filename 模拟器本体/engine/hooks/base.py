@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 
 # Hook 事件类型列表
 HOOK_EVENTS = [
+    "on_attack_action",
     # 战斗生命周期
     "on_enter_battle",        # 进入战斗（初始化完成后）
     "on_wave_start",          # 波次开始

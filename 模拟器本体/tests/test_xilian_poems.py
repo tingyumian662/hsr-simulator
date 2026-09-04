@@ -2,8 +2,9 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 from engine.core.character_utils import GOLD_OFFSPRING_IDS, is_gold_offspring
+from engine.characters.xilian import _xilian_support_skill
 
 
 def _enemy(hp=500000, toughness=20):
@@ -24,7 +25,7 @@ def _sim(ids, max_av=800, **cfgs):
 
 def _unit(cid, **extra):
     """直接构造 SimUnit 战斗单元（单元测试用）"""
-    from engine.core.combat_sim import SimUnit
+    from engine.runtime import SimUnit
     from engine.core.attributes import compute_combat_stats
     c = load_character(cid, 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
@@ -51,7 +52,7 @@ class TestGoldDetection:
 
 class TestPoemDispatch:
     def _team(self, *ids):
-        from engine.core.combat_sim import SimState
+        from engine.runtime import SimState
         from engine.systems.remembrance import RemembranceSystem
         units = [_unit(cid, position=i + 1) for i, cid in enumerate(ids)]
         state = SimState(enemies=[_enemy()], units=units)
@@ -62,7 +63,7 @@ class TestPoemDispatch:
     def test_gold_poem_preferred(self):
         """黄金裔优先获诗, 不再吃+40%"""
         state, rem, xilian = self._team('seele', 'xiadie', 'xilian')
-        rem._xilian_support_skill(state, xilian, None)
+        _xilian_support_skill(state, xilian, None)
         log = '\n'.join(state.log)
         assert '献予「生死」之诗' in log
         assert '+40%伤害' not in log
@@ -72,21 +73,25 @@ class TestPoemDispatch:
     def test_non_gold_fallback(self):
         """无黄金裔→非黄金裔+40%分支(红线格式保留)"""
         state, rem, xilian = self._team('seele', 'xilian')
-        rem._xilian_support_skill(state, xilian, None)
+        _xilian_support_skill(state, xilian, None)
         log = '\n'.join(state.log)
         assert '此诗献予一切生命: 希儿+40%伤害(2回合)' in log
 
     def test_all_poems_activated(self):
         """v6.6: 13 首献予诗全部激活——无占位残留（POEM_EFFECTS 无 None）"""
-        from engine.systems.remembrance import POEM_EFFECTS
-        assert all(fn is not None for fn in POEM_EFFECTS.values())
-        assert len(POEM_EFFECTS) == 13
+        from engine.characters import POEMS
+        from engine.core.character_utils import GOLD_OFFSPRING_IDS
+        assert len(POEMS) == 13
+        # 键集 = 黄金裔名册除去昔涟自身（_select_xilian_target 排除）
+        assert set(POEMS) == GOLD_OFFSPRING_IDS - {'xilian'}
+        for name, fn, persistent in POEMS.values():
+            assert isinstance(name, str) and callable(fn) and isinstance(persistent, bool)
 
     def test_round_robin(self):
         """多黄金裔轮流: 未获诗优先(遐蝶→风堇)"""
         state, rem, xilian = self._team('xiadie', 'fengjin', 'xilian')
-        rem._xilian_support_skill(state, xilian, None)
-        rem._xilian_support_skill(state, xilian, None)
+        _xilian_support_skill(state, xilian, None)
+        _xilian_support_skill(state, xilian, None)
         log = '\n'.join(state.log)
         assert '献予「生死」之诗' in log and '献予「天空」之诗' in log
 
@@ -109,7 +114,8 @@ class TestPoemEffects:
 class TestPoemNumerics:
     def test_shengsi_cap(self):
         """生死: 新蕊 cap 200%, 吸收不截断在34000"""
-        from engine.core.combat_sim import SimState, _xiadie_absorb_hp_loss, xiadie_xinrui_cap
+        from engine.characters.xiadie import _xiadie_absorb_hp_loss, xiadie_xinrui_cap
+        from engine.runtime import SimState
         u = _unit('xiadie', poem_shengsi=True)
         u.xinrui = 50000
         state = SimState(enemies=[_enemy()], units=[u])
@@ -119,7 +125,7 @@ class TestPoemNumerics:
 
     def test_shengsi_overflow_to_huiyi(self):
         """生死: 召唤死龙消费溢出→晦翼倍率+0.48/1%(≤2敌)"""
-        from engine.core.combat_sim import SimState
+        from engine.runtime import SimState
         from engine.systems.remembrance import RemembranceSystem
         u = _unit('xiadie', poem_shengsi=True, shengsi_overflow=34000.0)
         state = SimState(enemies=[_enemy()], units=[u])
@@ -130,8 +136,8 @@ class TestPoemNumerics:
 
     def test_suiyue_yizhi(self):
         """岁月: 战技后忆质+4(行迹3+1 + 战技+2 + 岁月+1; v5.6.1 战技忆质接线)"""
-        from engine.core.effect_resolver import _changyeyue_trace3
-        from engine.core.combat_sim import SimState
+        from engine.characters.changyeyue import _changyeyue_trace3
+        from engine.runtime import SimState
         u = _unit('changyeyue', poem_suiyue=True)
         state = SimState(enemies=[_enemy()], units=[u])
         _changyeyue_trace3(u, state, 'skill')
@@ -139,7 +145,8 @@ class TestPoemNumerics:
 
     def test_suiyue_cd_dynamic(self):
         """岁月: 战技CD buff 动态(24+暴伤×12)"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('changyeyue', poem_suiyue=True)
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')
@@ -150,8 +157,8 @@ class TestPoemNumerics:
 
     def test_tiankong_energy(self):
         """天空: 施放回24能量"""
-        from engine.core.combat_sim import SimState
-        from engine.systems.remembrance import _poem_tiankong
+        from engine.runtime import SimState
+        from engine.characters.fengjin import _poem_tiankong
         u = _unit('fengjin')
         state = SimState(enemies=[_enemy()], units=[u])
         e0 = u.current_energy
@@ -160,8 +167,8 @@ class TestPoemNumerics:
 
     def test_fenzheng_advance(self):
         """纷争: 非血仇万敌→行动提前100%"""
-        from engine.core.combat_sim import SimState
-        from engine.systems.remembrance import _poem_fenzheng
+        from engine.runtime import SimState
+        from engine.characters.mydei import _poem_fenzheng
         u = _unit('mydei')
         state = SimState(enemies=[_enemy()], units=[u])
         state.extra['navs'] = {0: 500.0}

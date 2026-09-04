@@ -4,12 +4,12 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import (
-    SimState, SimUnit, TimedBuff, _use_skill,
-    _lingsha_fuyuan_action, _tick_buffs,
-)
+from engine.core.combat_engine import _use_skill, _tick_buffs
+from engine.characters.lingsha import _lingsha_fuyuan_action
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.core.attributes import compute_combat_stats
 from engine.systems.remembrance import RemembranceSystem, _ms_effective_stats
+from engine.characters.xilian import _xilian_support_skill
 
 
 def _enemy(hp=500000, toughness=200):
@@ -138,10 +138,10 @@ class TestXilianE2RealmTrueDmg:
         _use_skill(u, state, 'skill')
         assert state.realm_true_dmg == pytest.approx(0.24, abs=1e-9)
         # 此诗献予 阿格莱雅（黄金裔）→ +6%
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
         assert state.realm_true_dmg == pytest.approx(0.30, abs=1e-9)
         # 再献予 长夜月（另一黄金裔）→ +6%
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
         assert state.realm_true_dmg == pytest.approx(0.36, abs=1e-9)
 
     def test_same_target_counts_once(self):
@@ -154,8 +154,8 @@ class TestXilianE2RealmTrueDmg:
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
         _use_skill(u, state, 'skill')
-        rem._xilian_support_skill(state, u, ms)
-        rem._xilian_support_skill(state, u, ms)  # 再献予同一目标
+        _xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)  # 再献予同一目标
         assert state.realm_true_dmg == pytest.approx(0.30, abs=1e-9)
 
     def test_e0_stays_base(self):
@@ -168,7 +168,7 @@ class TestXilianE2RealmTrueDmg:
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
         _use_skill(u, state, 'skill')
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
         assert state.realm_true_dmg == pytest.approx(0.24, abs=1e-9)
 
     def test_e2_gifted_persists_across_realm(self):
@@ -181,8 +181,8 @@ class TestXilianE2RealmTrueDmg:
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
         # 先献予2名（结界未展开, 计数先行）
-        rem._xilian_support_skill(state, u, ms)
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
         assert len(state.extra.get('xilian_e2_gifted', set())) == 2
         # 后展开结界→真伤按累计计数
         _use_skill(u, state, 'skill')
@@ -199,7 +199,7 @@ class TestXilianE2RealmTrueDmg:
         ms = u.memsprite_unit
         _use_skill(u, state, 'skill')
 
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
 
         assert state.extra['xilian_e2_gifted'] == {'seele'}
         assert state.realm_true_dmg == pytest.approx(0.30, abs=1e-9)
@@ -215,7 +215,7 @@ class TestXilianE2RealmTrueDmg:
         ms = u.memsprite_unit
         _use_skill(u, state, 'skill')
 
-        rem._xilian_support_skill(state, u, ms)
+        _xilian_support_skill(state, u, ms)
 
         assert state.extra.get('xilian_e2_gifted', set()) == {'phainon'}
         assert state.realm_true_dmg == pytest.approx(0.30, abs=1e-9)
@@ -284,7 +284,7 @@ class TestDachangPerHitStack:
 
     def test_bronya_e4_fua_stacks_big_duke_once_per_damage_hit(self):
         """布洛妮娅E4的一段追加伤害也应触发大公的逐段事件。"""
-        from engine.core.effect_resolver import _eid_bronya_e4
+        from engine.characters.bronya import _eid_bronya_e4
         from engine.core.relic_conditions import register_dynamic_relic_effects
         bronya = _unit('bronya', position=1)
         attacker = _unit('seele', position=2)

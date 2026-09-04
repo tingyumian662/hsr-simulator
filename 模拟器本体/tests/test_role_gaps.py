@@ -3,10 +3,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _build_effective_stats, _begin_regular_turn,
-    _enemy_attack, _memsprite_action_speed,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _begin_regular_turn, _enemy_attack, _memsprite_action_speed
+from engine.runtime import SimUnit, SimState
+from engine.characters.xiadie import _dragon_flame_once
 
 
 def _enemy(hp=500000, toughness=200, attacks=None):
@@ -54,7 +53,7 @@ class TestXiadieTrace1:
         ms.extra['flame_mult'] = 24.0
         u.extra['xiadie_flame_stack'] = 2
         # 直调喷吐, 断言伤害按 24×(1+0.6)=38.4% 倍率（与无叠层对比）
-        from engine.core.combat_sim import calculate_damage
+        from engine.core.combat_engine import calculate_damage
         ms.base_stats.HP = 34000
         stats = ms.base_stats
         t = state.enemies[0]
@@ -72,7 +71,7 @@ class TestXiadieTrace1:
         _use_skill(u, state, 'ultimate')
         ms = u.memsprite_unit
         u.extra['xiadie_flame_stack'] = 2
-        rem._dragon_flame_once(state, u, ms)
+        _dragon_flame_once(state, u, ms)
         assert ms.extra['flame_mult'] == pytest.approx(28.0)
 
     def test_stack_cleared_on_next_turn_start(self):
@@ -115,7 +114,7 @@ class TestXiadieTrace2:
         rem.init_battle(state, [u])
         _use_skill(u, state, 'ultimate')
         ms = u.memsprite_unit
-        rem._dragon_flame_once(state, u, ms)
+        _dragon_flame_once(state, u, ms)
         assert ms.extra.get('xiadie_spd_boost') == 1
         assert _memsprite_action_speed(state, ms) == pytest.approx(ms.data.base_SPD * 1.4 * 2.0)
 
@@ -163,10 +162,10 @@ class TestChangyeyueE6:
 class TestTbrMagnet:
     def test_support_magnet_bonus(self):
         """忆灵充能链: 能量上限160 → 声援真伤 0.28×(1+0.12)"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
         u = _unit('trailblazer_remembrance')
         # 给 tbr 挂声援 buff
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
         u.buffs.append(TimedBuff(source_id='tbr', attributes={'_tbr_support': 1},
                                  remaining_turns=3))
         # 直调伤害段验证: 构造带声援的普攻

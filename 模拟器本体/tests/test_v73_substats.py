@@ -219,16 +219,23 @@ class TestRoleAndFrontend:
         assert _analyze_character(_load("ruan_mei")).role == "support"
 
     def test_frontend_contract(self):
-        html = (Path(__file__).resolve().parents[1]
-                / "web" / "templates" / "index.html").read_text(encoding="utf-8")
-        assert "['ehr','命中']" in html  # 第 9 格效果命中
-        assert "EFFECT_HIT_RATE: parseInt" in html  # getConfig 收集命中词条
-        # weights 置灰映射: 后端权重键是引擎内部键（速度小写 p）, 前端 wmap 必须一致
-        assert "SPD_percent:'spd'" in html
-        assert "EFFECT_HIT_RATE:'ehr'" in html
+        # v7.17.0: 键集单源——前端不再内联键字面量, 契约改钉 /api/keysets 端点 + app.js 派生用法
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from web.api import router
+        app = FastAPI()
+        app.include_router(router, prefix="/api")
+        payload = TestClient(app).get("/api/keysets").json()
+        keys = [s["key"] for s in payload["substats"]]
+        assert "EFFECT_HIT_RATE" in keys and len(keys) == 9  # 第 9 键效果命中
+        spd = next(s for s in payload["substats"] if s["key"] == "SPD_PERCENT")
+        assert spd["engine_key"] == "SPD_percent"  # 后端权重键是引擎内部键（速度小写 p）
+        js = (Path(__file__).resolve().parents[1]
+              / "web" / "static" / "app.js").read_text(encoding="utf-8")
+        assert "KEYSETS.substats" in js  # getConfig/推荐映射由端点契约派生
         # v7.3.1: 可调输入=有效词条（默认 30/上限 50）; 总词条固定 50 并在工具栏只读标注
-        assert 'id="eff${i}" value="30"' in html and 'max="50"' in html
-        assert "TOTAL_ROLLS = 50" in html
-        assert "effective_rolls" in html
-        assert 'class="field total-field total-fixed"' in html  # 总词条 50 固定标注（禁用只读）
-        assert html.count('value="50" type="number" disabled') == 1  # 槽位模板中一处, JS 循环生成四槽
+        assert 'id="eff${i}" value="30"' in js and 'max="50"' in js
+        assert "TOTAL_ROLLS = 50" in js
+        assert "effective_rolls" in js
+        assert 'class="field total-field total-fixed"' in js  # 总词条 50 固定标注（禁用只读）
+        assert js.count('value="50" type="number" disabled') == 1  # 槽位模板中一处, JS 循环生成四槽

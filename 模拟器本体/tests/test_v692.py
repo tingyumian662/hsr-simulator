@@ -8,11 +8,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats, simulate,
-    _welt_extra_damage, _welt_ally_hit_hooks, _tick_enemy_statuses,
-    _enemy_for_damage,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, simulate, _tick_enemy_statuses
+from engine.characters.welt import _welt_extra_damage, _welt_ally_hit_hooks
+from engine.runtime import SimState, SimUnit, _enemy_for_damage
 
 
 def _enemy(hp=500000, toughness=200, res=None):
@@ -37,7 +35,7 @@ class TestWeltP22:
         u = _unit('welt', eidolon=4)
         e = _enemy(res={'冰': 0, '量子': 0.2, '风': 0.2, '雷': 0.2, '虚数': 0.4, '物理': 0.2, '火': 0.2})
         st = SimState(enemies=[e], units=[u])
-        from engine.core.combat_sim import _welt_apply_shizhong
+        from engine.characters.welt import _welt_apply_shizhong
         _welt_apply_shizhong(st, u, e)
         assert e.element_res['虚数'] == pytest.approx(0.4)
         assert _enemy_for_damage(e).get_res('虚数') == pytest.approx(0.1)
@@ -52,7 +50,7 @@ class TestWeltP22:
         u = _unit('welt', eidolon=1)
         e = _enemy()
         st = SimState(enemies=[e], units=[u])
-        from engine.core.combat_sim import _welt_apply_shizhong
+        from engine.characters.welt import _welt_apply_shizhong
         _welt_apply_shizhong(st, u, e)
         st.extra['last_attack_targets'] = [e]
         st.extra['last_hit_segments'] = [e] * 5  # 5段弹射同目标
@@ -85,7 +83,7 @@ class TestWeltP22:
         ally = _unit('seele', position=2)
         e = _enemy()
         st = SimState(enemies=[e], units=[welt, ally])
-        from engine.core.combat_sim import _welt_apply_shizhong
+        from engine.characters.welt import _welt_apply_shizhong
         _welt_apply_shizhong(st, welt, e)
         st.extra['last_attack_targets'] = [e]
         for _ in range(12):
@@ -101,7 +99,7 @@ class TestWeltP22:
         e = _enemy()
         st = SimState(enemies=[e], units=[u])
         st.skill_points = 3
-        from engine.core.combat_sim import _welt_apply_slow
+        from engine.characters.welt import _welt_apply_slow
         _welt_apply_slow(st, u, e)
         d0 = u.total_damage_dealt
         _use_skill(u, st, 'skill')

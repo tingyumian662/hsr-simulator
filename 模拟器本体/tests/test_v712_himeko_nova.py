@@ -12,12 +12,11 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate, _use_skill, _hn_ultimate,
-    _hn_support_skill, _hn_support_cap, _hn_realm_blocks_ult,
-)
-from engine.core.effect_resolver import _trace_hn_protocol, _trace_hn_flag_regen
-from engine.core.combat_sim import TimedBuff
+from engine.core.combat_engine import simulate, _use_skill
+from engine.characters.himeko_nova import _hn_ultimate, _hn_support_skill, _hn_support_cap, _hn_realm_blocks_ult
+from engine.runtime import SimState, SimUnit
+from engine.characters.himeko_nova import _trace_hn_protocol, _trace_hn_flag_regen
+from engine.runtime import TimedBuff
 
 
 def _enemy(hp=900000, toughness=0):
@@ -200,15 +199,15 @@ class TestBugFixes:
     def test_e5_talent_factor_on_self_support(self):
         """#3: E5天赋+2 → 姬子自用助战技的抗穿/暴伤加成值×1.10(每级+5%×2级)
         (因子作用于加成面板而非最终伤害, 以探针捕获传入伤害函数的面板断言)"""
-        import engine.core.combat_sim as cs
+        import engine.characters.himeko_nova as hnm
         captured = {}
-        orig = cs.calculate_damage
+        orig = hnm.calculate_damage
 
         def spy(stats, *a, **kw):
             captured.setdefault('respen', []).append(stats.RES_PEN_ALL)
             captured.setdefault('cd', []).append(stats.CRIT_DMG)
             return orig(stats, *a, **kw)
-        cs.calculate_damage = spy
+        hnm.calculate_damage = spy
         try:
             hn0 = _unit('himeko_nova', eidolon=5)
             hn5 = _unit('himeko_nova', eidolon=5)
@@ -223,7 +222,7 @@ class TestBugFixes:
             pen5 = max(captured['respen']) - base_pen
             cd5 = max(captured['cd']) - base_cd
         finally:
-            cs.calculate_damage = orig
+            hnm.calculate_damage = orig
         assert cd0 == pytest.approx(0.80, abs=1e-9)
         assert pen0 == pytest.approx(0.30, abs=1e-9)  # rank5 含E4: 天赋抗穿30%
         assert cd5 == pytest.approx(0.80 * 1.10, abs=1e-9)
@@ -259,7 +258,7 @@ class TestBugFixes:
 
     def test_ai_rotation_alternates(self):
         """#2 单元级: AI 轮转 = 助战技→战技→助战技→战技(cd=2 生效)"""
-        from engine.core.combat_sim import _hn_ai
+        from engine.characters.himeko_nova import _hn_ai
         hn = _unit('himeko_nova')
         state = _state([hn])
         state.skill_points = 5

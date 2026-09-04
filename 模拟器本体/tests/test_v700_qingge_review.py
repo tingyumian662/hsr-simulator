@@ -8,7 +8,8 @@ B3 退出Fever行动提前基于摘除快照 / C 倒计时边界+E4速度精确�
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
+from engine.characters.robin_summeretto import _qingge_summon_variant
 
 
 def _enemy(res=None):
@@ -23,7 +24,7 @@ def _qingge():
 
 def _state(eidolon=0):
     """手动构造晴歌单人 SimState（引擎函数级测试用）"""
-    from engine.core.combat_sim import SimState, SimUnit
+    from engine.runtime import SimState, SimUnit
     from engine.core.attributes import compute_combat_stats
     char = _qingge()
     stats = compute_combat_stats(char, None, None, None)
@@ -42,7 +43,8 @@ class TestA1UltSelfEnergy:
         """A1: txt L42 终结技'能量恢复:5'——函数级精确断言
         (通用energy_regen路径消费JSON effects; v7.0.0 GLM验收P1: 曾内联+通用双重回能+10,
         已删除内联仅保留JSON, 与姬子·启行等26角色同模式)"""
-        from engine.core.combat_sim import _use_skill, SimUnit
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimUnit
         from engine.core.attributes import compute_combat_stats
         state, u = _state(eidolon=0)
         u.current_energy = float(u.char.max_energy)
@@ -89,15 +91,16 @@ class TestA3LevelFactors:
         state, u = _state(eidolon=3)
         u.extra['skill_level_boost'] = {'skill': 2, 'talent': 2, 'memsprite_talent': 1}
         rem = state.extra['_rem_sys']
-        ms = rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        ms = _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         ms.current_hp = ms.max_hp * 0.5
-        rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         log = '\n'.join(state.log)
         assert f'回血{int(ms.max_hp * 1.1)}' in log
 
     def test_ult_energy_factor_e5(self):
         """A3④: E5终结技+2→目标回能=20%能量上限×1.1"""
-        from engine.core.combat_sim import _qingge_ultimate, SimUnit
+        from engine.characters.robin_summeretto import _qingge_ultimate
+        from engine.runtime import SimUnit
         from engine.core.attributes import compute_combat_stats
         state, u = _state(eidolon=5)
         u.extra['skill_level_boost'] = {'ultimate': 2, 'basic_attack': 1,
@@ -120,7 +123,7 @@ class TestA3LevelFactors:
         base_pen = u.base_stats.DEF_PEN
         rem = state.extra['_rem_sys']
         for name in ('贝茜', '啾米', '派丁'):
-            rem._qingge_summon_variant(state, u, u.char.memsprite, name)
+            _qingge_summon_variant(state, u, u.char.memsprite, name)
         atmo = u.extra.get('qingge_atmo', 0.0)
         assert u.base_stats.DEF_PEN == pytest.approx(
             base_pen + (0.15 + atmo * 0.005) * 1.1, rel=1e-9)
@@ -133,7 +136,7 @@ class TestA3LevelFactors:
         base_vuln = u.base_stats.VULNERABILITY_APPLIED
         rem = state.extra['_rem_sys']
         for name in ('贝茜', '啾米', '派丁'):
-            rem._qingge_summon_variant(state, u, u.char.memsprite, name)
+            _qingge_summon_variant(state, u, u.char.memsprite, name)
         atmo = u.extra.get('qingge_atmo', 0.0)
         assert u.base_stats.DMG_BONUS_ALL == pytest.approx(
             base_dmg + (0.60 + atmo * 0.02) * 1.05, rel=1e-9)
@@ -147,7 +150,7 @@ class TestA4MemspritePath:
         state, u = _state(eidolon=2)
         u.extra['qingge_atmo'] = 10.0
         u.extra['qingge_rhythm'] = 12
-        from engine.core.combat_sim import _qingge_on_ally_attack
+        from engine.characters.robin_summeretto import _qingge_on_ally_attack
         _qingge_on_ally_attack(state, u, via_memsprite=True)
         assert u.extra['qingge_atmo'] == pytest.approx(13.0, rel=1e-9)  # +1攻击+2E2
         log = '\n'.join(state.log)
@@ -162,7 +165,7 @@ class TestA5E6MultiplierEngine:
             state, u = _state(eidolon=rank)
             u.extra['skill_level_boost'] = boost
             rem = state.extra['_rem_sys']
-            ms = rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+            ms = _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
             before = state.enemies[0].HP
             rem._use_memsprite_skill(state, u, ms, 'memsprite_basic')
             return before - state.enemies[0].HP
@@ -177,7 +180,8 @@ class TestA5E6MultiplierEngine:
 class TestA6GuestBuff:
     def test_guest_buff_lands_2_turns(self):
         """A6: 特邀嘉宾buff真实落位且remaining_turns==2"""
-        from engine.core.combat_sim import _qingge_ultimate, SimUnit
+        from engine.characters.robin_summeretto import _qingge_ultimate
+        from engine.runtime import SimUnit
         from engine.core.attributes import compute_combat_stats
         state, u = _state(eidolon=0)
         fj = load_character('fengjin', 'data/characters')
@@ -198,11 +202,12 @@ class TestB3ExitFeverAdvance:
         state.extra['navs'] = {0: 1000.0}
         rem = state.extra['_rem_sys']
         for name in ('贝茜', '啾米', '派丁'):
-            rem._qingge_summon_variant(state, u, u.char.memsprite, name)
+            _qingge_summon_variant(state, u, u.char.memsprite, name)
         assert u.extra.get('qingge_fever')
         assert 0 not in state.extra['navs']
-        from engine.core.combat_sim import (_qingge_exit_fever, AV_PER_TURN,
-                                            _effective_spd)
+        from engine.core.combat_engine import _effective_spd
+        from engine.characters.robin_summeretto import _qingge_exit_fever
+        from engine.runtime import AV_PER_TURN
         half = AV_PER_TURN / max(_effective_spd(u, state), 1.0) * 0.5
         _qingge_exit_fever(state, u)
         assert state.extra['navs'][0] == pytest.approx(
@@ -215,7 +220,7 @@ class TestCCountdownAndE4:
         state, u = _state(eidolon=0)
         u.extra['qingge_atmo'] = 10.0
         u.extra['qingge_fever'] = True
-        from engine.core.combat_sim import _qingge_countdown_action
+        from engine.characters.robin_summeretto import _qingge_countdown_action
         _qingge_countdown_action(state, None)
         assert u.extra['qingge_atmo'] == 0
         assert not u.extra.get('qingge_fever')
@@ -225,8 +230,9 @@ class TestCCountdownAndE4:
         state, u = _state(eidolon=4)
         u.extra['qingge_atmo'] = 20.0
         u.extra['qingge_fever'] = True
-        from engine.core.combat_sim import _qingge_ms_spd, _effective_spd
+        from engine.core.combat_engine import _effective_spd
+        from engine.characters.robin_summeretto import _qingge_ms_spd
         expect = _effective_spd(u, state) * 1.80 * (1.0 + 0.20 + 20.0 * 0.005)
         rem = state.extra['_rem_sys']
-        ms = rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        ms = _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         assert _qingge_ms_spd(state, u, ms) == pytest.approx(expect, rel=1e-9)

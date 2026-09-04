@@ -8,12 +8,11 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate, _use_skill, _begin_enemy_turn,
-    _build_effective_stats, _tribbie_apply_shenqi, _tribbie_ult_field,
-    _cerydra_check_promote, _cerydra_qixi, _cerydra_grant_jungong,
-    _hysilens_apply_dot, _enemy_attack_stats,
-)
+from engine.core.combat_engine import simulate, _use_skill, _begin_enemy_turn, _build_effective_stats, _enemy_attack_stats
+from engine.characters.tribbie import _tribbie_apply_shenqi, _tribbie_ult_field
+from engine.characters.cerydra import _cerydra_check_promote, _cerydra_qixi, _cerydra_grant_jungong
+from engine.characters.hysilens import _hysilens_apply_dot
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(hp=500000, tough=200):

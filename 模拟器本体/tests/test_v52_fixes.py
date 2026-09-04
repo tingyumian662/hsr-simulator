@@ -6,9 +6,8 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, RelicPiece, RelicSet, RelicSetEffect
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, simulate, _apply_team_static_relics, _apply_hit,
-)
+from engine.core.combat_engine import simulate, _apply_team_static_relics, _apply_hit
+from engine.runtime import SimUnit, SimState
 
 
 def _enemy(hp=500000, toughness=200):
@@ -32,7 +31,7 @@ class TestFuxuanE6Broadcast:
 
     def test_ally_hp_loss_accumulates(self):
         """队友受击 → 符玄E6 累计"""
-        from engine.core.effect_resolver import _eid_fuxuan_e6_loss
+        from engine.characters.fu_xuan import _eid_fuxuan_e6_loss
         fu = _unit('fu_xuan', position=1)
         fu.eidolon_rank = 6
         ally = _unit('seele', position=2)
@@ -45,7 +44,7 @@ class TestFuxuanE6Broadcast:
 
     def test_ally_hit_through_apply_hit(self):
         """黑盒: 队友受击（on_hp_loss 广播, u=队友）→ 符玄E6 累计"""
-        from engine.core.effect_resolver import _eid_fuxuan_e6_loss
+        from engine.characters.fu_xuan import _eid_fuxuan_e6_loss
         fu = _unit('fu_xuan', position=1)
         fu.eidolon_rank = 6
         ally = _unit('seele', position=2)
@@ -144,7 +143,7 @@ class TestDiffMachine:
     """问题3c: 星体差分机首击暴击, 首次攻击后移除"""
 
     def test_first_attack_consumes_bonus(self):
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
         u = _unit('seele')
         u._active_relic_conditions = {'cd_threshold_first_atk_cr'}
         u.base_stats.CRIT_DMG = 1.30
@@ -163,7 +162,7 @@ class TestFanxingQuantum:
     """问题3e: 繁星4pc 量子弱点目标额外10%无视防御"""
 
     def test_quantum_weakness_extra_defpen(self):
-        from engine.core.combat_sim import _apply_target_relic_modifiers
+        from engine.core.combat_engine import _apply_target_relic_modifiers
         u = _unit('seele')
         u._active_relic_conditions = {'defpen_vs_quantum'}
         q_weak = _enemy()
@@ -181,7 +180,7 @@ class TestRelicEventSemantics:
 
     def test_big_duke_basic_attack_no_stack(self):
         """大公4pc: 普通普攻不得叠层（原 bug: on_after_skill 误触发）"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
         u = _unit('seele')
         u._active_relic_conditions = {'stack_atk_on_fua'}
         state = SimState(enemies=[_enemy()], units=[u])
@@ -247,7 +246,7 @@ class TestExpectedCrit:
 
     def test_seele_zhanjin_expected(self):
         """希儿斩尽: HP≤80% 目标 CR+15% 进入期望公式（不再是阈值跨越）"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
         u = _unit('seele')
         u.base_stats.CRIT_RATE = 0.35
         state = SimState(enemies=[_enemy()], units=[u])
@@ -259,7 +258,7 @@ class TestExpectedCrit:
 
     def test_regular_skill_uses_expected_crit(self):
         """常规技能伤害随暴击率连续变化，不能保留 50% 二元阈值。"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
 
         def basic_damage(crit_rate):
             unit = _unit('seele')
@@ -279,7 +278,7 @@ class TestExpectedCrit:
 
     def test_bounce_skill_uses_expected_crit(self):
         """弹射伤害也使用期望暴击，不得走旧二元判定。"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
 
         def bounce_damage(crit_rate):
             unit = _unit('trailblazer_harmony')
@@ -300,6 +299,7 @@ class TestExpectedCrit:
     def test_silver_enhanced_basic_uses_expected_crit(self):
         """银狼强化普攻所有伤害段均按期望暴击连续变化。"""
         from engine.systems.elation import ElationSystem
+        from engine.characters.yinlang import silver_enhanced_basic
 
         def enhanced_basic_damage(crit_rate):
             unit = _unit('yinlang')
@@ -307,10 +307,11 @@ class TestExpectedCrit:
             unit.base_stats.CRIT_DMG = 1.50
             state = SimState(enemies=[_enemy()], units=[unit])
             state.elation_state.grant_good_show(unit.char.id, 10)
+            state.extra['_elation'] = ElationSystem()
             rng_state = random.getstate()
             random.seed(7)
             try:
-                ElationSystem().silver_enhanced_basic(unit, state)
+                silver_enhanced_basic(unit, state)
             finally:
                 random.setstate(rng_state)
             return unit.total_damage_dealt

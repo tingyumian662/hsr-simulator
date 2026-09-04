@@ -6,16 +6,14 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _gain_energy, _build_effective_stats,
-    _sunday_skill, _sunday_ult, _sunday_tick, _sunday_ai,
-    _welt_ult, _welt_extra_damage, _welt_apply_slow, _welt_apply_shizhong,
-    _ruanmei_xianyin_apply, _ruanmei_field_apply, _ruanmei_canmei_trigger,
-    _ruanmei_break_damage, _ruanmei_tick, _ruanmei_apply_canmei,
-)
-from engine.core.effect_resolver import (
-    _trace_sunday_trace2, _trace_welt_trace1, _trace_ruanmei_break,
-)
+from engine.core.combat_engine import _use_skill, _gain_energy, _build_effective_stats
+from engine.characters.sunday import _sunday_skill, _sunday_ult, _sunday_tick, _sunday_ai
+from engine.characters.welt import _welt_ult, _welt_extra_damage, _welt_apply_slow, _welt_apply_shizhong
+from engine.characters.ruan_mei import _ruanmei_xianyin_apply, _ruanmei_field_apply, _ruanmei_canmei_trigger, _ruanmei_break_damage, _ruanmei_tick, _ruanmei_apply_canmei
+from engine.runtime import SimState, SimUnit
+from engine.characters.sunday import _trace_sunday_trace2
+from engine.characters.welt import _trace_welt_trace1
+from engine.characters.ruan_mei import _trace_ruanmei_break
 
 
 def _enemy(hp=500000, toughness=200, broken=False):
@@ -107,8 +105,8 @@ class TestWelt:
         u = _unit('welt')
         e = _enemy()
         state = SimState(enemies=[e], units=[u])
-        from engine.core.combat_sim import _roll_effect_hit
-        import engine.core.combat_sim as cs
+        from engine.core.combat_engine import _roll_effect_hit
+        import engine.core.combat_engine as cs
         # 强制命中（75%基础概率; 测试直挂状态避开随机）
         e.add_status(EnemyStatus(id='welt_slow', name='减速', category='debuff',
                                  source='welt', remaining_turns=2,

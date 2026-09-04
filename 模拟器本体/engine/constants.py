@@ -11,6 +11,9 @@ class Element(str, Enum):
     QUANTUM = "量子"
     IMAGINARY = "虚数"
 
+# 七属性全集（单一事实源：combat_engine/web 此前各自硬编码, M4 批1 统一）
+WEAKNESS_ELEMENTS = [e.value for e in Element]
+
 
 class Path(str, Enum):
     DESTRUCTION = "毁灭"
@@ -266,6 +269,18 @@ SUBSTAT_ROLL_FACTOR = 1.1
 # v7.5.0（项目主指示）: 单一词条占有效词条数上限（实机一件遗器最多 4 种副词条类型,
 # "30 条全堆一个属性"不现实——银狼Lv.999 全速度问题）
 SUBSTAT_SINGLE_SHARE = 0.6
+
+# 前端推荐响应契约键（大写 SPD_PERCENT; v7.3 项目主裁决: 效果命中入契约, 8 键扩 9 键）。
+# v7.17.0 M7 键集单源: 前端/app.js、web/api.py、relic_optimizer 共用此序此键,
+# 前端展示短键与标签由 web 层 /api/keysets 端点单源提供。
+FRONTEND_ROLL_KEYS = ["CRIT_RATE", "CRIT_DMG", "ATK_percent", "SPD_PERCENT",
+                      "HP_percent", "EFFECT_RES", "DEF_percent", "BREAK_EFFECT",
+                      "EFFECT_HIT_RATE"]
+
+# 前端副词条键 → 引擎内部键（仅速度大小写差异; 引擎侧双向兼容不变）
+SUBSTAT_KEY_MAP = {k: (StatType.SPD_PERCENT.value if k == "SPD_PERCENT" else k)
+                   for k in FRONTEND_ROLL_KEYS}
+
 
 # 各部位主词条满级(+15)数值
 RELIC_MAIN_STAT_VALUES = {

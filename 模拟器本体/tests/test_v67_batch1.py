@@ -7,16 +7,13 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _gain_energy, _gain_skill_points,
-    _apply_toughness_damage, _build_effective_stats, _deduct_skill_point_cost,
-    _dahlia_talent_open, _dahlia_field_apply, _dahlia_super_break_rate,
-    _dahlia_on_ally_attack, _apply_dahlia_baisie, _sparxie_enhanced_settle,
-)
+from engine.core.combat_engine import _use_skill, _gain_energy, _gain_skill_points, _apply_toughness_damage, _build_effective_stats, _deduct_skill_point_cost
+from engine.characters.the_dahlia import _dahlia_talent_open, _dahlia_field_apply, _dahlia_super_break_rate, _dahlia_on_ally_attack, _apply_dahlia_baisie
+from engine.characters.sparxie import _sparxie_enhanced_settle
+from engine.runtime import SimState, SimUnit
 from engine.systems.elation import ElationSystem
-from engine.core.effect_resolver import (
-    _trace_evanescia_energy_convert, _trace_dahlia_trace3_implant,
-)
+from engine.characters.the_dahlia import _trace_dahlia_trace3_implant
+from engine.characters.evanescia import _trace_evanescia_energy_convert
 
 
 def _enemy(hp=500000, toughness=200, broken=False, res=None):
@@ -123,10 +120,10 @@ class TestSparxie:
 
     def test_live_once(self):
         """战技开启连线→下次普攻强化(一次性, 释放后回归正常)"""
-        from engine.core.combat_sim import _register_elation_skill_hooks
         u = _unit('sparxie')
         state = SimState(enemies=[_enemy()], units=[u])
-        _register_elation_skill_hooks(state.skill_hooks)
+        from engine.characters import register_all_elation_skill_hooks
+        register_all_elation_skill_hooks(state.skill_hooks)
         _use_skill(u, state, 'skill')
         assert u.extra.get('sparxie_live') is True
         assert u.extra.get('sparxie_trap_uses') == 1

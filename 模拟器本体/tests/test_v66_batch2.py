@@ -5,11 +5,13 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _begin_enemy_turn,
-    _hysilens_apply_dot, _anaxa_add_weakness, _cipher_pick_laozhuke,
-)
+from engine.core.combat_engine import _use_skill, _begin_enemy_turn
+from engine.characters.hysilens import _hysilens_apply_dot
+from engine.characters.anaxa import _anaxa_add_weakness
+from engine.characters.cipher import _cipher_pick_laozhuke
+from engine.runtime import SimState, SimUnit
 from engine.systems.remembrance import RemembranceSystem
+from engine.characters.xilian import _xilian_support_skill
 
 
 def _enemy(hp=500000, toughness=200):
@@ -57,7 +59,7 @@ class TestHysilens:
         u = _unit('hysilens')
         state = SimState(enemies=[_enemy()], units=[u])
         # on_enter_battle 由 simulate 触发; 直接验证行迹handler
-        from engine.core.effect_resolver import _trace_hysilens_trace1
+        from engine.characters.hysilens import _trace_hysilens_trace1
         _trace_hysilens_trace1(u, state)
         assert state.extra.get('hysilens_field_turns', 0) == 3
 
@@ -119,7 +121,7 @@ class TestPoemBatch2:
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)
         e0 = hs.current_energy
-        rem._xilian_support_skill(state, u, u.memsprite_unit)
+        _xilian_support_skill(state, u, u.memsprite_unit)
         assert hs.extra.get('poem_haiyang') is True
         assert hs.current_energy >= e0 + 60
         assert hs.base_stats.DMG_BONUS_ALL == pytest.approx(1.20)
@@ -132,6 +134,6 @@ class TestPoemBatch2:
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)
-        rem._xilian_support_skill(state, u, u.memsprite_unit)
+        _xilian_support_skill(state, u, u.memsprite_unit)
         assert cp.extra.get('poem_guiji') is True
         assert cp.base_stats.DMG_BONUS_ALL == pytest.approx(0.36)

@@ -8,8 +8,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import simulate
-from engine.core.combat_utils import resolve_techniques, apply_techniques
+from engine.core.combat_engine import simulate
+from engine.systems.techniques import apply_techniques
 
 
 def _enemy(hp=500000, toughness=200):
@@ -31,7 +31,7 @@ def _sim(ids, max_av=500, hp=500000, **cfgs):
 class TestResolveTechniques:
     def test_support_all_battle_start_front(self):
         """support 全开 + battle_start 取站位最前"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.models.character import load_character as lc
         units = []
         for i, cid in enumerate(['aglaea', 'xiadie', 'trailblazer_harmony']):
@@ -46,7 +46,7 @@ class TestResolveTechniques:
 
     def test_no_battle_start_weakness_opener(self):
         """无 battle_start: 首个属性命中敌方弱点的角色为开怪者"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.models.character import load_character as lc
         units = []
         for i, cid in enumerate(['seele', 'bronya']):  # 量子/风, 敌人冰弱点
@@ -65,7 +65,7 @@ class TestResolveTechniques:
 
     def test_no_weakness_fallback_first(self):
         """无敌方弱点对应角色 → 队伍第一个角色开怪"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.models.character import load_character as lc
         units = []
         for i, cid in enumerate(['seele', 'bronya']):

@@ -12,12 +12,8 @@ from engine.models.character import Character, Skill, SkillEffect, load_characte
 from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, LightConeEffect
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _build_effective_stats, _lc_tick_stacks, _tick_buffs,
-    _process_lc_effects, _use_skill, _apply_skill_effects,
-    _pick_single_ally_target, _roll_effect_hit, _lc_grounded_ascent_counter,
-    _apply_hit, TimedBuff,
-)
+from engine.core.combat_engine import _build_effective_stats, _lc_tick_stacks, _tick_buffs, _process_lc_effects, _use_skill, _apply_skill_effects, _pick_single_ally_target, _roll_effect_hit, _lc_grounded_ascent_counter, _apply_hit
+from engine.runtime import SimUnit, SimState, TimedBuff
 from engine.core.damage import calculate_damage, _calc_def_mult
 from engine.core.relic_conditions import (
     _stack_merit_on_fua, register_dynamic_relic_effects,
@@ -210,7 +206,7 @@ class TestDuranMerit:
         seele = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[seele, holder])
         register_dynamic_relic_effects(state.hooks, 'bronya', 'stack_merit_on_fua')
-        from engine.core.effect_resolver import _eid_bronya_e4
+        from engine.characters.bronya import _eid_bronya_e4
         _eid_bronya_e4(seele, state, target=state.enemies[0], skill_key='basic_attack')
         assert holder.relic_stacks.get('Merit', 0) == 1
         assert holder.base_stats.DMG_BONUS_BY_ATTACK_TYPE['follow_up'] == pytest.approx(0.05)
@@ -285,7 +281,7 @@ class TestEffectHitRoll:
         e = _enemy(effect_res=0.5)
         state = SimState(enemies=[e], units=[u])
         rolls = iter([0.8, 0.2])
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: next(rolls))
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: next(rolls))
         assert _roll_effect_hit(u, state, e, '测试') is False   # 命中线0.5, roll 0.8 → 抵抗
         assert _roll_effect_hit(u, state, e, '测试') is True    # roll 0.2 → 命中
 
@@ -296,10 +292,10 @@ class TestEffectHitRoll:
         state = SimState(enemies=[e], units=[unit])
         skill = Skill(name='Debuff', type='skill', target='all_enemies', effects=[
             SkillEffect(type='debuff', target='all_enemies', value=16, param_id='凶星低语')])
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.99)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.99)
         _apply_skill_effects(unit, state, skill, 'skill')
         assert not e.has_status(status_id='凶星低语')
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.01)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.01)
         _apply_skill_effects(unit, state, skill, 'skill')
         assert e.has_status(status_id='凶星低语')
 
@@ -313,9 +309,9 @@ class TestEffectHitRoll:
         skill = Skill(name='Debuff', type='skill', target='all_enemies', effects=[
             SkillEffect(type='debuff', target='all_enemies', value=16, param_id='凶星低语')])
         events = []
-        monkeypatch.setattr('engine.core.combat_sim._process_lc_effects',
+        monkeypatch.setattr('engine.core.combat_engine._process_lc_effects',
                             lambda *args: events.append(args[2]))
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.99)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.99)
 
         _apply_skill_effects(unit, state, skill, 'skill')
 
@@ -334,9 +330,9 @@ class TestEffectHitRoll:
             SkillEffect(type='debuff', target='all_enemies', value=16, param_id='凶星低语')])
         rolls = iter([0.01, 0.99])
         events = []
-        monkeypatch.setattr('engine.core.combat_sim._process_lc_effects',
+        monkeypatch.setattr('engine.core.combat_engine._process_lc_effects',
                             lambda *args: events.append(args[2]))
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: next(rolls))
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: next(rolls))
 
         _apply_skill_effects(unit, state, skill, 'skill')
 
@@ -347,10 +343,11 @@ class TestEffectHitRoll:
 
 
 def test_frontend_sends_effect_resistance_as_fraction():
-    """敌方效果抵抗输入应以百分比展示并转换为 API 所需的小数（v6.5: 逐只敌人卡片, id 带索引）。"""
-    html = Path('web/templates/index.html').read_text(encoding='utf-8')
-    assert 'value="${(defaults.effect_res??0)*100}"' in html  # 百分比展示
-    assert "effect_res: (parseFloat(document.getElementById(`enemy-res-${idx}`).value) || 0) / 100" in html
+    """敌方效果抵抗输入应以百分比展示并转换为 API 所需的小数（v6.5: 逐只敌人卡片, id 带索引;
+    v7.17.0: 前端脚本迁 web/static/app.js, 断言改读该文件）。"""
+    js = Path('web/static/app.js').read_text(encoding='utf-8')
+    assert 'value="${(defaults.effect_res??0)*100}"' in js  # 百分比展示
+    assert "effect_res: (parseFloat(document.getElementById(`enemy-res-${idx}`).value) || 0) / 100" in js
 
 
 class TestSemanticConfirm:
@@ -358,7 +355,7 @@ class TestSemanticConfirm:
 
     def test_xilian_trace1_speed_threshold(self):
         """昔涟: 进战斗面板SPD≥180→全队+20%+冰穿透（进战斗判定一次, 面板含遗器）"""
-        from engine.core.effect_resolver import _xilian_trace1_speed_pen
+        from engine.characters.xilian import _xilian_trace1_speed_pen
         u = _unit('xilian')
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
@@ -375,14 +372,15 @@ class TestSemanticConfirm:
         u = _unit('xiadie')
         state = SimState(enemies=[_enemy()], units=[u])
         u.memsprite_unit = types.SimpleNamespace(is_alive=True)
-        from engine.core import combat_sim
+        from engine.core import combat_engine
         used = []
-        monkeypatch.setattr(combat_sim, '_use_skill',
+        monkeypatch.setattr(combat_engine, '_use_skill',
                             lambda *a, **kw: used.append(a[2]))
-        RemembranceSystem().xiadie_ai(u, state)
+        from engine.characters.xiadie import xiadie_ai
+        xiadie_ai(u, state)
         assert used == ['skill_dragon']
         u.memsprite_unit = None
-        RemembranceSystem().xiadie_ai(u, state)
+        xiadie_ai(u, state)
         assert used == ['skill_dragon', 'skill']
 
 
@@ -478,13 +476,14 @@ class TestV561RemembranceRegressions:
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
 
-        rem._fengjin_extra_turn(state, fengjin)
+        from engine.characters.fengjin import _fengjin_extra_turn
+        _fengjin_extra_turn(state, fengjin)
         # 入队阶段: 只排队不治疗
         assert len([b for b in ms.buffs if b.param_id == 'fengjin_talent_dmg']) == 0
         assert any(x is ms for x, k in state.extra.get('extra_turns', []))
 
         # X轴执行: 治疗一次→疗愈层+1
-        from engine.core.combat_sim import _fengjin_talent_heal_buff
+        from engine.characters.fengjin import _fengjin_talent_heal_buff
         _fengjin_talent_heal_buff(state, fengjin)
         layers = [b for b in ms.buffs if b.param_id == 'fengjin_talent_dmg']
         assert len(layers) == 1

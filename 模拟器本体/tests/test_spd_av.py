@@ -4,10 +4,8 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, LightConeEffect, RelicPiece, RelicSet, RelicSetEffect
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, TimedBuff, _effective_spd, _begin_regular_turn,
-    _lc_team_advance, _next_y_actor, simulate,
-)
+from engine.core.combat_engine import _effective_spd, _begin_regular_turn, _lc_team_advance, _next_y_actor, simulate
+from engine.runtime import SimUnit, SimState, TimedBuff
 
 
 def _enemy(hp=500000, toughness=200, spd=80):
@@ -78,7 +76,7 @@ class TestAvWiring:
 
     def test_seele_ripple_regression(self):
         """希儿涟漪: 无 buff 时与 base_stats.SPD 恒等（回归既有测试）"""
-        from engine.core.effect_resolver import _trace_seele_ripple
+        from engine.characters.seele import _trace_seele_ripple
         u = _unit('seele')
         state = SimState(enemies=[_enemy()], units=[u])
         _trace_seele_ripple(u, state)
@@ -173,7 +171,7 @@ class TestIntegration:
 
     def test_action_counts_populated(self):
         """action_counts 记录每角色行动次数"""
-        from engine.core.combat_sim import simulate
+        from engine.core.combat_engine import simulate
         chars = [{'char': load_character('seele', 'data/characters'),
                   'position': 1}]
         s = simulate(chars, _enemy(), max_av=300)
@@ -181,7 +179,7 @@ class TestIntegration:
 
     def test_cycles_computed(self):
         """cycles: 以队内最慢角色行动值为一轮的近似"""
-        from engine.core.combat_sim import simulate
+        from engine.core.combat_engine import simulate
         chars = [{'char': load_character('seele', 'data/characters'),
                   'position': 1}]
         s = simulate(chars, _enemy(), max_av=300)

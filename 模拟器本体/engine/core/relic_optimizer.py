@@ -14,16 +14,17 @@ from engine.constants import (
     RELIC_MAIN_STAT_POOL, RELIC_MAIN_STAT_VALUES,
     SUB_STAT_TYPES, SUB_STAT_VALUES, StatType, Element,
     ELEMENT_DMG_STAT_TO_ELEMENT, ELATION_BASE_DAMAGE, BREAK_BASE_DAMAGE,
-    SUBSTAT_ROLL_FACTOR, SUBSTAT_SINGLE_SHARE,
+    SUBSTAT_ROLL_FACTOR, SUBSTAT_SINGLE_SHARE, FRONTEND_ROLL_KEYS,
 )
 from engine.models.character import Character
 from engine.models.equipment import RelicPiece
 from engine.core.attributes import compute_combat_stats, CombatStats
+from engine.runtime import AV_PER_TURN
+from engine.characters import BREAK_CHAR_CONFIG, BREAK_CHAR_IDS
 
 
 RELIC_SLOTS_ORDER = ["head", "hands", "body", "feet", "planar_sphere", "link_rope"]
 
-AV_PER_TURN = 10000.0
 ACTION_WINDOW_AV = 150.0
 
 # 默认优先级（用于无边际信息时的fallback）
@@ -34,11 +35,8 @@ DEFAULT_PRIORITY = {
     "HP_flat": 2, "ATK_flat": 2, "DEF_flat": 1,
 }
 
-# 前端推荐响应契约键（大写 SPD_PERCENT，与前端 map 一致）
-# v7.3: 效果命中也是遗器副词条（项目主裁决）→ 8 键扩为 9 键
-FRONTEND_ROLL_KEYS = ["CRIT_RATE", "CRIT_DMG", "ATK_percent", "SPD_PERCENT",
-                      "HP_percent", "EFFECT_RES", "DEF_percent", "BREAK_EFFECT",
-                      "EFFECT_HIT_RATE"]
+# 前端推荐响应契约键（大写 SPD_PERCENT）——v7.17.0 M7 键集单源:
+# 定义唯一在 engine.constants.FRONTEND_ROLL_KEYS, 此处导入再导出（测试与本模块消费）
 
 # v7.3.1（项目主纠正）: 总词条固定 50（6件×8~9条中值, 模拟器默认值, 不可调）;
 # 用户可调的是有效词条数——默认 30, 上限 50（=全部词条均有效, 无非有效词条）
@@ -98,17 +96,8 @@ class CharProfile:
 # spd_target: 固定速度达标值（流萤=完全燃烧四动 145 面板[2次击破延后模型, 用户确认];
 #   其余击破角色 134 = 星铁 150 行动值回合 2 动阈值 floor(150×134/10000)=2）
 # exclude_atk: 放弃攻击词条（流萤, 用户确认）
-BREAK_CHAR_CONFIG = {
-    "firefly": {"spd_target": 145.0, "exclude_atk": True},
-    "lingsha": {"spd_target": 134.0},
-    "fugue": {"spd_target": 134.0},
-    "trailblazer_harmony": {"spd_target": 134.0},
-    "boothill": {"spd_target": 134.0},  # v7.3: 击破C 速度达标
-    "rappa": {"spd_target": 134.0},
-}
 
 # v7.3: 击破定位显式配置（乱破 BE 行迹仅 13.3 不足 30 且纯空壳无文本信号）
-BREAK_CHAR_IDS = {"boothill", "rappa"}
 
 # 命途兜底角色定位（仅空壳角色使用）
 _PATH_ROLE = {
@@ -116,7 +105,6 @@ _PATH_ROLE = {
     "同谐": "support", "虚无": "debuffer", "存护": "shielder", "丰饶": "healer",
 }
 
-# 行迹 SPD 阈值正则：比较符必须紧邻 SPD/速度（排除"HP≥50%→速度+40%"）
 _SPD_THRESHOLD_RE = re.compile(
     r"(?:SPD|速度)\s*(?:≥|>=|≧|>|大于等于|大于|不低于|超过)\s*(\d{2,3})\s*点?"
 )
@@ -132,8 +120,13 @@ _BREAK_TEXT_RE = re.compile(r"击破特攻|超击破|击破伤害")
 _STAT_CONVERT_RE = re.compile(
     r"(?:暴击伤害|暴击率|攻击力|生命上限|防御力|速度)(?:提高|提高效果)[^。；;]*?"
     r"等同于[^。；;]*?(暴击伤害|暴击率|攻击力|速度|生命上限|防御力)的(\d+(?:\.\d+)?)%")
-_KEYWORD_TO_STAT = {"暴击伤害": "CRIT_DMG", "暴击率": "CRIT_RATE", "攻击力": "ATK_percent",
-                    "速度": "SPD_percent", "生命上限": "HP_percent", "防御力": "DEF_percent"}
+# v7.17.0: 中文关键词→属性的两张表共享核心 5 键（此前核心互抄, 现单源派生）。
+# _KEYWORD_STAT 供子串扫描按迭代序取首个命中——构造序必须保持
+# "伤害,核心5键,欢愉度,治疗量,抗性穿透,效果抵抗"（与旧序逐项一致）, 勿重排;
+# _KEYWORD_TO_STAT 仅按 _STAT_CONVERT_RE 捕获组单键查表, 迭代序不参与语义。
+_STAT_KEYWORD_CORE = {"暴击率": "CRIT_RATE", "暴击伤害": "CRIT_DMG", "攻击力": "ATK_percent",
+                      "生命上限": "HP_percent", "防御力": "DEF_percent"}
+_KEYWORD_TO_STAT = {**_STAT_KEYWORD_CORE, "速度": "SPD_percent"}
 
 # v7.4: 攻击力阈值行迹（火花>2000→欢愉度、刻律德菈>2000→暴伤、开拓者·欢愉>1000、流萤>1800）
 _ATK_THRESHOLD_RE = re.compile(r"(?:攻击力|ATK)\s*[≥>＞]+\s*(\d{3,4})")
@@ -144,12 +137,10 @@ _ATK_PER_POINT_RE = re.compile(
 _ATK_PP_TARGET = {"欢愉度": "ELATION_LEVEL", "暴伤": "CRIT_DMG", "暴击伤害": "CRIT_DMG",
                   "击破特攻": "BREAK_EFFECT", "治疗量": "HEAL_BONUS"}
 
-# 阈值奖励关键词 → 属性
+# 阈值奖励关键词 → 属性（迭代序敏感: 子串扫描首个命中即返回, 见 _STAT_KEYWORD_CORE 注）
 _KEYWORD_STAT = {
-    "伤害": "DMG_BONUS_ALL", "暴击率": "CRIT_RATE", "暴击伤害": "CRIT_DMG",
-    "攻击力": "ATK_percent", "生命上限": "HP_percent", "防御力": "DEF_percent",
-    "欢愉度": "ELATION_LEVEL", "治疗量": "HEAL_BONUS", "抗性穿透": "RES_PEN_ALL",
-    "效果抵抗": "EFFECT_RES",
+    "伤害": "DMG_BONUS_ALL", **_STAT_KEYWORD_CORE, "欢愉度": "ELATION_LEVEL",
+    "治疗量": "HEAL_BONUS", "抗性穿透": "RES_PEN_ALL", "效果抵抗": "EFFECT_RES",
 }
 
 # 遗器套装 condition 码 → 约束（游戏知识映射，集中一处）
@@ -531,7 +522,7 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
         # v5.5: 治疗基数判断（命名 paramId 查 HEAL_REGISTRY 的 stat; 数字编码默认 HP）
         primary = "HP"
         try:
-            from engine.core.combat_sim import HEAL_REGISTRY
+            from engine.core.combat_engine import HEAL_REGISTRY
             for skn in ("skill", "ultimate"):
                 sk = skills.get(skn)
                 if not sk:

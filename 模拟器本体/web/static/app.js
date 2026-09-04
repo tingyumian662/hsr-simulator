@@ -1,0 +1,677 @@
+// 星穹铁道战斗模拟器 —— 前端应用脚本
+// v7.17.0: 自 index.html 内联 <script> 整块迁出（纯搬运, 逻辑未改）。
+// 分节: 初始化与数据加载 / 敌人卡片 / 队伍渲染 / 角色级联选择器 / 遗器与光锥 /
+//       推荐装备套用 / 面板预览与智能推荐 / 模拟请求 / 全局事件
+let ALL = {};
+// v6.8: 角色推荐装备映射（/api/list 附带; 选择角色时自动套用）
+let RECOMMENDATIONS = {};
+// v7.17.0: 键集单源——副词条 9 键契约与四槽主词条 options 均来自 /api/keysets
+let KEYSETS = {substats: [], main_stats: {}};
+const CASCADER_STATE = Array.from({length:4},()=>({activePath:'',open:false}));
+
+async function init(){
+  const [listRes, keyRes] = await Promise.all([fetch('/api/list'), fetch('/api/keysets')]);
+  ALL = await listRes.json();
+  KEYSETS = await keyRes.json();
+  RECOMMENDATIONS = ALL.recommendations || {};
+  renderEnemies();
+  renderTeam();
+}
+init();
+
+// ── v6.5 逐只敌人配置 ──
+const ELEMENTS = ['物理','火','冰','雷','风','量子','虚数'];
+let enemySeq = 0;
+
+function weaknessChipsHtml(cid, checked){
+  return ELEMENTS.map(e=>{
+    const ck = checked.includes(e) ? 'checked':'';
+    return `<label class="weakness-chip" data-element="${e}"><input type="checkbox" value="${e}" ${ck}><span>${e}</span></label>`;
+  }).join('');
+}
+
+function addEnemyCard(defaults={}){
+  const list = document.getElementById('enemy-list');
+  const idx = enemySeq++;
+  const slot = document.createElement('div');
+  slot.className = 'enemy-slot';
+  slot.id = `enemy-slot-${idx}`;
+  slot.innerHTML = `
+    <div class="enemy-slot-head">
+      <input id="enemy-name-${idx}" class="enemy-name" placeholder="敌人名称（可选）" value="${defaults.name||''}">
+      <select id="enemy-type-${idx}" aria-label="敌人类型" title="精英每回合行动两次">
+        <option value="normal" ${defaults.elite?'':'selected'}>普通</option>
+        <option value="elite" ${defaults.elite?'selected':''}>精英（双动）</option>
+      </select>
+      <button type="button" class="enemy-remove" onclick="removeEnemy(${idx})" title="删除该敌人">✕</button>
+    </div>
+    <div class="field-grid">
+      <label class="field"><span>生命值 HP</span><input id="enemy-hp-${idx}" value="${defaults.hp??50000}" type="number"></label>
+      <label class="field"><span>防御力 DEF</span><input id="enemy-def-${idx}" value="${defaults.def??800}" type="number"></label>
+      <label class="field"><span>韧性</span><input id="enemy-tgh-${idx}" value="${defaults.toughness??20}" type="number"></label>
+      <label class="field"><span>效果抵抗 %</span><input id="enemy-res-${idx}" value="${(defaults.effect_res??0)*100}" type="number" min="0" max="100"></label>
+    </div>
+    <div class="weakness-field">
+      <span class="field-label">弱点属性</span>
+      <div class="weakness-checks">${weaknessChipsHtml(idx, defaults.weakness||['量子','虚数','冰'])}</div>
+    </div>`;
+  list.appendChild(slot);
+}
+
+function removeEnemy(idx){
+  const el = document.getElementById(`enemy-slot-${idx}`);
+  if(el) el.remove();
+}
+
+function renderEnemies(){
+  // 默认: 一只精英测试凶兽 + 一只普通小怪（可自行增删改）
+  addEnemyCard({name:'测试凶兽', elite:true, hp:50000, def:800, toughness:200, effect_res:0, weakness:[]});
+  addEnemyCard({name:'杂兵', hp:8000, def:600, toughness:40, effect_res:0, weakness:['量子','虚数','冰']});
+}
+
+function renderTeam(){
+  const slots = document.getElementById('team-slots');
+  for(let i=0;i<4;i++){
+    slots.innerHTML += `
+    <article class="card character-card" id="slot${i}">
+      <div class="slot-header"><span class="slot-index">0${i+1}</span><span class="slot-title" id="slot-name${i}">未选择角色</span></div>
+      <div class="field">
+        <span>角色</span>
+        <div class="search-field">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="char-search${i}" aria-label="搜索角色${i+1}" aria-controls="char-popup${i}" placeholder="搜索角色" oninput="filterChars(${i})">
+        </div>
+        <div class="character-cascader" id="char-cascader${i}">
+          <button type="button" class="char-cascader-trigger" id="char-trigger${i}" role="combobox" aria-label="选择角色${i+1}" aria-haspopup="dialog" aria-expanded="false" aria-controls="char-popup${i}" onclick="toggleCharacterCascader(${i})" onkeydown="onCascaderTriggerKeydown(event,${i})">
+            <span class="char-cascader-value" id="char-value${i}"><span class="char-cascader-placeholder">选择命途与角色</span></span>
+            <svg class="char-cascader-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 5 5 5-5"/></svg>
+          </button>
+          <div class="char-cascader-popup" id="char-popup${i}" role="dialog" aria-label="按命途选择角色${i+1}" onkeydown="onCascaderPanelKeydown(event,${i})" hidden>
+            <section class="char-cascader-column path-column" aria-labelledby="char-path-label${i}">
+              <div class="char-cascader-column-label" id="char-path-label${i}">命途</div>
+              <div class="char-cascader-list" id="char-paths${i}" role="listbox" aria-label="命途"></div>
+            </section>
+            <section class="char-cascader-column character-column" aria-labelledby="char-option-label${i}">
+              <div class="char-cascader-column-label" id="char-option-label${i}">角色</div>
+              <div class="char-cascader-list" id="char-options${i}" role="listbox" aria-label="角色"></div>
+            </section>
+          </div>
+        </div>
+        <select id="char${i}" aria-hidden="true" tabindex="-1" hidden><option value="">--</option></select>
+      </div>
+      <div class="field" id="lc-div${i}">
+        <span>光锥</span>
+        <div class="search-field">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="lc-search${i}" aria-label="搜索光锥${i+1}" placeholder="搜索当前命途光锥" oninput="filterLightCones(${i})">
+        </div>
+        <select id="lc${i}" aria-label="选择光锥${i+1}"><option value="">--</option></select>
+      </div>
+      <label class="field"><span>星魂</span><select id="eid${i}">${[0,1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>
+      <details><summary>遗器配置</summary>
+        <div class="details-body">
+        <div class="field"><span>外圈四件套</span><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="relic4-search${i}" aria-label="搜索外圈遗器${i+1}" placeholder="搜索遗器" oninput="filterRelics(${i},'4')"></div><select id="set4_${i}" onchange="smartRecommend(${i})"></select></div>
+        <div class="field"><span>内圈二件套</span><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="relic2-search${i}" aria-label="搜索内圈遗器${i+1}" placeholder="搜索遗器" oninput="filterRelics(${i},'2')"></div><select id="set2_${i}" onchange="smartRecommend(${i})"></select></div>
+        <div class="field-grid">
+          <label class="field"><span>躯干</span><select id="body${i}"></select></label>
+          <label class="field"><span>脚部</span><select id="feet${i}"></select></label>
+          <label class="field"><span>位面球</span><select id="sphere${i}"></select></label>
+          <label class="field"><span>连结绳</span><select id="rope${i}"></select></label>
+        </div>
+        </div>
+      </details>
+      <details open><summary>副词条</summary>
+        <div class="details-body">
+        <div class="substat-toolbar">
+          <label class="field total-field" title="有效词条数（毕业口径）。总词条固定 50 条，其余按非有效词条均摊；上限 50 = 全部词条均有效"><span>有效词条</span><div class="input-unit"><input id="eff${i}" value="30" type="number" min="1" max="50" onchange="checkTotal(${i})"><span>条</span></div></label>
+          <div class="field total-field total-fixed" title="总词条固定 50 条（6件×8~9条取中值，模拟器默认值，不可修改）。剩余 50−有效词条 按非有效词条均摊"><span>总词条</span><div class="input-unit"><input value="50" type="number" disabled tabindex="-1"><span>条</span></div></div>
+          <button type="button" class="button-secondary" onclick="smartRecommend(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.1L5 10l5.1 1.9L12 17l1.9-5.1L19 10l-5.1-1.9L12 3Z"/></svg><span>智能推荐</span></button>
+          <button type="button" class="button-secondary button-icon" title="刷新面板" aria-label="刷新面板" onclick="refreshPreview(${i})"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/></svg></button>
+          <span class="roll-info" id="info${i}"></span>
+        </div>
+        <div class="preview-panel" id="preview${i}"></div>
+        <div class="stats">
+          ${KEYSETS.substats.map(s=>`<div class="stat-field"><label title="手动调整不受单词条上限约束（v7.5.1 裁决: 60% 规定仅作用于智能推荐算法）"><span>${s.label}</span><span class="input-unit"><input id="${s.field}${i}" value="0" type="number" min="0" max="50" onchange="checkTotal(${i});refreshPreview(${i})"><span>条</span></span></label></div>`).join('')}
+        </div>
+        </div>
+      </details>
+    </article>`;
+    const sel = document.getElementById(`char${i}`);
+    sel.innerHTML = '<option value="">--</option>' + charOptgroups(ALL.characters);
+    populateMainSelects(i);
+    renderCharacterCascader(i);
+  }
+  updateRelicLists();
+  updateTeamMeta();
+}
+
+// v7.17.0: 四槽主词条 options 由 /api/keysets 单源构建——顺序/标签/默认选中承袭原内联
+// HTML（body 默认暴伤、feet 首项空"--"、sphere 无默认→首项量子增伤、rope 默认充能）
+function populateMainSelects(i){
+  for(const slot of ['body','feet','sphere','rope']){
+    const el = document.getElementById(`${slot}${i}`);
+    if(!el) continue;
+    el.innerHTML = (KEYSETS.main_stats[slot]||[]).map(o=>`<option value="${o.value}"${o.selected?' selected':''}>${o.label}</option>`).join('');
+  }
+}
+
+// 命途固定顺序（拼音序）
+const PATH_ORDER = ['存护','丰饶','同谐','记忆','虚无','毁灭','巡猎','智识','欢愉'];
+// 中文名拼音排序
+const byName = (a,b)=>a.name.localeCompare(b.name,'zh');
+
+function characterGroups(chars, query=''){
+  const q = query.trim().toLocaleLowerCase();
+  const filtered = q
+    ? chars.filter(c=>c.name.toLocaleLowerCase().includes(q)||c.id.toLocaleLowerCase().includes(q))
+    : chars;
+  return PATH_ORDER.map(path=>({
+    path,
+    characters: filtered.filter(c=>c.path===path).sort(byName),
+  })).filter(group=>group.characters.length);
+}
+
+function resolveCharacterPath(groups, selectedId='', preferredPath=''){
+  if(groups.some(group=>group.path===preferredPath)) return preferredPath;
+  const selectedGroup = groups.find(group=>group.characters.some(c=>c.id===selectedId));
+  return selectedGroup?.path || groups[0]?.path || '';
+}
+
+function charOptgroups(chars){
+  // v5.2 问题7: 空壳角色标注（无技能数据）
+  return characterGroups(chars).map(group=>{
+    return `<optgroup label="${group.path} (${group.characters.length})">${group.characters.map(c=>{
+      const tag = c.completeness==='full' ? '' : '（空壳）';
+      return `<option value="${c.id}">${c.name}${tag}</option>`;
+    }).join('')}</optgroup>`;
+  }).join('');
+}
+
+function characterValueHtml(char){
+  if(!char) return '<span class="char-cascader-placeholder">选择命途与角色</span>';
+  return `<span class="char-value-path">${char.path}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg><strong>${char.name}</strong>`;
+}
+
+function renderCharacterCascader(i){
+  const sel = document.getElementById(`char${i}`);
+  const search = document.getElementById(`char-search${i}`);
+  const pathList = document.getElementById(`char-paths${i}`);
+  const characterList = document.getElementById(`char-options${i}`);
+  if(!sel || !search || !pathList || !characterList) return;
+
+  const selectedId = sel.value;
+  const selectedChar = (ALL.characters||[]).find(c=>c.id===selectedId);
+  const groups = characterGroups(ALL.characters||[], search.value||'');
+  const state = CASCADER_STATE[i];
+  state.activePath = resolveCharacterPath(groups, selectedId, state.activePath);
+  const activeGroup = groups.find(group=>group.path===state.activePath);
+
+  document.getElementById(`char-value${i}`).innerHTML = characterValueHtml(selectedChar);
+  document.getElementById(`char-trigger${i}`).classList.toggle('has-value', Boolean(selectedChar));
+
+  if(!groups.length){
+    pathList.innerHTML = '<div class="char-cascader-empty">无匹配命途</div>';
+    characterList.innerHTML = '<div class="char-cascader-empty">无匹配角色</div>';
+    return;
+  }
+
+  pathList.innerHTML = groups.map(group=>`
+    <button type="button" class="char-path-option ${group.path===state.activePath?'is-active':''}" role="option" aria-selected="${group.path===state.activePath}" data-path="${group.path}" onclick="setCascaderPath(${i},this.dataset.path)">
+      <span>${group.path}</span><span class="char-path-meta"><span>${group.characters.length}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
+    </button>`).join('');
+
+  const clearOption = selectedId ? `
+    <button type="button" class="char-option char-clear-option" onclick="clearCharacter(${i})">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg><span>清空选择</span>
+    </button>` : '';
+  characterList.innerHTML = (activeGroup?.characters||[]).map(char=>{
+    const shellTag = char.completeness==='full' ? '' : '<span class="char-shell-tag">空壳</span>';
+    const selected = char.id===selectedId;
+    return `<button type="button" class="char-option ${selected?'is-selected':''}" role="option" aria-selected="${selected}" data-character-id="${char.id}" onclick="chooseCharacter(${i},this.dataset.characterId)">
+      <span class="char-option-name">${char.name}${shellTag}</span>
+      ${selected?'<svg class="char-selected-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>':''}
+    </button>`;
+  }).join('') + clearOption;
+}
+
+function setCascaderOpen(i, open, returnFocus=false){
+  const state = CASCADER_STATE[i];
+  const popup = document.getElementById(`char-popup${i}`);
+  const trigger = document.getElementById(`char-trigger${i}`);
+  const card = document.getElementById(`slot${i}`);
+  if(!popup || !trigger || !card) return;
+  state.open = open;
+  popup.hidden = !open;
+  trigger.setAttribute('aria-expanded', String(open));
+  card.classList.toggle('is-cascader-open', open);
+  if(returnFocus) trigger.focus();
+}
+
+function toggleCharacterCascader(i, forceOpen){
+  const nextOpen = forceOpen ?? !CASCADER_STATE[i].open;
+  for(let slot=0;slot<4;slot++) if(slot!==i && CASCADER_STATE[slot].open) setCascaderOpen(slot,false);
+  if(nextOpen) renderCharacterCascader(i);
+  setCascaderOpen(i,nextOpen);
+}
+
+function setCascaderPath(i, path){
+  CASCADER_STATE[i].activePath = path;
+  renderCharacterCascader(i);
+}
+
+function chooseCharacter(i, characterId){
+  const sel = document.getElementById(`char${i}`);
+  const char = (ALL.characters||[]).find(c=>c.id===characterId);
+  if(!sel || !char) return;
+  sel.value = char.id;
+  document.getElementById(`char-search${i}`).value = '';
+  CASCADER_STATE[i].activePath = char.path;
+  onCharChange(i);
+  setCascaderOpen(i,false,true);
+}
+
+function clearCharacter(i){
+  document.getElementById(`char${i}`).value = '';
+  document.getElementById(`char-search${i}`).value = '';
+  onCharChange(i);
+  setCascaderOpen(i,false,true);
+}
+
+function filterChars(i){
+  toggleCharacterCascader(i,true);
+}
+
+function focusCascaderButton(container, direction){
+  const buttons = [...container.querySelectorAll('button:not(:disabled)')];
+  if(!buttons.length) return;
+  const current = buttons.indexOf(document.activeElement);
+  const next = current<0 ? 0 : (current+direction+buttons.length)%buttons.length;
+  buttons[next].focus();
+}
+
+function onCascaderTriggerKeydown(event, i){
+  if(event.key==='ArrowDown'){
+    event.preventDefault();
+    toggleCharacterCascader(i,true);
+    requestAnimationFrame(()=>focusCascaderButton(document.getElementById(`char-paths${i}`),1));
+  }else if(event.key==='Escape' && CASCADER_STATE[i].open){
+    event.preventDefault();
+    setCascaderOpen(i,false);
+  }
+}
+
+function onCascaderPanelKeydown(event, i){
+  const list = event.target.closest('.char-cascader-list');
+  if(event.key==='Escape'){
+    event.preventDefault();
+    setCascaderOpen(i,false,true);
+  }else if(list && (event.key==='ArrowDown'||event.key==='ArrowUp')){
+    event.preventDefault();
+    focusCascaderButton(list,event.key==='ArrowDown'?1:-1);
+  }else if(event.key==='ArrowRight' && event.target.classList.contains('char-path-option')){
+    event.preventDefault();
+    focusCascaderButton(document.getElementById(`char-options${i}`),1);
+  }else if(event.key==='ArrowLeft' && event.target.classList.contains('char-option')){
+    event.preventDefault();
+    document.querySelector(`#char-paths${i} .char-path-option.is-active`)?.focus();
+  }
+}
+
+function updateRelicLists(){
+  const outer = (ALL.outer_relics||[]).slice().sort(byName);
+  const inner = (ALL.inner_relics||[]).slice().sort(byName);
+  for(let i=0;i<4;i++){
+    const s4 = document.getElementById(`set4_${i}`);
+    const s2 = document.getElementById(`set2_${i}`);
+    if(s4) s4.innerHTML = outer.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+    if(s2) s2.innerHTML = inner.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+  }
+}
+
+function filterRelics(i, which){
+  const q = (document.getElementById(`relic${which}-search${i}`).value||'').trim();
+  const sel = document.getElementById(which==='4'?`set4_${i}`:`set2_${i}`).value;
+  const list = (which==='4'?ALL.outer_relics:ALL.inner_relics)||[];
+  const filtered = q ? list.filter(r=>r.name.includes(q)) : list.slice().sort(byName);
+  const selEl = document.getElementById(which==='4'?`set4_${i}`:`set2_${i}`);
+  selEl.innerHTML = filtered.map(r=>`<option value="${r.name}">${r.name}</option>`).join('');
+  selEl.value = sel;
+}
+
+function onCharChange(i){
+  const cid = document.getElementById(`char${i}`).value;
+  const char = ALL.characters.find(c=>c.id===cid);
+  document.getElementById(`lc-search${i}`).value = '';
+  document.getElementById(`lc${i}`).value = '';
+  populateLightCones(i, '');
+  document.getElementById(`slot-name${i}`).textContent = char ? char.name : '未选择角色';
+  document.getElementById(`slot${i}`).classList.toggle('is-selected', Boolean(char));
+  renderCharacterCascader(i);
+  updateTeamMeta();
+  // v6.8: 位面球默认按角色元素推导（修复此前写死量子增伤——火角色默认选错球）;
+  // 有推荐映射则自动套用（专属光锥/遗器套装/主词条; 无映射维持其余现状）
+  if(char){
+    const sp = document.getElementById(`sphere${i}`);
+    const elemVal = ELEMENT_SPHERE[char.element];
+    if(sp && elemVal && [...sp.options].some(o=>o.value===elemVal)) sp.value = elemVal;
+  }
+  applyRecommendedLoadout(i, char);
+}
+
+// v6.8 角色推荐装备自动套用（data/recommendations.json）
+const ELEMENT_SPHERE = {
+  '物理': 'DMG_BONUS_PHYSICAL', '火': 'DMG_BONUS_FIRE', '冰': 'DMG_BONUS_ICE',
+  '雷': 'DMG_BONUS_LIGHTNING', '风': 'DMG_BONUS_WIND',
+  '量子': 'DMG_BONUS_QUANTUM', '虚数': 'DMG_BONUS_IMAGINARY',
+};
+// 映射值可为数组（斜杠多选）——推荐项全部置顶、默认选首个, 其余照常排列（用户 2026-08-15 确认）
+const firstVal = v => Array.isArray(v) ? v[0] : v;
+// 推荐 option 置顶: 按 values 顺序把对应 option 移到下拉最前（其余选项保持原排列）
+// v6.8b: 倒序遍历——insertBefore 插到最前会反转顺序, 正序循环导致多值推荐倒序显示
+function moveOptionsToTop(el, values){
+  if(!el || !values || !values.length) return;
+  for(let idx = values.length - 1; idx >= 0; idx--){
+    const opt = [...el.options].find(o=>o.value===values[idx]);
+    if(opt) el.insertBefore(opt, el.firstChild);
+  }
+}
+function applyRecommendedLoadout(i, char){
+  if(!char) return;
+  const rec = RECOMMENDATIONS[char.id];
+  if(!rec) return;
+  let applied = [];
+  // 专属光锥（仅当按命途过滤后列表中存在; 置顶）
+  const lcVals = rec.light_cone ? (Array.isArray(rec.light_cone) ? rec.light_cone : [rec.light_cone]) : [];
+  if(lcVals.length){
+    const lcSel = document.getElementById(`lc${i}`);
+    moveOptionsToTop(lcSel, lcVals);
+    if([...lcSel.options].some(o=>o.value===firstVal(lcVals))){
+      lcSel.value = firstVal(lcVals);
+      applied.push('光锥');
+    }
+  }
+  // 遗器套装（外圈/内圈; 推荐项置顶, 默认选首个）
+  const s4Vals = rec.set4 ? (Array.isArray(rec.set4) ? rec.set4 : [rec.set4]) : [];
+  if(s4Vals.length){
+    const el = document.getElementById(`set4_${i}`);
+    moveOptionsToTop(el, s4Vals);
+    if([...el.options].some(o=>o.value===firstVal(s4Vals))){ el.value = firstVal(s4Vals); applied.push('外圈'); }
+  }
+  const s2Vals = rec.set2 ? (Array.isArray(rec.set2) ? rec.set2 : [rec.set2]) : [];
+  if(s2Vals.length){
+    const el = document.getElementById(`set2_${i}`);
+    moveOptionsToTop(el, s2Vals);
+    if([...el.options].some(o=>o.value===firstVal(s2Vals))){ el.value = firstVal(s2Vals); applied.push('内圈'); }
+  }
+  // 主词条（映射值优先; 置顶; sphere 已由 onCharChange 按元素全局推导, 此处仅覆盖映射显式值）
+  const mains = [['body', rec.body], ['feet', rec.feet], ['rope', rec.rope]];
+  if(rec.sphere) mains.push(['sphere', rec.sphere]);
+  for(const [key, raw] of mains){
+    if(!raw) continue;
+    const vals = Array.isArray(raw) ? raw : [raw];
+    const el = document.getElementById(`${key}${i}`);
+    moveOptionsToTop(el, vals);
+    if([...el.options].some(o=>o.value===firstVal(vals))){
+      el.value = firstVal(vals);
+      applied.push(key);
+    }
+  }
+  if(applied.length) console.log(`已套用推荐装备: ${char.name} (${applied.join('/')})`);
+}
+
+function populateLightCones(i, query){
+  const cid = document.getElementById(`char${i}`).value;
+  const char = ALL.characters.find(c=>c.id===cid);
+  const lcSel = document.getElementById(`lc${i}`);
+  const selected = lcSel.value;
+  const list = char ? ALL.light_cones.filter(l=>l.path===char.path) : [];
+  const filtered = query ? list.filter(l=>l.name.includes(query)||l.id.includes(query)) : list;
+  lcSel.innerHTML = '<option value="">--</option>' + filtered.sort(byName).map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  lcSel.value = selected;
+}
+
+function filterLightCones(i){
+  const query = (document.getElementById(`lc-search${i}`).value||'').trim();
+  populateLightCones(i, query);
+}
+
+function updateTeamMeta(){
+  const count = [0,1,2,3].filter(i=>document.getElementById(`char${i}`)?.value).length;
+  document.getElementById('team-count').textContent = `${count} / 4`;
+}
+
+function getConfig(i){
+  return {
+    char_id: document.getElementById(`char${i}`).value,
+    lc_id: document.getElementById(`lc${i}`).value||null,
+    eidolon: parseInt(document.getElementById(`eid${i}`).value),
+    relics: {
+      set4: document.getElementById(`set4_${i}`).value,
+      set2: document.getElementById(`set2_${i}`).value,
+      body: document.getElementById(`body${i}`).value,
+      feet: document.getElementById(`feet${i}`).value,
+      sphere: document.getElementById(`sphere${i}`).value,
+      rope: document.getElementById(`rope${i}`).value,
+    },
+    substats: Object.fromEntries(KEYSETS.substats.map(s=>[s.key, parseInt(document.getElementById(`${s.field}${i}`).value)||0]))
+  };
+}
+
+async function runSim(){
+  const btn = document.getElementById('btn-sim');
+  const status = document.getElementById('sim-status');
+  const btnLabel = btn.querySelector('span');
+  btn.disabled = true;
+  btnLabel.textContent = '模拟中';
+  status.dataset.state = 'loading';
+  status.textContent = '正在计算战斗序列...';
+
+  // v6.5: 逐只敌人配置（每只独立 名称/普通精英/HP/DEF/韧性/弱点）
+  const enemies = [];
+  document.querySelectorAll('#enemy-list .enemy-slot').forEach(slot=>{
+    const idx = slot.id.split('-').pop();
+    const weaknesses = [];
+    slot.querySelectorAll('.weakness-checks input:checked').forEach(cb=>weaknesses.push(cb.value));
+    const nameVal = document.getElementById(`enemy-name-${idx}`).value.trim();
+    enemies.push({
+      name: nameVal || '敌人',
+      elite: document.getElementById(`enemy-type-${idx}`).value === 'elite',
+      hp: parseFloat(document.getElementById(`enemy-hp-${idx}`).value),
+      def: parseFloat(document.getElementById(`enemy-def-${idx}`).value),
+      toughness: parseFloat(document.getElementById(`enemy-tgh-${idx}`).value),
+      effect_res: (parseFloat(document.getElementById(`enemy-res-${idx}`).value) || 0) / 100,
+      weakness: weaknesses,
+    });
+  });
+
+  let body;
+  try{
+    if(!enemies.length) throw new Error('至少配置一个敌人');
+    body = {
+      team: [0,1,2,3].map(i=>getConfig(i)).filter(c=>c.char_id),
+      enemies,
+      max_av: parseFloat(document.getElementById('max-av').value),
+    };
+  }catch(e){
+    // v5.5: 配置读取异常不卡死（此前在 try 外, 按钮永久禁用+状态卡"计算中"）
+    status.dataset.state = 'error';
+    status.textContent = '配置错误: '+e.message;
+    btn.disabled = false;
+    btnLabel.textContent = '开始模拟';
+    return;
+  }
+
+  try{
+    const r = await fetch('/api/simulate',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
+    const data = await r.json();
+    if(data.error){
+      status.dataset.state = 'error';
+      status.textContent = '模拟失败: '+data.error;
+      if(data.trace) console.error(data.trace);
+      btn.disabled = false;
+      btnLabel.textContent = '开始模拟';
+      return;
+    }
+
+    // 日志
+    const logDiv = document.getElementById('log-container');
+    logDiv.innerHTML = '';
+    if(data.log.length === 0){
+      logDiv.innerHTML = '<div class="log-line log-error">[空日志] turns='+data.turns
+        +' _debug='+JSON.stringify(data._debug||{})+'</div>';
+    }
+    data.log.forEach((line,i)=>{
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      div.textContent = line;
+      if(line.includes('ERROR')||line.includes('错误')) div.classList.add('log-error');
+      else if(line.includes('--- 第')) div.classList.add('log-turn');
+      else if(line.includes('>>>')||line.includes('伤害')) div.classList.add('log-event');
+      else if(line.includes('无敌')||line.includes('警告')) div.classList.add('log-warning');
+      logDiv.appendChild(div);
+    });
+    document.getElementById('log-count').textContent = `${data.log.length} EVENTS`;
+    logDiv.scrollTop = 0;
+
+    // 汇总
+    document.getElementById('summary-panel').style.display = 'block';
+    let html = `<div class="summary-total"><strong>${data.total_damage.toLocaleString()}</strong><span>总伤害 · ${data.turns} 回合</span></div>`;
+    data.summary.forEach(u=>{
+      const width = Math.max(0, Math.min(100, Number(u.pct)||0));
+      html += `<div class="summary-row"><div class="summary-bar"><span>${u.name}</span><span>${u.damage.toLocaleString()} · ${u.pct}%</span></div><div class="summary-track" style="--pct:${width}%"></div></div>`;
+    });
+    document.getElementById('summary-content').innerHTML = html;
+    status.dataset.state = 'success';
+    status.textContent = `模拟完成 · ${data.turns} 回合`;
+  }catch(e){
+    status.dataset.state = 'error';
+    status.textContent = '网络错误: '+e.message;
+  }
+  btn.disabled = false;
+  btnLabel.textContent = '开始模拟';
+}
+
+function switchTab(t){}
+
+// === 智能推荐 ===
+function setStats(i, vals){
+  for(const [k,v] of Object.entries(vals)){
+    const el = document.getElementById(`${k}${i}`);
+    if(el) el.value = v;
+  }
+}
+
+function usedTotal(i){
+  // v7.3.1: 全部 9 格 = 总词条（固定 50）; 另口径统计有效格（未置灰）
+  const keys = KEYSETS.substats.map(s=>s.field);
+  return keys.reduce((s,k)=>{
+    const el = document.getElementById(k + i);
+    if(!el) return s;
+    return s+(parseInt(el.value)||0);
+  }, 0);
+}
+
+function usedEffective(i){
+  const keys = KEYSETS.substats.map(s=>s.field);
+  return keys.reduce((s,k)=>{
+    const el = document.getElementById(k + i);
+    if(!el || el.classList.contains('stat-invalid')) return s;
+    return s+(parseInt(el.value)||0);
+  }, 0);
+}
+
+const TOTAL_ROLLS = 50;  // v7.3.1: 总词条固定 50（模拟器默认值）
+
+function checkTotal(i){
+  const eff = parseInt(document.getElementById(`eff${i}`).value)||30;
+  const usedEff = usedEffective(i);
+  const used = usedTotal(i);
+  const info = document.getElementById(`info${i}`);
+  info.classList.toggle('is-over', usedEff > eff || used > TOTAL_ROLLS);
+  if(usedEff > eff) info.textContent = `有效超出 ${usedEff-eff}`;
+  else if(used > TOTAL_ROLLS) info.textContent = `总词条超出 ${used-TOTAL_ROLLS}`;
+  else info.textContent = `有效 ${usedEff}/${eff} · 总 ${used}/${TOTAL_ROLLS}`;
+}
+
+async function refreshPreview(i){
+  const div = document.getElementById(`preview${i}`);
+  const cfg = getConfig(i);
+  if(!cfg.char_id){ div.textContent = ''; return; }  // v5.5: 未选角色不请求
+  div.textContent = '计算中...';
+  const body = {team: [cfg], enemy: {hp:1,def:1,toughness:1,weakness:[],count:1}, max_av:1};
+  try{
+    const r = await fetch('/api/preview', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await r.json();
+    if(data.previews && data.previews[0]){
+      const p = data.previews[0];
+      div.innerHTML = `HP:${p.HP} ATK:${p.ATK} DEF:${p.DEF} SPD:${p.SPD}<br>CR:${p.CR}% CD:${p.CD}% RES:${p.RES}% ERR:${p.ERR}% BE:${p.BE}% EHR:${p.EHR??'-'}%`;
+    }else{
+      div.textContent = '预览不可用';  // v5.5: 后端跳过该角色时不留"计算中"
+    }
+  }catch(e){ div.textContent = '预览失败: '+e.message; }
+}
+
+async function smartRecommend(i){
+  const info = document.getElementById(`info${i}`);
+  info.textContent = '计算中...';
+  const eff = parseInt(document.getElementById(`eff${i}`).value)||30;
+  const body = {
+    team: [getConfig(i)],
+    enemy: {hp:50000,def:800,toughness:20,weakness:[],count:1},
+    max_av: 1,
+  };
+  // 注入有效词条数（v7.3.1: 总词条固定 50）
+  body.team[0].effective_rolls = eff;
+  try{
+    const r = await fetch('/api/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+    if(data.recommendations && data.recommendations[0] && data.recommendations[0].rolls){
+      const rec = data.recommendations[0];
+      // v7.17.0: 推荐键/引擎键 → 输入短键的映射由 /api/keysets 契约派生（原 map/wmap 两份硬编码删）
+      const vals = {};
+      for(const s of KEYSETS.substats){ if(rec.rolls[s.key]!==undefined) vals[s.field] = rec.rolls[s.key]; }
+      setStats(i, vals);
+      // v6.11 阶段2 + v7.3: 有效/无效分区（权重=0 的框置灰; 后端 weights 为引擎内部键, 速度键是小写 p 的 SPD_percent）
+      const engineToField = {};
+      for(const s of KEYSETS.substats) engineToField[s.engine_key] = s.field;
+      for(const [wk,wv] of Object.entries(rec.weights || {})){
+        const key = engineToField[wk];
+        if(!key) continue;
+        const el = document.getElementById(key + i);
+        if(!el) continue;
+        if(wv <= 0){ el.classList.add('stat-invalid'); el.title='非有效词条——该角色不吃此词条, 剩余词条默认均摊到此'; }
+        else { el.classList.remove('stat-invalid'); el.title=''; }
+      }
+      // 约束面板 + 毕业度（v7.3.1: 有效/总分口径）
+      const g = rec.graduation || {};
+      let html = '✓ 有效 ' + g.effective_used + '/' + (g.effective_budget ?? g.budget) + ' · 总 ' + g.budget + ' · 毕业度 ' + g.score_pct + '%';
+      if(g.invalid_used > 0) html += ' · 非有效均摊 ' + g.invalid_used;
+      if(g.gap_to_target > 0) html += ' · 距毕业差 ' + g.gap_to_target + ' 条';
+      if((rec.constraints || []).length) html += '<div class="constraint-list">';
+      for(const c of (rec.constraints || [])){
+        html += '<div class="' + (c.met ? 'constraint-met' : 'constraint-miss') + '">' + c.name + ': 当前' + c.current + ' → ' + (c.met ? '已达标' : ('差'+c.suggest_rolls+'条')) + '</div>';
+      }
+      if((rec.constraints || []).length) html += '</div>';
+      info.innerHTML = html;
+      checkTotal(i);
+      refreshPreview(i);  // v5.5: 推荐成功后自动刷新面板预览
+    }else throw new Error('推荐结果不可用');
+  }catch(e){ info.textContent = '失败: '+e.message; }
+}
+
+document.addEventListener('pointerdown',event=>{
+  for(let i=0;i<4;i++){
+    if(!CASCADER_STATE[i].open) continue;
+    const field = document.getElementById(`char-cascader${i}`)?.closest('.field');
+    if(field && !field.contains(event.target)) setCascaderOpen(i,false);
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key!=='Escape') return;
+  for(let i=0;i<4;i++){
+    if(CASCADER_STATE[i].open) setCascaderOpen(i,false,event.target.closest?.('.char-cascader-popup'));
+  }
+});

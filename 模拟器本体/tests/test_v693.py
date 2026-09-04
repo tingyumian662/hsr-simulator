@@ -5,39 +5,16 @@ import random
 import pytest
 
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    PlayerStatus,
-    SimState,
-    SimUnit,
-    _apply_player_status,
-    _build_effective_stats,
-    _busitu_apply_bait,
-    _busitu_fua,
-    _busitu_rebind_bait,
-    _check_fatal,
-    _enemy_for_damage,
-    _gain_energy,
-    _multihit_damage,
-    _qianye_ai,
-    _qianye_enter_wrath,
-    _qianye_skill,
-    _robin_concert_extra,
-    _robin_ult,
-    _ruanmei_field_apply,
-    _ruanmei_tick,
-    _ruanmei_xianyin_apply,
-    _sunday_apply_cr_buff,
-    _sunday_apply_mentor,
-    _sunday_tick,
-    _tick_buffs,
-    _tick_enemy_statuses,
-    _use_skill,
-    _welt_apply_shizhong,
-    _welt_apply_slow,
-    _register_v69_skill_hooks,
-    simulate,
-)
-from engine.core.effect_resolver import _trace_busitu_e1, _trace_busitu_trace3
+from engine.core.combat_engine import _apply_player_status, _build_effective_stats, _check_fatal, _gain_energy, _multihit_damage, _tick_buffs, _tick_enemy_statuses, _use_skill, simulate
+from engine.characters import activate as _activate_chars
+from engine.characters.busitu import _busitu_apply_bait, _busitu_fua, _busitu_rebind_bait
+from engine.characters.qianye import _qianye_ai, _qianye_enter_wrath, _qianye_skill
+from engine.characters.robin import _robin_concert_extra, _robin_ult
+from engine.characters.ruan_mei import _ruanmei_field_apply, _ruanmei_tick, _ruanmei_xianyin_apply
+from engine.characters.sunday import _sunday_apply_cr_buff, _sunday_apply_mentor, _sunday_tick
+from engine.characters.welt import _welt_apply_shizhong, _welt_apply_slow
+from engine.runtime import PlayerStatus, SimState, SimUnit, _enemy_for_damage
+from engine.characters.busitu import _trace_busitu_e1, _trace_busitu_trace3
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 
@@ -281,7 +258,7 @@ class TestWeltPerHitPipeline:
         welt = _unit("welt", eidolon=2)
         enemy = _enemy()
         state = _state(welt, enemies=[enemy])
-        _register_v69_skill_hooks(state.skill_hooks)
+        _activate_chars(state, {'sunday', 'welt', 'ruan_mei'})
 
         _use_skill(welt, state, "skill")
 

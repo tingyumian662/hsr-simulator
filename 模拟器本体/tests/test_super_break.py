@@ -3,9 +3,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _apply_break_debuff, _begin_enemy_turn,
-)
+from engine.core.combat_engine import _use_skill, _apply_break_debuff, _begin_enemy_turn
+from engine.runtime import SimUnit, SimState
 
 
 def _enemy(hp=500000, toughness=30):
@@ -84,7 +83,7 @@ class TestSuperBreak:
 
     def test_toughness_efficiency_uses_effective_stats(self):
         """战斗中的削韧效率增益应进入实际削韧结算。"""
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
 
         u = _unit('seele')
         u.buffs.append(TimedBuff(
@@ -104,7 +103,7 @@ class TestSuperBreak:
         e.is_broken = True
         e.toughness = 0.0
         state = _state(e, u)
-        from engine.core.combat_sim import calculate_damage
+        from engine.core.combat_engine import calculate_damage
         stats = compute_combat_stats(u.char, None, None, None)
         td = 20.0
         sbd = calculate_damage(stats, e, 0, 0, "super_break", '量子', 80,
@@ -131,7 +130,7 @@ class TestIronCavalry:
     def test_be_threshold_defpen(self):
         """铁骑4pc: BE≥150% → 击破/超击破无视20%防御（对比无遗器）"""
         from engine.core.damage import calculate_damage
-        from engine.core.combat_sim import CharacterAsTarget
+        from engine.runtime import CharacterAsTarget
         from engine.core.attributes import CombatStats
         # 两套面板: 无遗器 vs 铁骑(条件激活)
         e = _enemy()

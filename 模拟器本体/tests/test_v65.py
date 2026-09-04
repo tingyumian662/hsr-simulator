@@ -6,7 +6,8 @@ import pytest
 
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate, _respawn_wave, SimState
+from engine.core.combat_engine import simulate, _respawn_wave
+from engine.runtime import SimState
 
 
 def _enemy(eid='x', name='X', hp=500000, tough=200, elite=False, attacks=None):

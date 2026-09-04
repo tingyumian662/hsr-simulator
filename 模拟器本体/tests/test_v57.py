@@ -16,10 +16,8 @@ import copy
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import (
-    simulate, SimState, SimUnit, _use_skill, _select_targets, _enemy_for_damage,
-    _toughness_efficiency, _apply_hit, _gain_energy,
-)
+from engine.core.combat_engine import simulate, _use_skill, _toughness_efficiency, _apply_hit, _gain_energy
+from engine.runtime import SimState, SimUnit, _select_targets, _enemy_for_damage
 from engine.core.attributes import compute_combat_stats
 
 
@@ -78,7 +76,7 @@ class TestMultTarget:
 
     def test_mydei_e1_no_cross_battle_pollution(self):
         """E1 deepcopy: 同配置模拟两次, 倍率不叠乘"""
-        from engine.core.combat_sim import simulate
+        from engine.core.combat_engine import simulate
         c = load_character('mydei', 'data/characters')
         s1 = simulate([{'char': c, 'position': 1, 'eidolon': 1}], _enemy(), max_av=600)
         s2 = simulate([{'char': c, 'position': 1, 'eidolon': 1}], _enemy(), max_av=600)
@@ -221,7 +219,7 @@ class TestRealmCountdown:
 
     def test_field_cleared_on_death(self):
         """昔涟阵亡→结界解除"""
-        from engine.core.combat_sim import _check_fatal
+        from engine.core.combat_engine import _check_fatal
         u = _unit('xilian')
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')
@@ -234,7 +232,7 @@ class TestRealmCountdown:
 class TestMydeiE2Reset:
     def test_e2_heal_convert_resets_on_any_turn(self):
         """E2: 任意单位行动后重置累计（此前40上限变整场累计）"""
-        from engine.core.combat_sim import _begin_regular_turn
+        from engine.core.combat_engine import _begin_regular_turn
         u = _unit('mydei', eidolon=2)
         u.extra['is_blood_debt'] = True
         ally = _unit('seele', position=2)
@@ -247,8 +245,8 @@ class TestMydeiE2Reset:
 class TestChangyeyueImmunity:
     def test_darkness_control_immune(self):
         """至暗之谜期间免疫控制类负面状态"""
-        from engine.core.combat_sim import _apply_player_status
-        from engine.core.combat_sim import PlayerStatus
+        from engine.core.combat_engine import _apply_player_status
+        from engine.runtime import PlayerStatus
         u = _unit('changyeyue')
         u.is_darkness = True
         state = SimState(enemies=[_enemy()], units=[u])
@@ -258,8 +256,8 @@ class TestChangyeyueImmunity:
 
     def test_yizhi_16_control_immune(self):
         """忆质≥16 免疫控制"""
-        from engine.core.combat_sim import _apply_player_status
-        from engine.core.combat_sim import PlayerStatus
+        from engine.core.combat_engine import _apply_player_status
+        from engine.runtime import PlayerStatus
         u = _unit('changyeyue')
         u.is_darkness = False
         u.yizhi = 16
@@ -298,7 +296,7 @@ class TestFengjinFixes:
         state = SimState(enemies=[_enemy()], units=[u, ally])
         rem = RemembranceSystem()
         u.current_energy = 140
-        from engine.core.combat_sim import _ult_post
+        from engine.core.combat_engine import _ult_post
         _ult_post(state, u)
         orig = ally.extra['clear_sky_orig_maxhp']
         assert ally.max_hp == pytest.approx(orig * 1.30 + 600, rel=1e-6)
@@ -311,7 +309,7 @@ class TestLightConeRanks:
     def test_planetary_rendezvous_rank_values(self):
         """与行星相会: S5=24%（values 按叠影档）"""
         from engine.models.equipment import load_lightcone
-        from engine.core.combat_sim import _lc_same_element_dmg_bonus, _lc_rank_value
+        from engine.core.combat_engine import _lc_same_element_dmg_bonus, _lc_rank_value
         lc = load_lightcone('planetary_rendezvous')
         u = _unit('seele')
         u.lightcone = lc
@@ -322,7 +320,7 @@ class TestLightConeRanks:
     def test_swordplay_rank_consumption(self):
         """论剑: 层数增伤按叠影档（v5.7 用户实机确认: S1-S5 = 8/10/12/14/16%/层）"""
         from engine.models.equipment import load_lightcone
-        from engine.core.combat_sim import _lc_target_correct, _build_effective_stats
+        from engine.core.combat_engine import _lc_target_correct, _build_effective_stats
         lc = load_lightcone('swordplay')
         u = _unit('seele')
         u.lightcone = lc

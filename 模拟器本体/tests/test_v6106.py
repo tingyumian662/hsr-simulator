@@ -2,13 +2,9 @@
 import pytest
 
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState,
-    SimUnit,
-    _apply_hit,
-    _check_fatal,
-)
-from engine.core.effect_resolver import _fuxuan_e2_fatal_check
+from engine.core.combat_engine import _apply_hit, _check_fatal
+from engine.runtime import SimState, SimUnit
+from engine.characters.fu_xuan import _fuxuan_e2_fatal_check
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 
@@ -94,7 +90,7 @@ def _huohuo_state(eidolon=0, with_ally=False):
 
 
 def test_huohuo_ruming_on_self_after_skill():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     hh, state = _huohuo_state(eidolon=0)
     state.skill_points = 5
     _use_skill(hh, state, 'skill')
@@ -105,7 +101,7 @@ def test_huohuo_ruming_on_self_after_skill():
 
 
 def test_huohuo_ruming_e1_duration():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     hh, state = _huohuo_state(eidolon=1)
     state.skill_points = 5
     _use_skill(hh, state, 'skill')
@@ -113,7 +109,7 @@ def test_huohuo_ruming_e1_duration():
 
 
 def test_huohuo_ruming_tick_and_heal():
-    from engine.core.combat_sim import _huohuo_ruming_tick, _huohuo_ruming_heal_all
+    from engine.characters.huohuo import _huohuo_ruming_tick, _huohuo_ruming_heal_all
     hh, state = _huohuo_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     hh.extra['huohuo_ruming_turns'] = 3
@@ -129,7 +125,8 @@ def test_huohuo_ruming_tick_and_heal():
 
 
 def test_huohuo_ruming_cleanse_negative_status():
-    from engine.core.combat_sim import _huohuo_ruming_heal_all, PlayerStatus
+    from engine.characters.huohuo import _huohuo_ruming_heal_all
+    from engine.runtime import PlayerStatus
     hh, state = _huohuo_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     hh.extra['huohuo_ruming_turns'] = 3
@@ -144,8 +141,8 @@ def test_huohuo_ruming_cleanse_negative_status():
 
 
 def test_huohuo_e2_requires_ruming():
-    from engine.core.effect_resolver import _eid_huohuo_e2, _huohuo_e2_fatal_check
-    from engine.core.combat_sim import _check_fatal
+    from engine.characters.huohuo import _eid_huohuo_e2, _huohuo_e2_fatal_check
+    from engine.core.combat_engine import _check_fatal
     hh, state = _huohuo_state(eidolon=2, with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     _eid_huohuo_e2(hh, state)  # charges=2
@@ -174,7 +171,7 @@ def _sparkle_state(eidolon=0, with_ally=False):
 
 
 def test_sparkle_ult_grants_mystery_and_6_sp():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     sp, state = _sparkle_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     sp.current_energy = sp.char.max_energy
@@ -189,7 +186,7 @@ def test_sparkle_ult_grants_mystery_and_6_sp():
 
 
 def test_sparkle_ult_overflow_reserve():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     sp, state = _sparkle_state()
     sp.current_energy = sp.char.max_energy
     state.skill_points = 3  # 3+6=9 > max_sp(5) → 溢出4记录
@@ -201,7 +198,7 @@ def test_sparkle_ult_overflow_reserve():
 
 
 def test_sparkle_huanxiang_stacks_on_sp_spend():
-    from engine.core.combat_sim import _deduct_skill_point_cost
+    from engine.core.combat_engine import _deduct_skill_point_cost
     sp, state = _sparkle_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     state.skill_points = 5
@@ -214,7 +211,7 @@ def test_sparkle_huanxiang_stacks_on_sp_spend():
 
 
 def test_sparkle_e2_huanxiang_def_down():
-    from engine.core.combat_sim import _deduct_skill_point_cost
+    from engine.core.combat_engine import _deduct_skill_point_cost
     sp, state = _sparkle_state(eidolon=2, with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     state.skill_points = 5
@@ -226,7 +223,7 @@ def test_sparkle_e2_huanxiang_def_down():
 
 
 def test_sparkle_max_sp_bonus_and_e4():
-    from engine.core.effect_resolver import _trace_sparkle_sp_limit
+    from engine.characters.sparkle import _trace_sparkle_sp_limit
     sp0, state0 = _sparkle_state(eidolon=0)
     base_max = state0.max_sp
     _trace_sparkle_sp_limit(sp0, state0)
@@ -238,7 +235,7 @@ def test_sparkle_max_sp_bonus_and_e4():
 
 
 def test_sparkle_trace2_free_skill_after_3_sp():
-    from engine.core.combat_sim import _deduct_skill_point_cost, _use_skill
+    from engine.core.combat_engine import _deduct_skill_point_cost, _use_skill
     sp, state = _sparkle_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     state.skill_points = 5
@@ -254,7 +251,7 @@ def test_sparkle_trace2_free_skill_after_3_sp():
 
 
 def test_sparkle_turn_end_reserve_refill():
-    from engine.core.combat_sim import _sparkle_turn_end_reserve
+    from engine.characters.sparkle import _sparkle_turn_end_reserve
     sp, state = _sparkle_state(with_ally=True)
     ally = next(u for u in state.units if u.char.id == 'seele')
     state.extra['sparkle_sp_reserve'] = 10
@@ -270,7 +267,7 @@ def test_sparkle_turn_end_reserve_refill():
 # ── D 通用终结技回5能量 ──
 
 def test_ultimate_regains_5_energy():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     u = _unit("seele")
     state = _state(u)
     u.current_energy = u.char.max_energy
@@ -284,7 +281,8 @@ def test_ultimate_regains_5_energy():
 # ── E 花火AI双拉条（AI 行为由端到端冒烟覆盖; 此处验证通用拉条仅一次生效） ──
 
 def test_sparkle_action_advance_applied_once():
-    from engine.core.combat_sim import _use_skill, AV_PER_TURN, _effective_spd
+    from engine.core.combat_engine import _use_skill, _effective_spd
+    from engine.runtime import AV_PER_TURN
     sp = _unit("sparkle")
     ally = _unit("seele", position=2)
     state = _state(sp, ally)

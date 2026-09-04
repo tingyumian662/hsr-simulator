@@ -4,10 +4,8 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, LightConeEffect
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _build_effective_stats, _lc_maybe_gain_stack,
-    _lc_tick_stacks, _process_lc_effects, _use_skill, _lc_target_correct,
-)
+from engine.core.combat_engine import _build_effective_stats, _lc_maybe_gain_stack, _lc_tick_stacks, _process_lc_effects, _use_skill, _lc_target_correct
+from engine.runtime import SimUnit, SimState
 
 
 def _enemy(hp=500000, count=1):

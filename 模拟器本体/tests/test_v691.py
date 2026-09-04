@@ -6,10 +6,10 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, simulate, _use_skill, _begin_enemy_turn,
-    _check_fatal, _welt_apply_jinggu, _ruanmei_break_damage_v3,
-)
+from engine.core.combat_engine import simulate, _use_skill, _begin_enemy_turn, _check_fatal
+from engine.characters.welt import _welt_apply_jinggu
+from engine.characters.ruan_mei import _ruanmei_break_damage_v3
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(hp=500000, toughness=200):
@@ -79,7 +79,7 @@ class TestBusituFirstSkill:
         st = SimState(enemies=[e], units=[u])
         st.skill_points = 3
         st.extra['busitu_charge'] = 2
-        from engine.core.combat_sim import _busitu_skill
+        from engine.characters.busitu import _busitu_skill
         _busitu_skill(st, u, e)
         assert u.extra.get('busitu_skill_was_bait') is False
         assert st.skill_points == 3

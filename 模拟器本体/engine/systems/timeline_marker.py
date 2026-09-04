@@ -1,17 +1,17 @@
 """行动条标记系统（v5.3）— 浮元/完全燃烧倒计时等"仅存在于行动条"的非实体条目
 
 与忆灵/召唤物不同：无 HP、不受击、不被选中、不参与死亡判定，只在 Y 轴行动条上
-按自身速度行动。行动行为由 combat_sim 的 MARKER_ACTIONS 注册表注入（避免循环导入）。
+按自身速度行动。行动行为由 combat_engine 的 MARKER_ACTIONS 注册表注入（避免循环导入）。
 
 - 浮元（灵砂）：90 速，行动次数计数（初始3/上限5/战技+3），归0或召唤者阵亡消失
 - 完全燃烧倒计时（流萤）：70 速，行动时退出完全燃烧状态
 """
 from dataclasses import dataclass, field
+from engine.runtime import AV_PER_TURN
 
 
 def _av_per_turn() -> float:
-    """行动值常量（combat_sim 模块级, 惰性导入避免循环依赖）"""
-    from engine.core.combat_sim import AV_PER_TURN
+    """行动值常量（combat_engine 模块级, 惰性导入避免循环依赖）"""
     return AV_PER_TURN
 
 
@@ -74,8 +74,8 @@ class TimelineMarker:
 class TimelineMarkerSystem:
     """行动条标记系统: 生成/移除/提前/行动调度。
 
-    action_handlers / despawn_handlers 由 combat_sim 注入
-    （marker_id → fn(state, marker)），本模块不依赖 combat_sim。
+    action_handlers / despawn_handlers 由 combat_engine 注入
+    （marker_id → fn(state, marker)），本模块不依赖 combat_engine。
     """
 
     def __init__(self):

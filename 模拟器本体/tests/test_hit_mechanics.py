@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(atk=100, toughness=100, attacks=None):
@@ -18,7 +18,7 @@ SWING = [{"name": "挥击", "element": "物理", "damage_type": "direct",
 
 
 def _unit(cid, eidolon=0, position=1, **extra):
-    from engine.core.combat_sim import SimUnit
+    from engine.runtime import SimUnit
     from engine.core.attributes import compute_combat_stats
     c = load_character(cid, 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
@@ -31,7 +31,7 @@ def _unit(cid, eidolon=0, position=1, **extra):
 
 def _hit_state(*units, enemy=None):
     """最小受击测试状态（enemy 无 attacks → 直接调 _apply_hit）"""
-    from engine.core.combat_sim import SimState
+    from engine.runtime import SimState
     state = SimState(enemies=[enemy or _enemy()], units=list(units))
     state.extra['navs'] = {i: 100.0 for i in range(len(units))}
     state.extra['av_stamp'] = {i: i + 1 for i in range(len(units))}
@@ -42,7 +42,7 @@ def _hit_state(*units, enemy=None):
 class TestFuxuanSharing:
     def test_damage_share_3565(self):
         """承伤: 穷观阵激活时 目标35%/符玄65%"""
-        from engine.core.combat_sim import _apply_hit, _distribute_damage
+        from engine.core.combat_engine import _apply_hit, _distribute_damage
         fu = _unit('fu_xuan')
         seele = _unit('seele', position=2)
         state = _hit_state(fu, seele)
@@ -55,7 +55,7 @@ class TestFuxuanSharing:
 
     def test_no_field_no_share(self):
         """无穷观阵: 不承伤不减伤"""
-        from engine.core.combat_sim import _distribute_damage
+        from engine.core.combat_engine import _distribute_damage
         fu = _unit('fu_xuan')
         seele = _unit('seele', position=2)
         state = _hit_state(fu, seele)
@@ -65,7 +65,7 @@ class TestFuxuanSharing:
 
     def test_self_heal_threshold(self):
         """自回血: 符玄HP≤50% → 回已损失90%（E1 2次）"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         fu = _unit('fu_xuan', eidolon=1)
         state = _hit_state(fu)
         fu.current_hp = fu.max_hp * 0.60
@@ -75,8 +75,9 @@ class TestFuxuanSharing:
 
     def test_e4_take_damage_hook(self):
         """E4: 受击→符玄回5能量（on_take_damage 注册链路）"""
-        from engine.core.combat_sim import SimState, _apply_hit
-        from engine.core.effect_resolver import _eid_fuxuan_e4
+        from engine.core.combat_engine import _apply_hit
+        from engine.runtime import SimState
+        from engine.characters.fu_xuan import _eid_fuxuan_e4
         fu = _unit('fu_xuan', eidolon=4)
         seele = _unit('seele', position=2)
         state = _hit_state(fu, seele)
@@ -88,8 +89,8 @@ class TestFuxuanSharing:
 
     def test_e2_fatal_under_share(self):
         """E2: 承伤路径下符玄致死也触发保护"""
-        from engine.core.combat_sim import _distribute_damage
-        from engine.core.effect_resolver import _eid_fuxuan_e2
+        from engine.core.combat_engine import _distribute_damage
+        from engine.characters.fu_xuan import _eid_fuxuan_e2
         fu = _unit('fu_xuan', eidolon=2)
         seele = _unit('seele', position=2)
         state = _hit_state(fu, seele)
@@ -104,7 +105,7 @@ class TestFuxuanSharing:
 class TestMydeiHit:
     def test_hit_charge(self):
         """受击充能: 每损失1%生命=1充能（v5.7: 行迹1需HP>4000才加成, 裸装无加成）"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         mydei = _unit('mydei')
         state = _hit_state(mydei)
         _apply_hit(state, mydei, 100, state.enemies[0])
@@ -113,7 +114,7 @@ class TestMydeiHit:
 
     def test_hit_charge_trace1_bonus(self):
         """v5.7: 行迹1门槛——HP每超4000点100→充能比例+2.5%（最多计入4000点）"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         mydei = _unit('mydei')
         mydei.max_hp = 5000.0  # 超1000点→10档×2.5%=+25%
         state = _hit_state(mydei)
@@ -123,7 +124,7 @@ class TestMydeiHit:
 
     def test_hit_charge_trace1_cap(self):
         """v5.7: 行迹1封顶——超4000点以上不再加成（9000HP→按4000计=+100%）"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         mydei = _unit('mydei')
         mydei.max_hp = 9000.0
         state = _hit_state(mydei)
@@ -133,7 +134,7 @@ class TestMydeiHit:
 
     def test_e4_hit_heal(self):
         """E4: 受击回10%生命上限"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         mydei = _unit('mydei', eidolon=4)
         state = _hit_state(mydei)
         _apply_hit(state, mydei, 200, state.enemies[0])
@@ -143,7 +144,8 @@ class TestMydeiHit:
 
     def test_heal_bonus_apply(self):
         """行迹1: 万敌受疗+0.75%（blast 相邻目标被治疗）"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         huohuo = _unit('huohuo')
         main = _unit('seele', position=2)
         mydei = _unit('mydei', position=3)
@@ -158,7 +160,7 @@ class TestMydeiHit:
 class TestRelicOnHit:
     def test_quanwang_hit_stack(self):
         """拳王4pc: 受击叠ATK层"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         seele = _unit('seele')
         seele._active_relic_conditions = {'stack_atk_on_hit'}
         state = _hit_state(seele)
@@ -167,7 +169,7 @@ class TestRelicOnHit:
 
     def test_shizhe_hit_stack(self):
         """莳者4pc: 受击挂CR buff"""
-        from engine.core.combat_sim import _apply_hit
+        from engine.core.combat_engine import _apply_hit
         seele = _unit('seele')
         seele._active_relic_conditions = {'stack_cr_on_hit'}
         state = _hit_state(seele)

@@ -4,10 +4,10 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 
+// v7.17.0: 前端脚本已自 index.html 内联块迁出至 web/static/app.js（纯搬运）
 function loadFrontendScript() {
-  const templatePath = path.resolve(__dirname, '..', 'web', 'templates', 'index.html');
-  const html = fs.readFileSync(templatePath, 'utf8');
-  const script = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
+  const scriptPath = path.resolve(__dirname, '..', 'web', 'static', 'app.js');
+  const script = fs.readFileSync(scriptPath, 'utf8');
   const context = {
     console,
     document: { addEventListener() {} },

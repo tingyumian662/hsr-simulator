@@ -13,7 +13,7 @@ from engine.hooks.base import HookRegistry
 # ═══════════════════════════════════════════════════════════════
 
 def _apply_timed_buff(u, state, stat_key, value, duration, target='self', source='遗器', param_id=''):
-    from engine.core.combat_sim import TimedBuff
+    from engine.runtime import TimedBuff
     targets = [u] if target == 'self' else [x for x in state.units if x.is_alive]
     # source_id 兼容 SimUnit（.char.id）/ MemSpriteUnit（.char=MemSprite, 用 summoner_id）
     src = getattr(u, 'char', None)
@@ -212,14 +212,14 @@ def _cr_vs_debuff(u, state, **kw):
 
 def _enter_combat_sp(u, state, **kw):
     """云无留迹的过客 4pc: 开局回1SP"""
-    from engine.core.combat_sim import _gain_skill_points
+    from engine.core.combat_engine import _gain_skill_points
     _gain_skill_points(state)
     state.log.append('  过客4pc·开局回1SP')
 
 def _enter_combat_advance(u, state, **kw):
     """生命的翁瓦克: SPD≥120→开局行动提前40%"""
     if u.base_stats.SPD >= 120:
-        from engine.core.combat_sim import _effective_spd
+        from engine.core.combat_engine import _effective_spd
         AV_PER_TURN = 10000.0
         advance = (AV_PER_TURN / _effective_spd(u, state)) * 0.40
         navs = state.extra.get('navs', {})
@@ -303,7 +303,7 @@ def _help_consume_on_ult(u, state, **kw):
 
 def _shield_ally_cd(u, state, **kw):
     """自匿星芒的隐士 4pc: 持盾队友→CD+15%
-    （v5.0 P5: 由 combat_sim 护盾施加分支内联激活, 本函数废弃保留防断链）"""
+    （v5.0 P5: 由 combat_engine 护盾施加分支内联激活, 本函数废弃保留防断链）"""
     pass
 
 def _comburent_team_dmg(u, state, **kw):

@@ -3,9 +3,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _enemy_attack, _begin_regular_turn,
-)
+from engine.core.combat_engine import _use_skill, _enemy_attack, _begin_regular_turn
+from engine.runtime import SimUnit, SimState
 
 
 def _enemy(hp=500000, atk=100, attacks=None):
@@ -61,7 +60,7 @@ class TestEnergyRegen:
 class TestHitEnergy:
     def test_energy_gain_field(self):
         """attacks[].energy_gain=5 → 受击回能+5"""
-        from engine.core.combat_sim import _enemy_attack
+        from engine.core.combat_engine import _enemy_attack
         u = _unit('seele')
         atk = [{**SWING[0], 'energy_gain': 5}]
         state = SimState(enemies=[_enemy(attacks=atk)], units=[u])
@@ -98,7 +97,8 @@ class TestRuming:
 
     def test_ruming_heals_at_turn_start(self):
         """v6.10.6: 藿藿持禳命时, 我方目标回合开始回血; 藿藿回合开始递减"""
-        from engine.core.combat_sim import _set_av, _begin_regular_turn
+        from engine.core.combat_engine import _begin_regular_turn
+        from engine.runtime import _set_av
         huohuo = _unit('huohuo')
         seele = _unit('seele', position=2)
         seele.current_hp = seele.max_hp * 0.5

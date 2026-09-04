@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(hp=500000, atk=100, spd=80, toughness=20, attacks=None, res=None):
@@ -28,7 +28,7 @@ def _sim(ids, max_av=800, enemy=None, **cfgs):
 
 
 def _unit(cid, position=1, eidolon=None, **extra):
-    from engine.core.combat_sim import SimUnit
+    from engine.runtime import SimUnit
     from engine.core.attributes import compute_combat_stats
     c = load_character(cid, 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
@@ -59,12 +59,14 @@ class TestEnemyTurn:
 
     def test_attack_damage_exact(self):
         """伤害精确: ATK=100, DEF=460 → 100×0.9×1000/1460"""
-        from engine.core.combat_sim import SimState, _enemy_attack
+        from engine.core.combat_engine import _enemy_attack
+        from engine.runtime import SimState
         u = _unit('seele')  # seele DEF=363? 直接用面板算
         state = SimState(enemies=[_enemy(atk=100, attacks=SWING)], units=[u])
-        from engine.core.combat_sim import _build_effective_stats
+        from engine.core.combat_engine import _build_effective_stats
         from engine.core.damage import calculate_damage
-        from engine.core.combat_sim import CharacterAsTarget, _enemy_attack_stats
+        from engine.core.combat_engine import _enemy_attack_stats
+        from engine.runtime import CharacterAsTarget
         stats = _enemy_attack_stats(state.enemies[0])
         t_stats = _build_effective_stats(u, state)
         view = CharacterAsTarget(u, t_stats)
@@ -75,10 +77,8 @@ class TestEnemyTurn:
 
     def test_area_attack_uses_each_target_defense(self):
         """范围攻击必须按每名目标的防御面板分别结算。"""
-        from engine.core.combat_sim import (
-            SimState, _enemy_attack, _build_effective_stats,
-            CharacterAsTarget, _enemy_attack_stats,
-        )
+        from engine.core.combat_engine import _enemy_attack, _build_effective_stats, _enemy_attack_stats
+        from engine.runtime import SimState, CharacterAsTarget
         from engine.core.damage import calculate_damage
 
         blast = [{**SWING[0], 'target_type': 'all_enemies'}]
@@ -104,7 +104,8 @@ class TestEnemyTurn:
 
     def test_break_dot_kill_prevents_enemy_attack(self):
         """DOT 在敌方行动开始时击杀后，敌人不能继续攻击。"""
-        from engine.core.combat_sim import SimState, _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
+        from engine.runtime import SimState
 
         enemy = _enemy(hp=1, attacks=SWING)
         unit = _unit('fengjin')
@@ -123,7 +124,8 @@ class TestEnemyTurn:
 
     def test_taunt_weighted_targeting(self):
         """嘲讽加权: 存护(150) vs 巡猎(75) → 存护命中显著更多"""
-        from engine.core.combat_sim import SimState, _select_enemy_target
+        from engine.core.combat_engine import _select_enemy_target
+        from engine.runtime import SimState
         fu = _unit('fu_xuan')       # 存护 150
         seele = _unit('seele', position=2)  # 巡猎 75
         state = SimState(enemies=[_enemy()], units=[fu, seele])
@@ -149,7 +151,8 @@ class TestEnemyTurn:
 class TestHitAndDeath:
     def test_character_death_removes_from_navs(self):
         """死亡: is_alive=False + navs 剔除 + 不再被选中"""
-        from engine.core.combat_sim import SimState, _apply_hit, _next_y_actor
+        from engine.core.combat_engine import _apply_hit, _next_y_actor
+        from engine.runtime import SimState
         u = _unit('seele')
         u.current_hp = 10
         state = SimState(enemies=[_enemy(attacks=SWING)], units=[u])
@@ -172,7 +175,8 @@ class TestHitAndDeath:
 
     def test_mydei_blood_debt_survives(self):
         """万敌血仇致命保护: 不死"""
-        from engine.core.combat_sim import SimState, _apply_hit
+        from engine.core.combat_engine import _apply_hit
+        from engine.runtime import SimState
         u = _unit('mydei')
         u.extra['is_blood_debt'] = True
         u.extra['debt_retain_charges'] = 3
@@ -184,7 +188,8 @@ class TestHitAndDeath:
 
     def test_memsprite_death_removes_runtime_references(self):
         """忆灵被敌方击杀后不应继续留在行动条或召唤者引用中。"""
-        from engine.core.combat_sim import SimState, _apply_hit
+        from engine.core.combat_engine import _apply_hit
+        from engine.runtime import SimState
         from engine.core.attributes import CombatStats
         from engine.models.memsprite import MemSprite
         from engine.systems.remembrance import MemSpriteUnit, RemembranceSystem
@@ -206,8 +211,9 @@ class TestHitAndDeath:
 
     def test_fatal_protection_fuxuan_e2(self):
         """符玄E2 致命保护: 单场1次, 全队回70%"""
-        from engine.core.combat_sim import SimState, _apply_hit
-        from engine.core.effect_resolver import _eid_fuxuan_e2
+        from engine.core.combat_engine import _apply_hit
+        from engine.runtime import SimState
+        from engine.characters.fu_xuan import _eid_fuxuan_e2
         fu = _unit('fu_xuan', eidolon=2)
         seele = _unit('seele', position=2)
         seele.current_hp = 10
@@ -225,7 +231,8 @@ class TestHitAndDeath:
 
     def test_hooks_fire(self):
         """on_enemy_attack/on_take_damage/on_hp_loss 触发"""
-        from engine.core.combat_sim import SimState, _enemy_attack
+        from engine.core.combat_engine import _enemy_attack
+        from engine.runtime import SimState
         seen = []
         u = _unit('seele')
         state = SimState(enemies=[_enemy(atk=10, attacks=SWING)], units=[u])

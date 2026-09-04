@@ -2,17 +2,10 @@
 
 import pytest
 
-from engine.core.combat_sim import (
-    _acheron_ult,
-    _begin_regular_turn,
-    _build_effective_stats,
-    _respawn_wave,
-    _sunday_ult,
-    SimState,
-    SimUnit,
-    _use_skill,
-    simulate,
-)
+from engine.core.combat_engine import _begin_regular_turn, _build_effective_stats, _respawn_wave, _use_skill, simulate
+from engine.characters.acheron import _acheron_ult
+from engine.characters.sunday import _sunday_ult
+from engine.runtime import SimState, SimUnit
 from engine.core.attributes import compute_combat_stats
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
@@ -362,7 +355,7 @@ def test_feixiao_tick_reads_previous_turn_fua_before_resetting_flags():
     feixiao.extra["feixiao_attack_count"] = 0
     feixiao.extra["feixiao_any_fua_this_turn"] = False
 
-    from engine.core.combat_sim import _feixiao_tick
+    from engine.characters.feixiao import _feixiao_tick
     _feixiao_tick(state, feixiao)
 
     assert feixiao.extra.get("feixiao_fua_used") is False
@@ -375,13 +368,13 @@ def test_feixiao_e4_fua_doubles_toughness_and_adds_speed():
     enemy.toughness = enemy.max_toughness = 20
     enemy.element_res["风"] = 0.0
 
-    from engine.core.combat_sim import _feixiao_fua
+    from engine.characters.feixiao import _feixiao_fua
     _feixiao_fua(state, feixiao, enemy)
 
     assert enemy.toughness == pytest.approx(10.0)
     stats = _build_effective_stats(feixiao, state)
     assert stats.SPD_PERCENT == pytest.approx(0.08)
-    from engine.core.combat_sim import _effective_spd
+    from engine.core.combat_engine import _effective_spd
     assert _effective_spd(feixiao, state) == pytest.approx(
         feixiao.base_stats.SPD * 1.08
     )
@@ -405,7 +398,7 @@ def test_feixiao_ultimate_uses_ultimate_and_follow_up_damage_scopes():
     boosted_feixiao.base_stats.DMG_BONUS_BY_ATTACK_TYPE["follow_up"] = 1.0
 
     before = plain.enemies[0].HP
-    from engine.core.combat_sim import _feixiao_ult
+    from engine.characters.feixiao import _feixiao_ult
     _feixiao_ult(plain, plain_feixiao)
     plain_damage = before - plain.enemies[0].HP
 
@@ -423,7 +416,7 @@ def test_feixiao_e6_fua_uses_ultimate_resistance_penetration():
         state.enemies[0].element_res["风"] = 0.40
         state.enemies[0].toughness = state.enemies[0].max_toughness = 1000
 
-    from engine.core.combat_sim import _feixiao_fua
+    from engine.characters.feixiao import _feixiao_fua
     before = e5.enemies[0].HP
     _feixiao_fua(e5, feixiao_e5, e5.enemies[0])
     e5_damage = before - e5.enemies[0].HP

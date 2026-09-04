@@ -4,12 +4,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, PlayerStatus, TimedBuff, _apply_player_status,
-    _check_control_status, _begin_regular_turn, _enqueue_ult,
-    _exec_extra_turn, _select_enemy_target, _enemy_attack, _fengjin_cleanse,
-    _set_av, _effective_spd,
-)
+from engine.core.combat_engine import _apply_player_status, _check_control_status, _begin_regular_turn, _enqueue_ult, _exec_extra_turn, _select_enemy_target, _enemy_attack, _effective_spd
+from engine.characters.fengjin import _fengjin_cleanse
+from engine.runtime import SimUnit, SimState, PlayerStatus, TimedBuff, _set_av
 
 
 def _enemy(hp=500000, attacks=None):

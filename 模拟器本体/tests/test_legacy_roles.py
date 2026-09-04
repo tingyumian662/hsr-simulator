@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(hp=500000, toughness=20, res=None):
@@ -22,7 +22,7 @@ def _sim(ids, max_av=800, **cfgs):
 
 
 def _unit(cid, eidolon=0, position=1, **extra):
-    from engine.core.combat_sim import SimUnit
+    from engine.runtime import SimUnit
     from engine.core.attributes import compute_combat_stats
     c = load_character(cid, 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
@@ -52,7 +52,8 @@ class TestBronya:
 
     def test_basic_crit(self):
         """行迹·号令: 普攻必暴"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('bronya')
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'basic_attack')
@@ -62,8 +63,8 @@ class TestBronya:
 
     def test_e4_follow_up(self):
         """E4: 他角色对风弱敌普攻→布洛妮娅追加攻击（handler 直调, 含每回合1次限制）"""
-        from engine.core.combat_sim import SimState
-        from engine.core.effect_resolver import _eid_bronya_e4
+        from engine.runtime import SimState
+        from engine.characters.bronya import _eid_bronya_e4
         u = _unit('seele')  # 攻击者
         bronya = _unit('bronya', eidolon=4, position=2)
         state = SimState(enemies=[_enemy()], units=[u, bronya])
@@ -77,7 +78,8 @@ class TestBronya:
 
     def test_e6_duration(self):
         """E6: 战技增伤+1回合(1→2)"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('bronya', eidolon=6)
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')
@@ -90,8 +92,8 @@ class TestBronya:
 class TestSeeleTraces:
     def test_trace_ripple(self):
         """行迹·涟漪: 普攻后下次行动提前20%（handler 直调）"""
-        from engine.core.combat_sim import SimState
-        from engine.core.effect_resolver import _trace_seele_ripple
+        from engine.runtime import SimState
+        from engine.characters.seele import _trace_seele_ripple
         u = _unit('seele')
         state = SimState(enemies=[_enemy()], units=[u])
         _trace_seele_ripple(u, state)
@@ -108,7 +110,7 @@ class TestSeeleTraces:
     def test_trace1_memory_count_cd(self):
         """行迹1·天亮了雨落了: 战技持续期间按记忆命途数量给忆灵暴伤加成
         （4记忆→+65%; 验证完整忆灵伤害管线）"""
-        from engine.core.combat_sim import SimState, TimedBuff
+        from engine.runtime import SimState, TimedBuff
         from engine.systems.remembrance import RemembranceSystem
 
         def run(with_skill_buff):
@@ -143,7 +145,7 @@ class TestSeeleTraces:
 
     def test_trace1_technique_does_not_enable_skill_only_bonus(self):
         """秘技给忆灵基础24%暴伤，但不得错误启用仅限战技的行迹1。"""
-        from engine.core.combat_sim import SimState, TimedBuff
+        from engine.runtime import SimState, TimedBuff
         from engine.systems.remembrance import RemembranceSystem
 
         def run(with_tech_buff):
@@ -177,7 +179,7 @@ class TestSeeleTraces:
 class TestSparkle:
     def test_trace_energy(self):
         """行迹·岁时记: 普攻额外+10能量（handler 直调, 注册链路由黑盒覆盖）"""
-        from engine.core.combat_sim import SimState
+        from engine.runtime import SimState
         from engine.core.effect_resolver import _trace_basic_energy_bonus
         u = _unit('sparkle')
         state = SimState(enemies=[_enemy()], units=[u])
@@ -186,8 +188,9 @@ class TestSparkle:
 
     def test_trace_team_cd(self):
         """v6.10.6: 行迹3·夜想曲改为动态面板——全队ATK+45%（handler 不再永久写面板）"""
-        from engine.core.combat_sim import SimState, _build_effective_stats
-        from engine.core.effect_resolver import _trace_sparkle_team_cd
+        from engine.core.combat_engine import _build_effective_stats
+        from engine.runtime import SimState
+        from engine.characters.sparkle import _trace_sparkle_team_cd
         u = _unit('sparkle')
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
@@ -206,12 +209,13 @@ class TestSparkle:
 
     def test_e1_atk_holder(self):
         """v6.10.6: E1 谜诡持有者 ATK+40%（动态面板, 不再硬编码希儿）"""
-        from engine.core.combat_sim import SimState, _build_effective_stats
-        from engine.core.effect_resolver import _eid_sparkle_e1
+        from engine.core.combat_engine import _build_effective_stats
+        from engine.runtime import SimState
+        from engine.characters.sparkle import _eid_sparkle_e1
         u = _unit('sparkle', eidolon=1)
         main = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, main])
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
         # 给主C挂谜诡（模拟终结技后）
         main.buffs.append(TimedBuff(source_id='sparkle', attributes={},
                                     remaining_turns=3, param_id='sparkle_mystery',
@@ -226,7 +230,8 @@ class TestSparkle:
 
     def test_e6_cd_extra(self):
         """E6: 战技CD额外+花火暴伤30%"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('sparkle', eidolon=6)
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')
@@ -241,8 +246,8 @@ class TestSparkle:
 class TestFuXuan:
     def test_ult_heal(self):
         """行迹·太乙式盘: 终结技回5%生命上限"""
-        from engine.core.combat_sim import SimState
-        from engine.core.effect_resolver import _trace_fuxuan_ult_heal
+        from engine.runtime import SimState
+        from engine.characters.fu_xuan import _trace_fuxuan_ult_heal
         u = _unit('fu_xuan')
         u.current_hp = u.max_hp * 0.50
         state = SimState(enemies=[_enemy()], units=[u])
@@ -251,8 +256,8 @@ class TestFuXuan:
 
     def test_trace_energy(self):
         """行迹·六壬兆堪: 穷观阵激活时回合开始+20能量"""
-        from engine.core.combat_sim import SimState
-        from engine.core.effect_resolver import _trace_fuxuan_energy_regen
+        from engine.runtime import SimState
+        from engine.characters.fu_xuan import _trace_fuxuan_energy_regen
         u = _unit('fu_xuan')
         state = SimState(enemies=[_enemy()], units=[u])
         state.extra['fuxuan_field_turns'] = 3
@@ -271,8 +276,9 @@ class TestFuXuan:
 
     def test_e6_amplify(self):
         """E6种陵: 累计损失→终结技伤害平加200%并清空"""
-        from engine.core.combat_sim import SimState, _use_skill
-        from engine.core.effect_resolver import _eid_fuxuan_e6_loss
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
+        from engine.characters.fu_xuan import _eid_fuxuan_e6_loss
         u = _unit('fu_xuan', eidolon=6)
         state = SimState(enemies=[_enemy()], units=[u])
         state.extra['fuxuan_field_turns'] = 3
@@ -292,7 +298,8 @@ class TestFuXuan:
 class TestHuohuo:
     def test_skill_heal_no_crash(self):
         """战技 heal 命名 paramId 不再崩溃且数值正确"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('huohuo')
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')  # 不应抛 ValueError
@@ -300,7 +307,8 @@ class TestHuohuo:
 
     def test_ult_wiring(self):
         """终结技: 队友回20%能量上限 + ATK buff"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('huohuo')
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
@@ -316,7 +324,8 @@ class TestHuohuo:
 
     def test_energy_cycle(self):
         """行迹·能量循环: 治疗触发回1能量"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
         u = _unit('huohuo')
         state = SimState(enemies=[_enemy()], units=[u])
         _use_skill(u, state, 'skill')  # 战技治疗触发 on_heal
@@ -329,7 +338,8 @@ class TestHuohuo:
 
     def test_e4_low_hp_heal(self):
         """E4: 目标低血治疗加成生效（blast 相邻目标, E4 组治疗量 > 无 E4）"""
-        from engine.core.combat_sim import SimState, _use_skill
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState
 
         def gained(eidolon):
             u = _unit('huohuo', eidolon=eidolon)
@@ -345,8 +355,8 @@ class TestHuohuo:
 
     def test_e1_team_spd(self):
         """E1: 全队SPD+12%"""
-        from engine.core.combat_sim import SimState
-        from engine.core.effect_resolver import _eid_huohuo_e1
+        from engine.runtime import SimState
+        from engine.characters.huohuo import _eid_huohuo_e1
         u = _unit('huohuo', eidolon=1)
         ally = _unit('seele', position=2)
         spd0 = ally.base_stats.SPD
@@ -366,7 +376,8 @@ class TestHuohuo:
 class TestCleanseTarget:
     def test_cleanse_single_ally_targets_ally_not_self(self):
         """cleanse single_ally: 净化队友, 不净化施法者自己"""
-        from engine.core.combat_sim import SimState, _use_skill, PlayerStatus
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import SimState, PlayerStatus
         bronya = _unit('bronya')
         seele = _unit('seele', position=2)
         seele.statuses.append(PlayerStatus(id='t', name='眩晕', category='control',

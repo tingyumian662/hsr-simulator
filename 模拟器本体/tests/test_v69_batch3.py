@@ -5,13 +5,10 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats, _gain_energy,
-    _qianye_enter_wrath, _qianye_exit_wrath, _qianye_ult, _qianye_new_ult,
-    _qianye_skill, _qianye_extra_skill, _qianye_gain_charge,
-    _qianye_on_ally_attack, _qianye_tick, _qianye_apply_shaqizhaoshen,
-)
-from engine.core.combat_utils import _tech_qianye
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _gain_energy
+from engine.characters.qianye import _qianye_enter_wrath, _qianye_exit_wrath, _qianye_ult, _qianye_new_ult, _qianye_skill, _qianye_extra_skill, _qianye_gain_charge, _qianye_on_ally_attack, _qianye_tick, _qianye_apply_shaqizhaoshen
+from engine.runtime import SimState, SimUnit
+from engine.characters.qianye import _tech_qianye
 
 
 def _enemy(hp=500000, toughness=200):

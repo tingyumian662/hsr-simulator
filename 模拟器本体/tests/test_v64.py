@@ -6,11 +6,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _enemy_attack, _enemy_attack_stats, _enemy_eff_spd,
-    _begin_enemy_turn, _apply_player_status,
-)
-from engine.core.combat_utils import calc_effect_probability
+from engine.core.combat_engine import _enemy_attack, _enemy_attack_stats, _enemy_eff_spd, _begin_enemy_turn, _apply_player_status
+from engine.runtime import SimState, SimUnit
+from engine.systems.techniques import calc_effect_probability
 
 
 def _enemy(**kw):

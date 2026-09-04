@@ -2,10 +2,9 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _gain_energy, TimedBuff,
-    _apply_tbr_support,
-)
+from engine.core.combat_engine import _use_skill, _gain_energy
+from engine.characters.trailblazer_remembrance import _apply_tbr_support
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.core.attributes import compute_combat_stats
 from engine.systems.remembrance import RemembranceSystem
 

@@ -2,10 +2,8 @@
 from types import SimpleNamespace
 
 from engine.core.attributes import CombatStats
-from engine.core.combat_sim import (
-    SimState, _apply_break_debuff, _apply_skill_effects,
-    _apply_target_relic_modifiers, _multihit_damage,
-)
+from engine.core.combat_engine import _apply_break_debuff, _apply_skill_effects, _apply_target_relic_modifiers, _multihit_damage
+from engine.runtime import SimState
 from engine.models.character import Character, Skill, SkillEffect
 from engine.models.enemy import Enemy, EnemyStatus
 

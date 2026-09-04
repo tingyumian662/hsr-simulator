@@ -6,13 +6,10 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats, simulate,
-    _acheron_gain_dream, _acheron_apply_jizhen, _acheron_ult,
-    _acheron_talent_on_debuff, _acheron_skill,
-    _acheron_original_damage_multiplier,
-)
-from engine.core.effect_resolver import _trace_acheron_trace1
+from engine.core.combat_engine import _use_skill, _build_effective_stats, simulate
+from engine.characters.acheron import _acheron_gain_dream, _acheron_apply_jizhen, _acheron_ult, _acheron_talent_on_debuff, _acheron_skill, _acheron_original_damage_multiplier
+from engine.runtime import SimState, SimUnit
+from engine.characters.acheron import _trace_acheron_trace1
 
 
 def _enemy(hp=500000, toughness=200):
@@ -59,7 +56,7 @@ class TestGlobalEnergyRule:
         """特殊角色 _gain_energy no-op（防秘技/光锥回能污染进度）"""
         u = _unit('acheron')
         state = SimState(enemies=[_enemy()], units=[u])
-        from engine.core.combat_sim import _gain_energy
+        from engine.core.combat_engine import _gain_energy
         _gain_energy(u, 25.0, state=state)
         assert u.current_energy == 0.0
 

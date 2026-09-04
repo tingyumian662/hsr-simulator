@@ -6,15 +6,12 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats,
-    _robin_skill, _robin_ult, _robin_concert_extra, _robin_tick, _robin_ai,
-    _busitu_skill, _busitu_ult, _busitu_fua, _busitu_on_ally_attack,
-    _busitu_apply_bait, _busitu_bait_target,
-)
-from engine.core.effect_resolver import (
-    _trace_robin_trace2, _trace_busitu_trace3, _trace_busitu_e1,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats
+from engine.characters.robin import _robin_skill, _robin_ult, _robin_concert_extra, _robin_tick, _robin_ai
+from engine.characters.busitu import _busitu_skill, _busitu_ult, _busitu_fua, _busitu_on_ally_attack, _busitu_apply_bait, _busitu_bait_target
+from engine.runtime import SimState, SimUnit
+from engine.characters.robin import _trace_robin_trace2
+from engine.characters.busitu import _trace_busitu_trace3, _trace_busitu_e1
 
 
 def _enemy(hp=500000, toughness=200):

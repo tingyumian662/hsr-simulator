@@ -7,10 +7,8 @@ from unittest import mock
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _enemy_attack, _enemy_attack_stats, _enemy_eff_spd,
-    _begin_enemy_turn,
-)
+from engine.core.combat_engine import _enemy_attack, _enemy_attack_stats, _enemy_eff_spd, _begin_enemy_turn
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(**kw):
@@ -107,7 +105,7 @@ class TestDebuffMainTarget:
                                    'base_chance': 1.0, 'target': 'main'}]}]
         state = SimState(enemies=[e], units=[a, b])
         # 初选主目标=a; 弹射每跳都命中 b（a 全程未被弹射命中）
-        with mock.patch('engine.core.combat_sim._select_enemy_target',
+        with mock.patch('engine.core.combat_engine._select_enemy_target',
                         side_effect=[a, b, b]):
             _enemy_attack(state, e)
         # main 契约: 施加给初选目标 a, 而非弹射实际命中的 b

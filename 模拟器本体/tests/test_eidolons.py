@@ -4,7 +4,7 @@ import re
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(hp=500000, toughness=20, res=None):
@@ -27,7 +27,7 @@ def _sim(ids, max_av=800, hp=500000, num_enemies=1, res=None, toughness=20, **cf
 def _seele_ctx(eidolon, crit_rate=0.05):
     """直接构造希儿战斗上下文（E1/E2 确定性单元测试用）"""
     from engine.core.attributes import compute_combat_stats
-    from engine.core.combat_sim import SimState, SimUnit
+    from engine.runtime import SimState, SimUnit
     c = load_character('seele', 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
     stats.CRIT_RATE = crit_rate
@@ -45,7 +45,7 @@ def _seele_ctx(eidolon, crit_rate=0.05):
 class TestSeele:
     def test_e1_low_hp_bonus(self):
         """行迹·斩尽(与E1同效果, 无条件): 对HP≤80%目标暴击+15%跨阈值+无视20%防御"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
 
         def dmg(hp_pct):
             # rank0 下斩尽恒生效; 蓝图=满血500000保证80%阈值判定
@@ -63,7 +63,7 @@ class TestSeele:
 
     def test_e2_speed_stack_cap(self):
         """E2蝶舞: 战技加速叠层上限2(E2)/1(rank0刷新)"""
-        from engine.core.combat_sim import _use_skill
+        from engine.core.combat_engine import _use_skill
 
         def stacks(eidolon):
             u, state = _seele_ctx(eidolon)
@@ -201,9 +201,9 @@ class TestFengjin:
 
     def test_e4_overspeed_cd(self):
         """E4: SPD>200每超1点→暴伤+2%"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
-        from engine.core.effect_resolver import _eid_fengjin_e4
+        from engine.characters.fengjin import _eid_fengjin_e4
         c = load_character('fengjin', 'data/characters')
         stats = compute_combat_stats(c, None, None, None)
         stats.SPD = 230
@@ -227,7 +227,7 @@ class TestFengjin:
 
 class TestFengjinTraces:
     def _fengjin_ctx(self, spd=125):
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
         c = load_character('fengjin', 'data/characters')
         stats = compute_combat_stats(c, None, None, None)
@@ -238,7 +238,7 @@ class TestFengjinTraces:
         return u, SimState(enemies=[e], units=[u])
 
     def _ally(self, cid, hp_pct=1.0):
-        from engine.core.combat_sim import SimUnit
+        from engine.runtime import SimUnit
         from engine.core.attributes import compute_combat_stats
         c = load_character(cid, 'data/characters')
         stats = compute_combat_stats(c, None, None, None)
@@ -249,8 +249,8 @@ class TestFengjinTraces:
 
     def test_trace1_spd_heal(self):
         """行迹1·暴风停歇: SPD>200→HP×1.2; 每超1点SPD治疗量+1%"""
-        from engine.core.effect_resolver import _trace_fengjin_t1
-        from engine.core.combat_sim import _use_skill
+        from engine.characters.fengjin import _trace_fengjin_t1
+        from engine.core.combat_engine import _use_skill
         # SPD=125 不触发
         u0, s0 = self._fengjin_ctx(spd=125)
         _trace_fengjin_t1(u0, s0)
@@ -272,8 +272,8 @@ class TestFengjinTraces:
 
     def test_trace2_cr_and_low_hp(self):
         """行迹2·阴云莞尔: CR+100%; 对HP≤50%目标治疗+25%"""
-        from engine.core.effect_resolver import _trace_fengjin_t2
-        from engine.core.combat_sim import _use_skill
+        from engine.characters.fengjin import _trace_fengjin_t2
+        from engine.core.combat_engine import _use_skill
         u, s = self._fengjin_ctx()
         _trace_fengjin_t2(u, s)
         assert u.base_stats.CRIT_RATE >= 1.00
@@ -289,8 +289,9 @@ class TestFengjinTraces:
 
     def test_trace3_res_and_cleanse(self):
         """行迹3·雷雨轻柔: EFFECT_RES+50%; 战技→净化全队1个负面"""
-        from engine.core.effect_resolver import _trace_fengjin_t3
-        from engine.core.combat_sim import _use_skill, TimedBuff
+        from engine.characters.fengjin import _trace_fengjin_t3
+        from engine.core.combat_engine import _use_skill
+        from engine.runtime import TimedBuff
         u, s = self._fengjin_ctx()
         _trace_fengjin_t3(u, s)
         assert u.base_stats.EFFECT_RES >= 0.50

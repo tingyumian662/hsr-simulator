@@ -6,12 +6,10 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _gain_energy, _build_effective_stats,
-    _hn_support_skill, _hn_support_cap, _hn_ultimate, _hn_count_ally_ult,
-    _hn_count_hits, _hn_try_protocol_support,
-)
-from engine.core.combat_utils import _tech_himeko_nova
+from engine.core.combat_engine import _use_skill, _gain_energy, _build_effective_stats
+from engine.characters.himeko_nova import _hn_support_skill, _hn_support_cap, _hn_ultimate, _hn_count_ally_ult, _hn_count_hits, _hn_try_protocol_support
+from engine.runtime import SimState, SimUnit
+from engine.characters.himeko_nova import _tech_himeko_nova
 
 
 def _enemy(hp=500000, toughness=200):
@@ -97,7 +95,7 @@ class TestHimekoNova:
         state = _hn_state('trailblazer_remembrance')
         hn = state.units[0]
         ally = state.units[1]
-        from engine.core.effect_resolver import _trace_hn_protocol
+        from engine.characters.himeko_nova import _trace_hn_protocol
         _trace_hn_protocol(hn, state)
         assert state.extra.get('hn_verdict') is True
         # 姬子伤害×2: DMG_BONUS_ALL 100 生效
@@ -115,7 +113,7 @@ class TestHimekoNova:
         """歼破协议（长夜月）: 全队暴伤+100%; 每击中+1充能, 9点→免费助战技"""
         state = _hn_state('changyeyue')
         hn = state.units[0]
-        from engine.core.effect_resolver import _trace_hn_protocol
+        from engine.characters.himeko_nova import _trace_hn_protocol
         _trace_hn_protocol(hn, state)
         assert state.extra.get('hn_charge') == 0
         assert any(getattr(b, 'attributes', {}).get('CRIT_DMG') == 100.0 for b in hn.buffs)

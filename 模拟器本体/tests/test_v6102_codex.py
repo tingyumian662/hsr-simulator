@@ -8,33 +8,16 @@ from pathlib import Path
 import pytest
 
 from engine.core.attributes import CombatStats, compute_combat_stats
-from engine.core.combat_sim import (
-    SimState,
-    SimUnit,
-    TimedBuff,
-    _build_effective_stats,
-    _anaxa_add_weakness,
-    _anaxa_reveal_check,
-    _cerydra_grant_jungong,
-    _check_fatal,
-    _commit_enemy_damage,
-    _deduct_skill_point_cost,
-    _dht_longling_action,
-    _enemy_for_damage,
-    _hysilens_field,
-    _qianye_enter_wrath,
-    _qianye_e6_gain_charge,
-    _qianye_exit_wrath,
-    _silver_wolf_apply_entry_effects,
-    _sunday_apply_mentor,
-    _sunday_apply_cr_buff,
-    _sunday_skill,
-    _sunday_tick,
-    _tick_buffs,
-    _target_attacker_stats,
-    _use_skill,
-    _register_elation_skill_hooks,
-)
+from engine.core.combat_engine import _build_effective_stats, _check_fatal, _commit_enemy_damage, _deduct_skill_point_cost, _tick_buffs, _target_attacker_stats, _use_skill
+from engine.characters.anaxa import _anaxa_add_weakness, _anaxa_reveal_check
+from engine.characters.cerydra import _cerydra_grant_jungong
+from engine.characters.dan_heng_permansor_terrae import _dht_longling_action
+from engine.characters.hysilens import _hysilens_field
+from engine.characters.qianye import _qianye_enter_wrath, _qianye_e6_gain_charge, _qianye_exit_wrath
+from engine.characters.sunday import _sunday_apply_mentor, _sunday_apply_cr_buff, _sunday_skill, _sunday_tick
+from engine.characters import register_all_elation_skill_hooks as _register_elation_skill_hooks
+from engine.characters.yinlang import _silver_wolf_apply_entry_effects
+from engine.runtime import SimState, SimUnit, TimedBuff, _enemy_for_damage
 from engine.core.damage import calculate_damage
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
@@ -42,13 +25,10 @@ from engine.models.memsprite import MemSprite
 from engine.systems.elation import ElationSystem
 import engine.systems.elation as elation_module
 from engine.systems.remembrance import MemSpriteUnit
-from engine.core.effect_resolver import (
-    EIDOLON_REGISTRY,
-    TRACE_REGISTRY,
-    _eid_bronya_e4,
-    _trace_dht_trace2,
-)
-from engine.core.combat_utils import _tech_yinlang
+from engine.core.effect_resolver import EIDOLON_REGISTRY, TRACE_REGISTRY
+from engine.characters.bronya import _eid_bronya_e4
+from engine.characters.dan_heng_permansor_terrae import _trace_dht_trace2
+from engine.characters.yinlang import _tech_yinlang
 
 
 def _enemy(hp=500000.0, res=0.0):
@@ -127,7 +107,7 @@ def test_anaxa_counts_natural_weaknesses_for_reveal_and_trace3(monkeypatch):
     target.element_res["火"] = 0.0
     state = _state(anaxa, enemy=target)
     choices = iter(("冰", "雷", "风"))
-    monkeypatch.setattr("engine.core.combat_sim.random.choice", lambda _: next(choices))
+    monkeypatch.setattr("engine.core.combat_engine.random.choice", lambda _: next(choices))
 
     for _ in range(3):
         _anaxa_add_weakness(state, anaxa, target)
@@ -142,7 +122,7 @@ def test_anaxa_refresh_preserves_original_resistance_snapshot(monkeypatch):
     anaxa = _unit("anaxa")
     target = _enemy(res=0.20)
     state = _state(anaxa, enemy=target)
-    monkeypatch.setattr("engine.core.combat_sim.random.choice", lambda _: "冰")
+    monkeypatch.setattr("engine.core.combat_engine.random.choice", lambda _: "冰")
 
     _anaxa_add_weakness(state, anaxa, target)
     for element in ("物理", "火", "雷", "风", "量子", "虚数"):
@@ -290,7 +270,7 @@ def test_hysilens_field_refresh_does_not_stack_e4_resistance_loss():
 
     _hysilens_field(state, hysilens)
     _hysilens_field(state, hysilens)
-    from engine.core.combat_sim import _hysilens_remove_field
+    from engine.characters.hysilens import _hysilens_remove_field
     _hysilens_remove_field(state, hysilens)
 
     assert target.get_res("物理") == pytest.approx(0.20)
@@ -349,7 +329,8 @@ def test_silver_wolf_speed_trace_and_enhanced_basic_deal_damage():
     stats = state.extra["_elation"].eff_stats(silver, state, base_stats=silver.base_stats)
     hp_before = enemy.HP
 
-    state.extra["_elation"].silver_enhanced_basic(silver, state)
+    from engine.characters.yinlang import silver_enhanced_basic
+    silver_enhanced_basic(silver, state)
 
     assert stats.ELATION_LEVEL > silver.base_stats.ELATION_LEVEL
     assert enemy.HP < hp_before
@@ -462,7 +443,8 @@ def test_silver_wolf_enhanced_damage_matches_hp_loss_and_blindbox_decay(monkeypa
     monkeypatch.setattr(elation_module.random, "choice", lambda values: values[0])
     hp_before = enemy.HP
 
-    elation.silver_enhanced_basic(silver, state)
+    from engine.characters.yinlang import silver_enhanced_basic
+    silver_enhanced_basic(silver, state)
 
     assert hp_before - enemy.HP == pytest.approx(silver.total_damage_dealt)
     assert silver.extra["yinlang_blindbox_prob"] == pytest.approx(0.20)
@@ -570,7 +552,8 @@ def test_silver_wolf_skill_generates_five_laughs_but_basic_does_not():
     state = _state(silver)
     state.extra["_elation"] = ElationSystem()
     hooks = {}
-    _register_elation_skill_hooks(hooks)
+    from engine.characters import register_all_elation_skill_hooks
+    register_all_elation_skill_hooks(hooks)
 
     hooks["yinlang"][1](silver, state, "basic_attack")
     assert state.laugh_points == pytest.approx(0.0)
@@ -594,7 +577,8 @@ def test_silver_wolf_technique_triggers_each_wave_with_fixed_laugh_count(monkeyp
 
     next_enemy = _enemy(hp=1_000_000.0)
     state.enemies = [next_enemy]
-    state.extra["_elation"].silver_technique_wave(silver, state)
+    from engine.characters.yinlang import silver_technique_wave
+    silver_technique_wave(silver, state)
     assert next_enemy.HP < 1_000_000.0
 
 
@@ -645,8 +629,9 @@ def test_silver_wolf_e4_does_not_boost_ordinary_blindbox(monkeypatch):
         state = _state(silver, enemy=enemy)
         state.laugh_points = 20.0
         state.elation_state.grant_good_show("yinlang", 1.0)
-        elation = ElationSystem()
+        state.extra['_elation'] = ElationSystem()
         monkeypatch.setattr(elation_module.random, "random", lambda: 0.5)
-        return elation.silver_blindbox(silver, state)
+        from engine.characters.yinlang import silver_blindbox
+        return silver_blindbox(silver, state)
 
     assert blindbox_damage(4) == pytest.approx(blindbox_damage(3))

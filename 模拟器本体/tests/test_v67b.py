@@ -9,19 +9,19 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats, _dahlia_field_apply,
-    _dahlia_super_break_rate, _dahlia_fua, _apply_dahlia_baisie, _dahlia_field_active,
-    _dahlia_ensure_dancers, _dahlia_e1_flat, _hn_support_skill, _hn_count_hits,
-    _hn_support_cap, _sparxie_enhanced_settle, _deduct_skill_point_cost,
-    _register_elation_skill_hooks, _apply_toughness_damage, _evanescia_fox_teacher_fua,
-)
-from engine.core.effect_resolver import (
-    _trace_dahlia_trace1_open, _trace_dahlia_trace3_implant, _eid_dahlia_e2,
-    _eid_dahlia_e6, _trace_hn_protocol, _eid_hn_e6, _trace_evanescia_talent_elation,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _deduct_skill_point_cost, _apply_toughness_damage
+from engine.characters.the_dahlia import _dahlia_field_apply, _dahlia_super_break_rate, _dahlia_fua, _apply_dahlia_baisie, _dahlia_field_active, _dahlia_ensure_dancers, _dahlia_e1_flat
+from engine.characters.himeko_nova import _hn_support_skill, _hn_count_hits, _hn_support_cap
+from engine.characters import register_all_elation_skill_hooks as _register_elation_skill_hooks
+from engine.characters.sparxie import _sparxie_enhanced_settle
+from engine.characters.evanescia import _evanescia_fox_teacher_fua
+from engine.runtime import SimState, SimUnit
+from engine.characters.the_dahlia import _trace_dahlia_trace1_open, _trace_dahlia_trace3_implant, _eid_dahlia_e2, _eid_dahlia_e6
+from engine.characters.himeko_nova import _trace_hn_protocol, _eid_hn_e6
+from engine.characters.evanescia import _trace_evanescia_talent_elation
 from engine.systems.elation import ElationSystem
-from engine.core.combat_utils import apply_techniques, _tech_evanescia
+from engine.systems.techniques import apply_techniques
+from engine.characters.evanescia import _tech_evanescia
 
 R = {'冰': 0, '量子': 0, '风': 0, '雷': 0, '虚数': 0, '物理': 0, '火': 0.2}
 
@@ -203,7 +203,7 @@ class TestDahlia:
 
     def test_trace1_reapply_on_heal(self):
         """行迹1: 受队友治疗→再次触发3回合（单回合1次）"""
-        from engine.core.effect_resolver import _trace_dahlia_trace1_reapply
+        from engine.characters.the_dahlia import _trace_dahlia_trace1_reapply
         u = _unit('the_dahlia')
         ally = _unit('luocha' if False else 'seele', position=2)
         st = SimState(enemies=[_enemy()], units=[u, ally])
@@ -302,7 +302,8 @@ class TestSparxie:
         u = _unit('sparxie')
         st = SimState(enemies=[_enemy()], units=[u])
         st.skill_points = 3
-        _register_elation_skill_hooks(st.skill_hooks)
+        from engine.characters import register_all_elation_skill_hooks
+        register_all_elation_skill_hooks(st.skill_hooks)
         e0 = u.current_energy
         _use_skill(u, st, 'skill')
         assert u.current_energy - e0 == pytest.approx(0.0)
@@ -311,7 +312,8 @@ class TestSparxie:
         """强化普攻【百花齐放】能量恢复40"""
         u = _unit('sparxie')
         st = SimState(enemies=[_enemy()], units=[u])
-        _register_elation_skill_hooks(st.skill_hooks)
+        from engine.characters import register_all_elation_skill_hooks
+        register_all_elation_skill_hooks(st.skill_hooks)
         u.extra['sparxie_live'] = True
         e0 = u.current_energy
         _use_skill(u, st, 'basic_attack')
@@ -348,7 +350,8 @@ class TestEvanescia:
         u = _unit('evanescia')
         st = SimState(enemies=[_enemy()], units=[u])
         _elation(st)
-        _register_elation_skill_hooks(st.skill_hooks)
+        from engine.characters import register_all_elation_skill_hooks
+        register_all_elation_skill_hooks(st.skill_hooks)
         e0 = u.current_energy
         _use_skill(u, st, 'elation_skill')
         assert u.current_energy - e0 == pytest.approx(10.0)  # 5回能 + 5好活→5能互转

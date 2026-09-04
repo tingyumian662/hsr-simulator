@@ -9,7 +9,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import load_lightcone
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
+from engine.characters.robin_summeretto import _qingge_summon_variant
 
 
 def _enemy(res=None):
@@ -57,7 +58,8 @@ class TestSkillSummon:
 
     def test_skill_heals_when_present(self):
         """晴空乐手已在场→战技回血100%+气氛+6"""
-        from engine.core.combat_sim import SimState, SimUnit, _effective_spd
+        from engine.core.combat_engine import _effective_spd
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
         from engine.systems.remembrance import RemembranceSystem
         char = _qingge()
@@ -68,10 +70,10 @@ class TestSkillSummon:
         state.extra['navs'] = {0: 100.0}
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
-        ms = rem._qingge_summon_variant(state, u, char.memsprite, '贝茜')
+        ms = _qingge_summon_variant(state, u, char.memsprite, '贝茜')
         ms.current_hp = ms.max_hp * 0.5
         before = u.extra.get('qingge_atmo', 0.0)
-        rem._qingge_summon_variant(state, u, char.memsprite, '贝茜')
+        _qingge_summon_variant(state, u, char.memsprite, '贝茜')
         assert ms.current_hp == pytest.approx(ms.max_hp, rel=1e-9)
         assert u.extra.get('qingge_atmo') == pytest.approx(before + 6)
 
@@ -106,7 +108,7 @@ class TestAtmoAndFever:
 
     def test_fever_removes_qingge_from_timeline(self):
         """Fever期间晴歌离开行动条(navs摘除), 退出后恢复"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
         from engine.systems.remembrance import RemembranceSystem
         char = _qingge()
@@ -118,17 +120,17 @@ class TestAtmoAndFever:
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
         for name in ('贝茜', '啾米', '派丁'):
-            rem._qingge_summon_variant(state, u, char.memsprite, name)
+            _qingge_summon_variant(state, u, char.memsprite, name)
         assert u.extra.get('qingge_fever')
         assert 0 not in state.extra['navs']  # Fever期晴歌离场
-        from engine.core.combat_sim import _qingge_exit_fever
+        from engine.characters.robin_summeretto import _qingge_exit_fever
         _qingge_exit_fever(state, u)
         assert not u.extra.get('qingge_fever')
         assert 0 in state.extra['navs']  # 退出后恢复行动条
 
     def test_field_def_pen_and_vuln(self):
         """结界: 全队无视防御15%+气氛×0.5%; 成员数易伤8%/12%/16%"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
         from engine.systems.remembrance import RemembranceSystem
         char = _qingge()
@@ -142,18 +144,18 @@ class TestAtmoAndFever:
         base_def_pen = u.base_stats.DEF_PEN
         base_vuln = u.base_stats.VULNERABILITY_APPLIED
         # 1只: 易伤8%
-        rem._qingge_summon_variant(state, u, char.memsprite, '贝茜')
+        _qingge_summon_variant(state, u, char.memsprite, '贝茜')
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln + 0.08)
         # 2只: 易伤12%
-        rem._qingge_summon_variant(state, u, char.memsprite, '啾米')
+        _qingge_summon_variant(state, u, char.memsprite, '啾米')
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln + 0.12)
         # 3只→Fever: 易伤16% + 结界DEF_PEN
-        rem._qingge_summon_variant(state, u, char.memsprite, '派丁')
+        _qingge_summon_variant(state, u, char.memsprite, '派丁')
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln + 0.16)
         atmo = u.extra.get('qingge_atmo', 0.0)
         assert u.base_stats.DEF_PEN == pytest.approx(base_def_pen + 0.15 + atmo * 0.005)
         # 退出Fever→数值回退
-        from engine.core.combat_sim import _qingge_exit_fever
+        from engine.characters.robin_summeretto import _qingge_exit_fever
         _qingge_exit_fever(state, u)
         assert u.base_stats.DEF_PEN == pytest.approx(base_def_pen)
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln)
@@ -249,7 +251,7 @@ class TestEidolons:
         """E6: 忆灵技倍率×2——引擎级对照(v7.0.0 A5 重写)
         此前断言 dealt>0 + calculate_damage自证, 未验证引擎实际倍率;
         现跑引擎真实调用链: E6档(含E5忆灵技+1) = E0×1.05×2.0"""
-        from engine.core.combat_sim import SimState, SimUnit
+        from engine.runtime import SimState, SimUnit
         from engine.core.attributes import compute_combat_stats
         from engine.systems.remembrance import RemembranceSystem
 
@@ -264,7 +266,7 @@ class TestEidolons:
             state.extra['navs'] = {0: 100.0}
             rem = RemembranceSystem()
             state.extra['_rem_sys'] = rem
-            ms = rem._qingge_summon_variant(state, u, char.memsprite, '贝茜')
+            ms = _qingge_summon_variant(state, u, char.memsprite, '贝茜')
             before = state.enemies[0].HP
             rem._use_memsprite_skill(state, u, ms, 'memsprite_basic')
             return before - state.enemies[0].HP

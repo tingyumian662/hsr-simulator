@@ -4,9 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, TimedBuff, _ai_regular_action, _build_effective_stats, simulate,
-)
+from engine.core.combat_engine import _ai_regular_action, _build_effective_stats, simulate
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.systems.elation import ElationSystem

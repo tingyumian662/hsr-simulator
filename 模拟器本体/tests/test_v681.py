@@ -6,12 +6,12 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats, _should_ult_now,
-    _tribbie_field_extra_damage, _tribbie_talent_fua, _hysilens_apply_dot,
-    _anaxa_add_weakness, _phainon_shihun_counter, _phainon_kasier_act,
-    _flat_toughness_with_break,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _should_ult_now, _flat_toughness_with_break
+from engine.characters.tribbie import _tribbie_field_extra_damage, _tribbie_talent_fua
+from engine.characters.hysilens import _hysilens_apply_dot
+from engine.characters.anaxa import _anaxa_add_weakness
+from engine.characters.phainon import _phainon_shihun_counter, _phainon_kasier_act
+from engine.runtime import SimState, SimUnit
 from engine.systems.elation import ElationSystem
 
 
@@ -85,7 +85,7 @@ class TestP1Fixes:
 
     def test_sparxie_ult_elation_extra(self):
         """P1-4: 火花持好活→终结技额外48%欢愉伤害"""
-        from engine.core.combat_sim import _sparxie_ult_elation_extra
+        from engine.characters.sparxie import _sparxie_ult_elation_extra
         u = _unit('sparxie')
         e = _enemy()
         st = SimState(enemies=[e], units=[u])
@@ -122,7 +122,7 @@ class TestP2Fixes:
 
     def test_cerydra_jungong_swap_clears_old(self):
         """P2-3: 换军功目标清除旧目标状态"""
-        from engine.core.combat_sim import _cerydra_grant_jungong
+        from engine.characters.cerydra import _cerydra_grant_jungong
         cery = _unit('cerydra')
         a = _unit('seele', position=2)
         b = _unit('bronya', position=3)
@@ -154,7 +154,7 @@ class TestP2Fixes:
         for s in dots:
             # 裂伤 mult=0 / 其余 25; 挂时不再乘 116%（此前会变 29）
             assert s.attributes['multiplier'] in (0.0, 25.0)
-        from engine.core.combat_sim import _tick_hysilens_dot
+        from engine.characters.hysilens import _tick_hysilens_dot
         hp0 = e.HP
         _tick_hysilens_dot(st, e, dots[0])
         assert hp0 - e.HP > 0  # 结算有伤害
@@ -195,7 +195,7 @@ class TestP2Fixes:
 class TestP3Fixes:
     def test_respawn_rebuilds_tribbie_field(self):
         """P3-1: 新波敌人重建缇宝结界易伤"""
-        from engine.core.combat_sim import _respawn_wave
+        from engine.core.combat_engine import _respawn_wave
         trib = _unit('tribbie')
         e = _enemy()
         st = SimState(enemies=[e], units=[trib])

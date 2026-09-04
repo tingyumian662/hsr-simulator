@@ -4,7 +4,6 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import HTMLResponse
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -13,31 +12,73 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import LightCone, RelicPiece, RelicSet
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 from engine.constants import (RELIC_MAIN_STAT_VALUES, SUB_STAT_VALUES, StatType,
-                              SUBSTAT_ROLL_FACTOR)
+                              SUBSTAT_ROLL_FACTOR, SUBSTAT_KEY_MAP, WEAKNESS_ELEMENTS)
 
 router = APIRouter()
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 # v7.3: 主词条满级值/副词条中档值统一取自 engine.constants（此前三处硬编码副本）;
 # 副词条键含效果命中（9 键契约, 项目主裁决）
+# v7.17.0: 主词条双键收录（name 大写形 + value 原形）——前端与 recommendations.json 的
+# 主词条键为 value 形（ATK_percent）而速度为 name 形（SPD_PERCENT）, 此前仅按 name 收录
+# 使 ATK/HP/DEF% 主词条数值恒取 0（本轮键集契约测试发现的既有缺陷, 修复;
+# 同引擎"SPD_percent 与 SPD_PERCENT 兼容"不变量）
 MAIN_VALUES = {}
 for _pool in RELIC_MAIN_STAT_VALUES.values():
     for _st, _val in _pool.items():
         MAIN_VALUES.setdefault(_st.name, _val)
+        MAIN_VALUES.setdefault(_st.value, _val)
 
 # v7.5: 副词条中档值 ×SUBSTAT_ROLL_FACTOR（与推荐器 _mid 同口径）
 SUB_MID_VALUES = {st.value: vals[1] * SUBSTAT_ROLL_FACTOR
                   for st, vals in SUB_STAT_VALUES.items()}  # 引擎内部键（SPD_percent 小写 p）
 
-# 前端副词条键 → 引擎内部键（仅速度大小写差异）
-SUBSTAT_KEY_MAP = {
-    "CRIT_RATE": "CRIT_RATE", "CRIT_DMG": "CRIT_DMG", "ATK_percent": "ATK_percent",
-    "HP_percent": "HP_percent", "DEF_percent": "DEF_percent", "SPD_PERCENT": "SPD_percent",
-    "EFFECT_RES": "EFFECT_RES", "BREAK_EFFECT": "BREAK_EFFECT",
-    "EFFECT_HIT_RATE": "EFFECT_HIT_RATE",
-}
+# 前端副词条键 → 引擎内部键（仅速度大小写差异）——v7.17.0 M7 键集单源:
+# 定义唯一在 engine.constants.SUBSTAT_KEY_MAP（FRONTEND_ROLL_KEYS 序）
+
+def _main_stat_of(key):
+    """name 形（ATK_PERCENT/SPD_PERCENT）或 value 形（ATK_percent/SPD_percent）键 → StatType
+    成员; 无法识别时原样返回（与旧 getattr(..., k, k) 回退一致）。"""
+    try:
+        return StatType(key)
+    except ValueError:
+        return getattr(StatType, key, key)
+
+
+# 主词条类型映射（v7.3 口径；M2 提升为模块级供 preview/simulate 共用）
+MAIN_STAT_TYPE = {k: _main_stat_of(k) for k in MAIN_VALUES}
+
+
+def _build_relic_pieces(cfg: dict, sub_rolls: dict) -> list:
+    """preview/simulate 共用：副词条键换算 + 六件 RelicPiece 构建。
+
+    v7.3: 前端键→引擎键统一走 SUBSTAT_KEY_MAP（含效果命中）; 中档值取 constants。
+    M2 收敛：此前两端点各持一份逐字相同的副本。"""
+    sub_per_piece = {}
+    for k, v in sub_rolls.items():
+        if v > 0:
+            ek = SUBSTAT_KEY_MAP.get(k, k)
+            sub_per_piece[ek] = round(v * SUB_MID_VALUES.get(ek, 2.5) / 6.0, 2)
+
+    set4, set2 = cfg.get("set4", ""), cfg.get("set2", "")
+    pieces = []
+    for slot, sn, mt, mv in [
+        ("head", set4, StatType.HP_FLAT, 705),
+        ("hands", set4, StatType.ATK_FLAT, 352),
+        ("body", set4, MAIN_STAT_TYPE.get(cfg.get("body", ""), ""),
+         MAIN_VALUES.get(cfg.get("body", ""), 0)),
+        ("feet", set4, MAIN_STAT_TYPE.get(cfg.get("feet", ""), ""),
+         MAIN_VALUES.get(cfg.get("feet", ""), 0)),
+        ("planar_sphere", set2, MAIN_STAT_TYPE.get(cfg.get("sphere", ""), ""),
+         MAIN_VALUES.get(cfg.get("sphere", ""), 0)),
+        ("link_rope", set2, MAIN_STAT_TYPE.get(cfg.get("rope", ""), ""),
+         MAIN_VALUES.get(cfg.get("rope", ""), 0)),
+    ]:
+        pieces.append(RelicPiece(slot=slot, set_name=sn, main_stat_type=mt,
+                                 main_stat_value=mv, sub_stats=sub_per_piece))
+    return pieces
 
 # 生成 ID 映射（文件名→中文名）
 def _build_file_index(subdir):
@@ -139,8 +180,52 @@ async def list_data():
             "inner_relics": inner_relics, "recommendations": recommendations}
 
 
+# v7.17.0 M7 键集单源: 前端键集由本端点统一提供, app.js 不再内联键字面量。
+# 副词条: 键序与引擎键映射来自 engine.constants（SUBSTAT_KEY_MAP）;
+# 输入短键/短标签是纯 web 层概念, 单源在本表（缺契约键即 KeyError, 快速失败）。
+_SUBSTAT_FIELD_LABEL = {
+    "CRIT_RATE": ("cr", "暴击"), "CRIT_DMG": ("cd", "暴伤"),
+    "ATK_percent": ("atk", "攻击%"), "SPD_PERCENT": ("spd", "速度"),
+    "HP_percent": ("hp", "生命%"), "EFFECT_RES": ("res", "抵抗"),
+    "DEF_percent": ("def", "防御%"), "BREAK_EFFECT": ("be", "击破"),
+    "EFFECT_HIT_RATE": ("ehr", "命中"),
+}
+
+# 四槽主词条 options: 顺序/标签/默认选中逐字承袭原内联 HTML
+# （sphere 无默认 → 首项量子增伤即隐式默认; feet 首项空 "--"）——勿按引擎池序重排。
+_MAIN_STAT_OPTIONS = {
+    "body": [("CRIT_RATE", "暴击率", False), ("CRIT_DMG", "暴伤", True),
+             ("ATK_percent", "攻击%", False), ("HP_percent", "生命%", False),
+             ("DEF_percent", "防御%", False), ("HEAL_BONUS", "治疗加成", False),
+             ("EFFECT_HIT_RATE", "效果命中", False)],
+    "feet": [("", "--", False), ("SPD_PERCENT", "速度", False),
+             ("ATK_percent", "攻击%", False), ("HP_percent", "生命%", False),
+             ("DEF_percent", "防御%", False)],
+    "sphere": [("DMG_BONUS_QUANTUM", "量子增伤", False), ("DMG_BONUS_PHYSICAL", "物理增伤", False),
+               ("DMG_BONUS_FIRE", "火增伤", False), ("DMG_BONUS_ICE", "冰增伤", False),
+               ("DMG_BONUS_LIGHTNING", "雷增伤", False), ("DMG_BONUS_WIND", "风增伤", False),
+               ("DMG_BONUS_IMAGINARY", "虚数增伤", False),
+               ("ATK_percent", "攻击%", False), ("HP_percent", "生命%", False),
+               ("DEF_percent", "防御%", False)],
+    "rope": [("ATK_percent", "攻击%", False), ("ENERGY_REGEN", "充能", True),
+             ("HP_percent", "生命%", False), ("DEF_percent", "防御%", False),
+             ("BREAK_EFFECT", "击破特攻", False)],
+}
+
+
+@router.get("/keysets")
+async def keysets():
+    """前端键集单源: 副词条 9 键契约（键/引擎键/输入短键/短标签）+ 四槽主词条 options。"""
+    substats = [{"key": k, "engine_key": v,
+                 "field": _SUBSTAT_FIELD_LABEL[k][0], "label": _SUBSTAT_FIELD_LABEL[k][1]}
+                for k, v in SUBSTAT_KEY_MAP.items()]
+    main_stats = {slot: [{"value": val, "label": label, "selected": selected}
+                         for val, label, selected in options]
+                  for slot, options in _MAIN_STAT_OPTIONS.items()}
+    return {"substats": substats, "main_stats": main_stats}
+
+
 # v5.2 问题6: 嵌套请求模型与数值范围校验（校验失败自动 422）
-WEAKNESS_ELEMENTS = {"物理", "火", "冰", "雷", "风", "量子", "虚数"}
 
 
 class TeamMember(BaseModel):
@@ -181,10 +266,6 @@ class SimRequest(BaseModel):
 @router.post("/recommend")
 async def recommend_substats(req: SimRequest):
     """根据角色当前配装推荐最优副词条分配"""
-    from engine.constants import StatType
-
-    MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
-
     relic_sets = {}
     for f in _build_file_index("relics"):
         try:
@@ -245,10 +326,6 @@ async def recommend_substats(req: SimRequest):
 @router.post("/preview")
 async def preview_stats(req: SimRequest):
     """预览角色面板（含副词条）"""
-    from engine.constants import StatType
-
-    MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
-
     relic_sets = {}
     for f in _build_file_index("relics"):
         try:
@@ -264,31 +341,7 @@ async def preview_stats(req: SimRequest):
         lc = _load_lightcone_or_422(member.lc_id)
 
         try:
-            cfg = member.relics
-            body_type = MAIN_STAT_TYPE.get(cfg.get("body", ""), "")
-            feet_type = MAIN_STAT_TYPE.get(cfg.get("feet", ""), "")
-            sphere_type = MAIN_STAT_TYPE.get(cfg.get("sphere", ""), "")
-            rope_type = MAIN_STAT_TYPE.get(cfg.get("rope", ""), "")
-
-            sub_rolls = member.substats
-            # v7.3: 前端键→引擎键统一走 SUBSTAT_KEY_MAP（含效果命中）; 中档值取 constants
-            sub_per_piece = {}
-            for k, v in sub_rolls.items():
-                if v > 0:
-                    ek = SUBSTAT_KEY_MAP.get(k, k)
-                    sub_per_piece[ek] = round(v * SUB_MID_VALUES.get(ek, 2.5) / 6.0, 2)
-
-            pieces = []
-            for slot, sn, mt, mv in [
-                ("head", cfg.get("set4", ""), StatType.HP_FLAT, 705),
-                ("hands", cfg.get("set4", ""), StatType.ATK_FLAT, 352),
-                ("body", cfg.get("set4", ""), body_type, MAIN_VALUES.get(cfg.get("body", ""), 0)),
-                ("feet", cfg.get("set4", ""), feet_type, MAIN_VALUES.get(cfg.get("feet", ""), 0)),
-                ("planar_sphere", cfg.get("set2", ""), sphere_type, MAIN_VALUES.get(cfg.get("sphere", ""), 0)),
-                ("link_rope", cfg.get("set2", ""), rope_type, MAIN_VALUES.get(cfg.get("rope", ""), 0)),
-            ]:
-                pieces.append(RelicPiece(slot=slot, set_name=sn, main_stat_type=mt, main_stat_value=mv, sub_stats=sub_per_piece))
-
+            pieces = _build_relic_pieces(member.relics, member.substats)
             stats = compute_combat_stats(char, lc, pieces, relic_sets)
         except Exception:
             logger.exception('preview 计算失败: char=%s', cid)
@@ -308,11 +361,6 @@ async def preview_stats(req: SimRequest):
 @router.post("/simulate")
 async def run_simulation(req: SimRequest):
     """运行队伍模拟"""
-    from engine.constants import StatType
-
-    # 主词条数值
-    MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
-
     # 加载遗器套装
     relic_sets = {}
     for f in _build_file_index("relics"):
@@ -329,32 +377,7 @@ async def run_simulation(req: SimRequest):
         lc = _load_lightcone_or_422(member.lc_id)
 
         # 遗器
-        cfg = member.relics
-        set4 = cfg.get("set4", "")
-        set2 = cfg.get("set2", "")
-        body_type = MAIN_STAT_TYPE.get(cfg.get("body", ""), "")
-        feet_type = MAIN_STAT_TYPE.get(cfg.get("feet", ""), "")
-        sphere_type = MAIN_STAT_TYPE.get(cfg.get("sphere", ""), "")
-        rope_type = MAIN_STAT_TYPE.get(cfg.get("rope", ""), "")
-
-        sub_rolls = member.substats
-        # v7.3: 前端键→引擎键统一走 SUBSTAT_KEY_MAP（含效果命中）; 中档值取 constants
-        sub_per_piece = {}
-        for k, v in sub_rolls.items():
-            if v > 0:
-                ek = SUBSTAT_KEY_MAP.get(k, k)
-                sub_per_piece[ek] = round(v * SUB_MID_VALUES.get(ek, 2.5) / 6.0, 2)
-
-        pieces = []
-        for slot, sn, mt, mv in [
-            ("head", set4, StatType.HP_FLAT, 705),
-            ("hands", set4, StatType.ATK_FLAT, 352),
-            ("body", set4, body_type, MAIN_VALUES.get(cfg.get("body", ""), 0)),
-            ("feet", set4, feet_type, MAIN_VALUES.get(cfg.get("feet", ""), 0)),
-            ("planar_sphere", set2, sphere_type, MAIN_VALUES.get(cfg.get("sphere", ""), 0)),
-            ("link_rope", set2, rope_type, MAIN_VALUES.get(cfg.get("rope", ""), 0)),
-        ]:
-            pieces.append(RelicPiece(slot=slot, set_name=sn, main_stat_type=mt, main_stat_value=mv, sub_stats=sub_per_piece))
+        pieces = _build_relic_pieces(member.relics, member.substats)
 
         eidolon = member.eidolon
         configs.append({

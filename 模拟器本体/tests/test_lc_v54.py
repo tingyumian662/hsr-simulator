@@ -4,11 +4,8 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.models.equipment import load_lightcone
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, TimedBuff, _use_skill, _process_lc_effects, _apply_lc_condition_corrections,
-    _build_effective_stats, _apply_target_relic_modifiers, _apply_toughness_damage,
-    _tick_buffs, _respawn_wave,
-)
+from engine.core.combat_engine import _use_skill, _process_lc_effects, _apply_lc_condition_corrections, _build_effective_stats, _apply_target_relic_modifiers, _apply_toughness_damage, _tick_buffs, _respawn_wave
+from engine.runtime import SimUnit, SimState, TimedBuff
 
 
 def _enemy(hp=500000, toughness=200):
@@ -140,7 +137,7 @@ class TestEnemyMarkers:
 
     def test_gongxian_probability_hit(self, monkeypatch):
         """决心如汗珠般闪耀精5（用户确认）: 100%基础概率攻陷 DEF-16%"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.10)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.10)
         u = _unit('fugue', lc_id='resolution_shines_as_pearls_of_sweat')
         e = _enemy()
         state = SimState(enemies=[e], units=[u])
@@ -149,7 +146,7 @@ class TestEnemyMarkers:
 
     def test_gongxian_rank1_hit(self, monkeypatch):
         """精1: 60%基础概率命中 → DEF-12%"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.10)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.10)
         u = _unit('fugue', lc_id='resolution_shines_as_pearls_of_sweat')
         u.lightcone.rank = 1
         e = _enemy()
@@ -159,7 +156,7 @@ class TestEnemyMarkers:
 
     def test_gongxian_probability_miss(self, monkeypatch):
         """精1(60%基础概率): 未命中 → 无攻陷"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.90)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.90)
         u = _unit('fugue', lc_id='resolution_shines_as_pearls_of_sweat')
         u.lightcone.rank = 1
         e = _enemy()
@@ -177,7 +174,7 @@ class TestEnemyMarkers:
         assert e.has_status(status_id='kubai')
         assert e.status_attribute('spd_down') == pytest.approx(0.20, abs=1e-9)
         # 再次击破（韧性已恢复）验证 break_mult×1.24
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         _begin_enemy_turn(state, e)  # 韧性恢复（溃败2回合→1）
         e.is_broken = False
         e.toughness = 10.0
@@ -214,7 +211,7 @@ class TestHealRecord:
 
     def test_time_waits_records_marker_healing(self):
         """光锥持有者通过行动条标记治疗时也应产生治疗记录。"""
-        from engine.core.combat_sim import _marker_heal_allies
+        from engine.core.combat_engine import _marker_heal_allies
 
         holder = _unit('lingsha', lc_id='时节不居')
         holder.current_hp -= 100.0
@@ -255,7 +252,7 @@ class TestFlamesAfar:
 class TestSleepLikeDead:
     def test_miss_crit_triggers_cr_buff(self, monkeypatch):
         """如泥酣眠: 未暴击概率触发 CR+36%（期望模式 1-CR 判定）"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.10)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.10)
         u = _unit('seele', lc_id='sleep_like_the_dead')
         u.base_stats.CRIT_RATE = 0.20
         state = SimState(enemies=[_enemy()], units=[u])
@@ -302,7 +299,7 @@ class TestBatch2:
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
         _process_lc_effects(u, state, "on_battle_start")
-        from engine.core.combat_sim import _build_effective_stats
+        from engine.core.combat_engine import _build_effective_stats
         s = _build_effective_stats(ally, state)
         assert s.DMG_BONUS['虚数'] == pytest.approx(0.12, abs=1e-9)
 
@@ -360,7 +357,7 @@ class TestBatch2:
         _process_lc_effects(u, state, "on_self_attack")  # 层1
         _process_lc_effects(u, state, "on_self_attack")  # 层2
         assert u.extra.get('swordplay_layers') == 2
-        from engine.core.combat_sim import _lc_target_correct, _build_effective_stats
+        from engine.core.combat_engine import _lc_target_correct, _build_effective_stats
         s = _build_effective_stats(u, state)
         t = _lc_target_correct(s, u, state, e)
         assert t.DMG_BONUS_ALL == pytest.approx(s.DMG_BONUS_ALL + 0.08 * 2, abs=1e-9)
@@ -371,7 +368,7 @@ class TestBatch2:
 
     def test_masquerade_caiyan_full(self):
         """游戏尘寰: 彩焰4层→假面4回合（全队jiamian叠层刷新）"""
-        from engine.core.combat_sim import _lc_masquerade_caiyan
+        from engine.core.combat_engine import _lc_masquerade_caiyan
         u = _unit('bronya', lc_id='earthly_escapade')
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
@@ -409,7 +406,7 @@ class TestBatch2:
 
     def test_life_flames_weakness_dmg_bonus(self):
         """生命当付之一炬: 目标拥有弱点植入→装备者伤害+60%"""
-        from engine.core.combat_sim import _lc_target_correct, _build_effective_stats
+        from engine.core.combat_engine import _lc_target_correct, _build_effective_stats
         u = _unit('the_herta', lc_id='life_should_be_cast_to_flames')
         e = _enemy()
         e.add_status(EnemyStatus(id='firefly_fire_weakness', name='火弱点', category='debuff',
@@ -423,7 +420,7 @@ class TestBatch2:
 
     def test_life_flames_ignores_weakness_added_by_ally(self):
         """生命当付之一炬只识别装备者自己添加的弱点。"""
-        from engine.core.combat_sim import _lc_target_correct
+        from engine.core.combat_engine import _lc_target_correct
 
         u = _unit('the_herta', lc_id='life_should_be_cast_to_flames')
         enemy = _enemy()
@@ -467,7 +464,7 @@ class TestLandausChoice:
         state = SimState(enemies=[_enemy()], units=[u])
         _process_lc_effects(u, state, "on_battle_start")
         assert u.extra.get('taunt_mult') == pytest.approx(3.0, abs=1e-9)
-        from engine.core.combat_sim import _build_effective_stats
+        from engine.core.combat_engine import _build_effective_stats
         s = _build_effective_stats(u, state)
         assert s.DMG_REDUCTION == pytest.approx(0.16, abs=1e-9)
 
@@ -486,7 +483,7 @@ class TestV54ReviewRegressions:
 
     def test_memsprite_attack_dispatches_lightcone_event_once(self, monkeypatch):
         """一次真实忆灵攻击只能派发一次光锥忆灵攻击事件。"""
-        from engine.core import combat_sim
+        from engine.core import combat_engine
         from engine.systems.remembrance import RemembranceSystem
 
         u = _unit('trailblazer_remembrance', lc_id='this_love_forever')
@@ -494,14 +491,14 @@ class TestV54ReviewRegressions:
         system = RemembranceSystem()
         ms = system.summon_memsprite(state, u, u.char.memsprite)
         calls = []
-        original = combat_sim._process_lc_effects
+        original = combat_engine._process_lc_effects
 
         def record(unit, sim_state, event_type):
             if event_type == 'on_memsprite_attack':
                 calls.append(event_type)
             return original(unit, sim_state, event_type)
 
-        monkeypatch.setattr(combat_sim, '_process_lc_effects', record)
+        monkeypatch.setattr(combat_engine, '_process_lc_effects', record)
         system._use_memsprite_skill(state, u, ms, 'memsprite_basic')
 
         assert calls == ['on_memsprite_attack']
@@ -615,7 +612,7 @@ class TestV54ReviewRegressions:
 
     def test_sleep_like_dead_uses_current_attack_and_survives_action_end(self, monkeypatch):
         """未暴击判定读取本次技能，触发的一回合Buff不能在当前行动末立即消失。"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.0)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.0)
         u = _unit('seele', lc_id='sleep_like_the_dead')
         u.base_stats.CRIT_RATE = 0.20
         state = SimState(enemies=[_enemy()], units=[u])
@@ -628,7 +625,7 @@ class TestV54ReviewRegressions:
 
     def test_sleep_like_dead_cooldown_is_per_holder(self, monkeypatch):
         """如泥酣眠的冷却不能由另一名持有者共享或阻断。"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.0)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.0)
         u1 = _unit('seele', lc_id='sleep_like_the_dead')
         u2 = _unit('seele', position=2, lc_id='sleep_like_the_dead')
         u1.base_stats.CRIT_RATE = u2.base_stats.CRIT_RATE = 0.20
@@ -646,7 +643,7 @@ class TestV54ReviewRegressions:
 
     def test_sleep_like_dead_extra_turn_does_not_gain_an_extra_duration(self, monkeypatch):
         """X轴不tick，额外回合触发的一回合Buff应从1开始计时。"""
-        monkeypatch.setattr('engine.core.combat_sim.random.random', lambda: 0.0)
+        monkeypatch.setattr('engine.core.combat_engine.random.random', lambda: 0.0)
         u = _unit('seele', lc_id='sleep_like_the_dead')
         u.base_stats.CRIT_RATE = 0.20
         u.extra['lc_last_skill_key'] = 'basic_attack'
@@ -708,7 +705,7 @@ class TestV54ReviewRegressions:
 
     def test_we_will_meet_again_only_hits_an_attacked_enemy(self, monkeypatch):
         """后会有期的随机目标范围是本次受击敌人，而不是任意存活敌人。"""
-        monkeypatch.setattr('engine.core.combat_sim.random.choice', lambda seq: seq[-1])
+        monkeypatch.setattr('engine.core.combat_engine.random.choice', lambda seq: seq[-1])
         u = _unit('fugue', lc_id='we_will_meet_again')
         enemies = [_enemy(), _enemy()]
         enemies[0].id, enemies[1].id = 'hit', 'not_hit'

@@ -136,8 +136,9 @@ class TestManualInputUncapped:
 
     def test_frontend_input_max_50(self):
         from pathlib import Path
-        html = (Path(__file__).resolve().parents[1]
-                / "web" / "templates" / "index.html").read_text(encoding="utf-8")
+        # v7.17.0: 前端脚本迁 web/static/app.js, 断言改读该文件
+        js = (Path(__file__).resolve().parents[1]
+              / "web" / "static" / "app.js").read_text(encoding="utf-8")
         # 词条输入上限=总词条50（不受单词条推荐上限约束）
-        assert 'min="0" max="50"' in html
-        assert "手动调整不受单词条上限约束" in html
+        assert 'min="0" max="50"' in js
+        assert "手动调整不受单词条上限约束" in js

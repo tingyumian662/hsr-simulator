@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "teams": {
+    "t1_hn_combustion": {
+      "units": [
+        [
+          "himeko_nova",
+          580597.565315,
+          2676.0
+        ],
+        [
+          "firefly",
+          186166.882564,
+          2683.0
+        ],
+        [
+          "ruan_mei",
+          160989.934868,
+          2849.0
+        ],
+        [
+          "huohuo",
+          61012.360426,
+          3933.16
+        ]
+      ],
+      "cycles": 12,
+      "action_counts": {
+        "firefly": 27,
+        "himeko_nova": 8,
+        "huohuo": 18,
+        "ruan_mei": 18
+      }
+    },
+    "t2_double_memsprite": {
+      "units": [
+        [
+          "aglaea",
+          330007.103361,
+          3004.0
+        ],
+        [
+          "robin_summeretto",
+          69040.098451,
+          4160.31311
+        ],
+        [
+          "trailblazer_harmony",
+          21340.753898,
+          2743.0
+        ],
+        [
+          "luocha",
+          0.0,
+          1447.72757
+        ]
+      ],
+      "cycles": 10,
+      "action_counts": {
+        "aglaea": 31,
+        "robin_summeretto": 10,
+        "trailblazer_harmony": 17
+      }
+    },
+    "t3_elation": {
+      "units": [
+        [
+          "yinlang",
+          2941663.087108,
+          1752.0
+        ],
+        [
+          "evanescia",
+          729030.004184,
+          1752.0
+        ],
+        [
+          "sparxie",
+          2778252.395375,
+          1752.0
+        ],
+        [
+          "aventurine",
+          0.0,
+          1107.471275
+        ]
+      ],
+      "cycles": 10,
+      "action_counts": {
+        "evanescia": 25,
+        "sparxie": 34,
+        "yinlang": 12
+      }
+    },
+    "t4_implant": {
+      "units": [
+        [
+          "silver_wolf",
+          382477.699701,
+          2810.0
+        ],
+        [
+          "sparkle",
+          4251.016811,
+          3983.08
+        ],
+        [
+          "dan_heng_permansor_terrae",
+          103776.26783,
+          2810.0
+        ],
+        [
+          "huohuo",
+          5617.983167,
+          3933.16
+        ]
+      ],
+      "cycles": 10,
+      "action_counts": {
+        "dan_heng_permansor_terrae": 16,
+        "huohuo": 17,
+        "silver_wolf": 30,
+        "sparkle": 18
+      }
+    },
+    "t5_waves_elite": {
+      "units": [
+        [
+          "firefly",
+          119373.218352,
+          1744.95
+        ]
+      ],
+      "cycles": 19,
+      "action_counts": {
+        "firefly": 26
+      }
+    }
+  },
+  "roster_count": 92,
+  "recommend_digest": "b7fde18158b2fb21d6c0f55258532b108a3b5f607c0113d5a352dc6b47069286",
+  "solo_digest": "c18d4ebc5851925b1893f3116cea9cdc5315563e875c067be98072c8112062b1",
+  "generated_at": "2026-09-02T19:27:33"
+}

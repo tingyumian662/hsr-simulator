@@ -2,21 +2,13 @@
 import pytest
 
 from engine.core.attributes import CombatStats, compute_combat_stats
-from engine.core.combat_sim import (
-    SimState,
-    SimUnit,
-    _build_effective_stats,
-    _check_fatal,
-    _cipher_attack_aftermath,
-    _cipher_trace3_apply_vuln,
-    _cipher_trace3_remove_vuln,
-    _welt_extra_damage,
-)
-from engine.core.effect_resolver import (
-    _trace_cerydra_trace1,
-    _trace_cipher_trace3,
-    _trace_hysilens_trace3,
-)
+from engine.core.combat_engine import _build_effective_stats, _check_fatal
+from engine.characters.cipher import _cipher_attack_aftermath, _cipher_trace3_apply_vuln, _cipher_trace3_remove_vuln
+from engine.characters.welt import _welt_extra_damage
+from engine.runtime import SimState, SimUnit
+from engine.characters.cerydra import _trace_cerydra_trace1
+from engine.characters.cipher import _trace_cipher_trace3
+from engine.characters.hysilens import _trace_hysilens_trace3
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 
@@ -196,7 +188,8 @@ def test_cipher_e1_fua_atk_buff():
 
 
 def test_cipher_e6_fua_multiplier_and_record_bonus():
-    from engine.core.combat_sim import _cipher_record, _commit_enemy_damage
+    from engine.core.combat_engine import _commit_enemy_damage
+    from engine.characters.cipher import _cipher_record
     c0 = _unit("cipher")
     c6 = _unit("cipher", eidolon=6)
     ally0 = _unit("seele")
@@ -247,7 +240,7 @@ def test_cipher_e2_vuln_applied_on_hit():
 
 def test_cipher_e4_extra_on_own_and_ally_hit():
     from engine.core.damage import calculate_damage
-    from engine.core.combat_sim import _enemy_for_damage
+    from engine.runtime import _enemy_for_damage
     c4 = _unit("cipher", eidolon=4)
     ally = _unit("seele")
     enemy = _mark_laozhuke(_enemy())
@@ -347,7 +340,7 @@ def test_yaoguang_dajidali_trigger_and_double_on_sp_skill():
     enemy = state.enemies[0]
     state.extra['last_attack_targets'] = [enemy]
 
-    from engine.core.combat_sim import _yaoguang_dajidali
+    from engine.characters.yaoguang import _yaoguang_dajidali
     _yaoguang_dajidali(state, ally, 'basic_attack')
     dmg1 = ally.total_damage_dealt
     assert dmg1 > 0
@@ -361,7 +354,7 @@ def test_yaoguang_dajidali_trigger_and_double_on_sp_skill():
 
 
 def test_yaoguang_e4_e6_elation_skill_multipliers():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     # 独立 state 对照（凶星低语易伤 debuff 会残留, 不能同 state 二连放）
     yao_a, state_a = _yao_state(eidolon=6)
     state_a.skill_points = 5
@@ -392,7 +385,7 @@ def test_tb_ultimate_energy_cost_160():
 
 
 def test_tb_txt_multipliers_and_split_damage():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
 
     tb = _unit("trailblazer_elation")
     assert tb.char.skills['basic_attack'].multipliers[0].scale == pytest.approx(100.0)
@@ -414,7 +407,9 @@ def test_tb_txt_multipliers_and_split_damage():
 
 
 def test_tb_skill_grants_good_show_and_talent_damage():
-    from engine.core.combat_sim import _build_effective_stats, _enemy_for_damage, _tb_skill_aftermath
+    from engine.core.combat_engine import _build_effective_stats
+    from engine.characters.trailblazer_elation import _tb_skill_aftermath
+    from engine.runtime import _enemy_for_damage
     from engine.core.damage import calculate_damage
     tb, state = _tb_state()
     state.elation_state.grant_good_show('trailblazer_elation', 20.0, duration=2)
@@ -477,7 +472,7 @@ def test_tb_trace1_crit_and_trace3_atk_panel():
 
 
 def test_tb_trace2_next_skill_bonus():
-    from engine.core.combat_sim import _tb_skill_aftermath
+    from engine.characters.trailblazer_elation import _tb_skill_aftermath
     tb, state = _tb_state()
     ally = _unit("seele", position=2)
     state.units.append(ally)
@@ -493,7 +488,7 @@ def test_tb_trace2_next_skill_bonus():
 
 
 def test_tb_e4_enemy_vuln_status_not_permanent():
-    from engine.core.effect_resolver import _eid_tb_elation_e4
+    from engine.characters.trailblazer_elation import _eid_tb_elation_e4
     tb, state = _tb_state(eidolon=4)
     base_vuln = tb.base_stats.VULNERABILITY_APPLIED
 
@@ -506,7 +501,7 @@ def test_tb_e4_enemy_vuln_status_not_permanent():
 
 
 def test_tb_e2_targets_ult_target():
-    from engine.core.effect_resolver import _eid_tb_elation_e2
+    from engine.characters.trailblazer_elation import _eid_tb_elation_e2
     tb, state = _tb_state(eidolon=2)
     ally = _unit("seele", position=2)
     state.units.append(ally)
@@ -544,7 +539,7 @@ def test_skill_level_boost_parsing_both_formats():
 
 def test_on_after_damage_event_contract():
     """P2-1: on_after_damage 每段伤害提交后广播, 真实注册处理器可收到"""
-    from engine.core.combat_sim import _commit_enemy_damage
+    from engine.core.combat_engine import _commit_enemy_damage
     u = _unit("seele")
     enemy = _enemy(hp=100000.0)
     state = _state(u, enemy=enemy)
@@ -570,7 +565,7 @@ def test_on_after_damage_event_contract():
 
 
 def test_skill_level_boost_applies_to_multiplier():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     from engine.core.effect_resolver import _eid_skill_levels
 
     c0 = _unit("cipher", eidolon=0)
@@ -592,7 +587,7 @@ def test_skill_level_boost_applies_to_multiplier():
 
 def test_cipher_record_uses_actual_hit_and_non_overflow_damage():
     """记录值按实际命中目标的非溢出 HP 损失计算，不按敌人数量均摊。"""
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
 
     cipher = _unit("cipher")
     ally = _unit("seele", position=2)
@@ -615,7 +610,8 @@ def test_cipher_record_uses_actual_hit_and_non_overflow_damage():
 
 
 def test_cipher_records_legacy_non_true_damage_but_excludes_true_damage():
-    from engine.core.combat_sim import _apply_luandie, _commit_enemy_damage
+    from engine.core.combat_engine import _commit_enemy_damage
+    from engine.characters.seele import _apply_luandie
 
     cipher = _unit("cipher")
     ally = _unit("seele", position=2)
@@ -636,7 +632,7 @@ def test_cipher_records_legacy_non_true_damage_but_excludes_true_damage():
 
 
 def test_cipher_excludes_realm_true_damage_from_record():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
 
     def _run(realm_true_dmg):
         cipher = _unit("cipher")
@@ -655,8 +651,8 @@ def test_cipher_excludes_realm_true_damage_from_record():
 
 
 def test_cipher_laozhuke_uses_max_hp_and_technique_record_multiplier():
-    from engine.core.combat_sim import _cipher_pick_laozhuke
-    from engine.core.combat_utils import _tech_cipher
+    from engine.characters.cipher import _cipher_pick_laozhuke
+    from engine.characters.cipher import _tech_cipher
 
     cipher = _unit("cipher")
     high_max = _enemy(hp=600000.0)
@@ -678,8 +674,9 @@ def test_cipher_laozhuke_uses_max_hp_and_technique_record_multiplier():
 
 def test_cipher_trace3_and_e2_scope_refresh():
     """行迹3只给赛飞儿FUA暴伤，E2状态到期后可再次施加。"""
-    from engine.core.combat_sim import _build_effective_stats, _cipher_attack_aftermath
-    from engine.core.effect_resolver import _trace_cipher_trace3
+    from engine.core.combat_engine import _build_effective_stats
+    from engine.characters.cipher import _cipher_attack_aftermath
+    from engine.characters.cipher import _trace_cipher_trace3
 
     cipher = _unit("cipher", eidolon=2)
     ally = _unit("seele", position=2)
@@ -698,7 +695,8 @@ def test_cipher_trace3_and_e2_scope_refresh():
 
 
 def test_cipher_trace1_uses_effective_speed_for_crit_and_record_tiers():
-    from engine.core.combat_sim import TimedBuff, _cipher_record
+    from engine.characters.cipher import _cipher_record
+    from engine.runtime import TimedBuff
 
     cipher = _unit("cipher")
     enemy = _mark_laozhuke(_enemy())
@@ -729,7 +727,7 @@ def test_cipher_trace1_uses_effective_speed_for_crit_and_record_tiers():
 
 def test_cipher_ultimate_record_split_and_true_damage():
     """终结技记录值为主目标25%真伤，75%真伤按技能目标均分。"""
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
 
     def _run(record):
         cipher = _unit("cipher")
@@ -748,7 +746,7 @@ def test_cipher_ultimate_record_split_and_true_damage():
 
 
 def test_yaoguang_field_lifetime_follows_yaoguang_turns():
-    from engine.core.combat_sim import _build_effective_stats, _tick_buffs
+    from engine.core.combat_engine import _build_effective_stats, _tick_buffs
     from engine.systems.elation import ElationSystem
 
     yao = _unit("yaoguang")
@@ -779,7 +777,7 @@ def test_yaoguang_field_lifetime_follows_yaoguang_turns():
 
 
 def test_yaoguang_skill_without_sp_does_not_double_dajidali():
-    from engine.core.combat_sim import _yaoguang_dajidali
+    from engine.characters.yaoguang import _yaoguang_dajidali
 
     yao = _unit("yaoguang")
     qianye = _unit("qianye", position=2)
@@ -800,8 +798,9 @@ def test_yaoguang_skill_without_sp_does_not_double_dajidali():
 
 
 def test_trailblazer_e2_e6_buffs_refresh_and_good_show_uses_system_entry():
-    from engine.core.combat_sim import _build_effective_stats, _tb_skill_aftermath
-    from engine.core.effect_resolver import _eid_tb_elation_e2, _eid_tb_elation_e6
+    from engine.core.combat_engine import _build_effective_stats
+    from engine.characters.trailblazer_elation import _tb_skill_aftermath
+    from engine.characters.trailblazer_elation import _eid_tb_elation_e2, _eid_tb_elation_e6
     from engine.systems.elation import ElationSystem
 
     tb = _unit("trailblazer_elation", eidolon=6)
@@ -824,7 +823,7 @@ def test_trailblazer_e2_e6_buffs_refresh_and_good_show_uses_system_entry():
 
 
 def test_skill_level_boost_accumulates_and_scales_healing():
-    from engine.core.combat_sim import _use_skill
+    from engine.core.combat_engine import _use_skill
     from engine.core.effect_resolver import _eid_skill_levels
 
     yao = _unit("yaoguang", eidolon=6)
@@ -853,7 +852,8 @@ def test_skill_level_boost_accumulates_and_scales_healing():
 
 
 def test_skill_level_boost_scales_shield_and_handwritten_talent():
-    from engine.core.combat_sim import _tb_skill_aftermath, _use_skill
+    from engine.core.combat_engine import _use_skill
+    from engine.characters.trailblazer_elation import _tb_skill_aftermath
     from engine.core.effect_resolver import _eid_skill_levels
 
     def _dht_shield(eidolon):
@@ -884,7 +884,7 @@ def test_complete_roster_e0_e6_and_mixed_team_smoke():
     import json
     import math
     from pathlib import Path
-    from engine.core.combat_sim import simulate
+    from engine.core.combat_engine import simulate
 
     complete_ids = []
     for path in sorted(Path('data/characters').glob('*.json')):

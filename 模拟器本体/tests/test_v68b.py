@@ -6,11 +6,12 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _build_effective_stats, _phainon_kasier_end,
-    _apply_phainon_tech_wave,
-)
-from engine.core.combat_utils import (_tech_phainon, _tech_cipher, _tech_the_dahlia)
+from engine.core.combat_engine import _build_effective_stats
+from engine.characters.phainon import _phainon_kasier_end, _apply_phainon_tech_wave
+from engine.runtime import SimState, SimUnit
+from engine.characters.phainon import _tech_phainon
+from engine.characters.cipher import _tech_cipher
+from engine.characters.the_dahlia import _tech_the_dahlia
 
 
 def _enemy(hp=500000, toughness=200, broken=False):
@@ -73,7 +74,7 @@ class TestPhainonTechnique:
         u = _unit('phainon')
         st = SimState(enemies=[_enemy()], units=[u])
         st.extra['navs'] = {}
-        from engine.core.effect_resolver import _trace_phainon_trace3
+        from engine.characters.phainon import _trace_phainon_trace3
         _trace_phainon_trace3(u, st)  # 行迹3: 进战第1层
         assert u.extra.get('phainon_atk_stacks') == 1
         _phainon_kasier_end(st, u)  # 变身结束 → 第2层

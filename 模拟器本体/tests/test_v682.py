@@ -8,11 +8,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, _build_effective_stats,
-    _tribbie_field_extra_damage, _tribbie_talent_fua,
-    _flat_toughness_with_break,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _flat_toughness_with_break
+from engine.characters.tribbie import _tribbie_field_extra_damage, _tribbie_talent_fua
+from engine.runtime import SimState, SimUnit
 
 
 def _enemy(hp=500000, toughness=200, name='X'):
@@ -33,7 +31,8 @@ def _unit(cid, position=1, eidolon=0):
 
 def _dps(unit, enemy, **kwargs):
     """把敌人在技能调用后的掉血量抓成可直接比较的数值。"""
-    from engine.core.combat_sim import _enemy_for_damage, _build_effective_stats
+    from engine.core.combat_engine import _build_effective_stats
+    from engine.runtime import _enemy_for_damage
     from engine.core.damage import calculate_damage
     stats = _build_effective_stats(unit, kwargs.pop('state'))
     d = calculate_damage(stats, _enemy_for_damage(enemy), stats.ATK, 100.0,

@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(hp=500000, res=None):
@@ -86,7 +86,8 @@ class TestSeeleReproduce:
         """实机场景: 战技动画中释放终结技→终结技排在增幅回合之前→终结技吃到增幅。
         增幅=击杀瞬间获得的pending, X轴首个希儿行动(终结技或再现)时激活, 增幅回合结束撤销"""
         from engine.core.attributes import compute_combat_stats
-        from engine.core.combat_sim import SimState, SimUnit, _exec_extra_turn
+        from engine.core.combat_engine import _exec_extra_turn
+        from engine.runtime import SimState, SimUnit
         c = load_character('seele', 'data/characters')
         stats = compute_combat_stats(c, None, None, None)
         u = SimUnit(char=c, base_stats=stats, position=1)

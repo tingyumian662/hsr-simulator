@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(hp=500000, toughness=100, res=None):
@@ -13,7 +13,7 @@ def _enemy(hp=500000, toughness=100, res=None):
 
 
 def _unit(cid):
-    from engine.core.combat_sim import SimUnit
+    from engine.runtime import SimUnit
     from engine.core.attributes import compute_combat_stats
     c = load_character(cid, 'data/characters')
     stats = compute_combat_stats(c, None, None, None)
@@ -24,7 +24,7 @@ def _unit(cid):
 
 def _state(enemy, u):
     """最小战斗状态（手动驱动敌方回合用）"""
-    from engine.core.combat_sim import SimState
+    from engine.runtime import SimState
     state = SimState(enemies=[enemy], units=[u])
     state.extra['navs'] = {('e', 0): 0.0}
     state.extra['av_stamp'] = {('e', 0): 1}
@@ -36,7 +36,7 @@ def _state(enemy, u):
 class TestBreakDebuffTick:
     def test_wind_dot_expires_after_two_enemy_turns(self):
         """风化(持续型): 敌方行动时递减+DOT跳伤, 2次行动后到期解除"""
-        from engine.core.combat_sim import _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
         u = _unit('fengjin')
         e = _enemy()
         state = _state(e, u)
@@ -53,7 +53,7 @@ class TestBreakDebuffTick:
 
     def test_break_dot_tick_damage(self):
         """DOT 跳伤: 击破者快照面板 × 倍率"""
-        from engine.core.combat_sim import _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
         u = _unit('fengjin')
         e = _enemy()
         state = _state(e, u)
@@ -65,7 +65,7 @@ class TestBreakDebuffTick:
 
     def test_toughness_recovery_on_enemy_turn(self):
         """韧性恢复: 敌方行动时 is_broken→复原"""
-        from engine.core.combat_sim import _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
         u = _unit('fengjin')
         e = _enemy(toughness=100)
         e.toughness = 0
@@ -77,7 +77,7 @@ class TestBreakDebuffTick:
 
     def test_imprison_speed_restored(self):
         """禁锢(虚数): 敌方2次行动后到期, 速度恢复"""
-        from engine.core.combat_sim import _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
         u = _unit('mydei')
         e = _enemy()
         state = _state(e, u)
@@ -90,7 +90,7 @@ class TestBreakDebuffTick:
 
     def test_freeze_expire_delays_5000(self):
         """冻结（v5.0 P7 用户实机语义）: 常规回合时跳过该回合 + 推条5000 + 解除"""
-        from engine.core.combat_sim import _apply_break_debuff, _begin_enemy_turn
+        from engine.core.combat_engine import _apply_break_debuff, _begin_enemy_turn
         u = _unit('changyeyue')
         e = _enemy()
         state = _state(e, u)

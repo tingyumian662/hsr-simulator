@@ -4,10 +4,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _enemy_attack, _enemy_attack_stats, _select_enemy_target,
-    CharacterAsTarget,
-)
+from engine.core.combat_engine import _enemy_attack, _enemy_attack_stats, _select_enemy_target
+from engine.runtime import SimUnit, SimState, CharacterAsTarget
 from engine.core.damage import calculate_damage
 
 

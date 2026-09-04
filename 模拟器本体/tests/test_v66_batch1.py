@@ -5,11 +5,12 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, _use_skill, TimedBuff, _begin_regular_turn,
-    _tribbie_apply_shenqi, _cerydra_grant_jungong,
-)
+from engine.core.combat_engine import _use_skill, _begin_regular_turn
+from engine.characters.tribbie import _tribbie_apply_shenqi
+from engine.characters.cerydra import _cerydra_grant_jungong
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.systems.remembrance import RemembranceSystem
+from engine.characters.xilian import _xilian_support_skill
 
 
 def _enemy(hp=500000, toughness=200):
@@ -41,7 +42,7 @@ class TestTribbie:
 
     def test_shenqi_expires_on_turn(self):
         """神启到期回减（tick 递减由 _begin_regular_turn 处理; AI 战技会刷新神启为真实行为）"""
-        from engine.core.combat_sim import _tribbie_remove_shenqi
+        from engine.characters.tribbie import _tribbie_remove_shenqi
         u = _unit('tribbie')
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[u, ally])
@@ -122,6 +123,6 @@ class TestPoemActivation:
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)
-        rem._xilian_support_skill(state, u, u.memsprite_unit)
+        _xilian_support_skill(state, u, u.memsprite_unit)
         assert trib.extra.get('poem_menjing') is True
         assert trib.base_stats.DEF_PEN == pytest.approx(0.12)

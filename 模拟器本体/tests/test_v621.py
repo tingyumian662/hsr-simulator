@@ -5,13 +5,12 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import load_lightcone
-from engine.core.combat_sim import (
-    SimState, SimUnit, TimedBuff, _use_skill, _mydei_blood_debt_tick,
-    _mydei_fatal_recovery, _build_effective_stats, _lc_target_correct,
-    _apply_hit, _begin_enemy_turn,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats, _lc_target_correct, _apply_hit, _begin_enemy_turn
+from engine.characters.mydei import _mydei_blood_debt_tick, _mydei_fatal_recovery
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.core.attributes import compute_combat_stats
 from engine.systems.remembrance import RemembranceSystem, _ms_effective_stats
+from engine.systems.remembrance import _exit_darkness as _exit_darkness_fn
 
 
 def _enemy(hp=500000, toughness=200):
@@ -48,7 +47,7 @@ class TestDarknessRestore:
         assert e.vulnerability == pytest.approx(vuln0 + 0.30)
         assert u.base_stats.DMG_BONUS_ALL == pytest.approx(dmg0 + 0.60)
         # 退出
-        rem._exit_darkness(state, u)
+        _exit_darkness_fn(state, u)
         assert e.vulnerability == pytest.approx(vuln0)
         assert u.base_stats.DMG_BONUS_ALL == pytest.approx(dmg0)
 
@@ -227,7 +226,8 @@ class TestP2Fixes:
         ms = u.memsprite_unit
         heal0 = ms.cumulative_healing
         hp0 = u.current_hp
-        rem._fengjin_extra_turn(state, u)
+        from engine.characters.fengjin import _fengjin_extra_turn
+        _fengjin_extra_turn(state, u)
         assert ms.cumulative_healing == pytest.approx(heal0)
         assert u.current_hp == pytest.approx(hp0)
         assert any(x is ms for x, k in state.extra.get('extra_turns', []))

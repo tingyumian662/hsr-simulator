@@ -4,16 +4,11 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _should_ult_now, _super_break_rate,
-    MARKER_ACTIONS, MARKER_DESPAWN, MARKER_SPAWN, _firefly_exit_combustion,
-    _build_effective_stats, TimedBuff,
-)
+from engine.core.combat_engine import _use_skill, _should_ult_now, _super_break_rate, _build_effective_stats
+from engine.characters.firefly import _firefly_exit_combustion
+from engine.runtime import SimUnit, SimState, TimedBuff
 from engine.systems.timeline_marker import TimelineMarkerSystem
-from engine.core.effect_resolver import (
-    _trace_firefly_t3_atk_to_be, _firefly_refresh_dr, _eid_firefly_e2_kill,
-    _eid_firefly_e2_reset,
-)
+from engine.characters.firefly import _trace_firefly_t3_atk_to_be, _firefly_refresh_dr, _eid_firefly_e2_kill, _eid_firefly_e2_reset
 
 
 def _enemy(hp=500000, toughness=200):
@@ -35,9 +30,11 @@ def _unit(cid, position=1, eidolon=0, **extra):
 
 def _mk_sys(state):
     sys = TimelineMarkerSystem()
-    sys.action_handlers.update(MARKER_ACTIONS)
-    sys.despawn_handlers.update(MARKER_DESPAWN)
-    sys.spawn_handlers.update(MARKER_SPAWN)
+    from engine.characters import (marker_actions, marker_despawns,
+                                   marker_spawns)
+    sys.action_handlers.update(marker_actions(state))
+    sys.despawn_handlers.update(marker_despawns(state))
+    sys.spawn_handlers.update(marker_spawns(state))
     state.extra['_marker_sys'] = sys
     return sys
 
@@ -126,7 +123,8 @@ class TestCombustion:
 
     def test_enhanced_skill_uses_effective_break_effect(self):
         """强化战技的动态倍率应包含战斗中获得的击破特攻。"""
-        from engine.core.combat_sim import _enemy_for_damage, calculate_damage
+        from engine.core.combat_engine import calculate_damage
+        from engine.runtime import _enemy_for_damage
 
         firefly = _unit('firefly')
         firefly.base_stats.BREAK_EFFECT = 1.0
@@ -150,7 +148,7 @@ class TestCombustion:
 
     def test_fire_weakness_expires(self):
         """火弱点植入 2 回合后到期恢复"""
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         firefly = _unit('firefly')
         e = _enemy()
         state = SimState(enemies=[e], units=[firefly])
@@ -177,7 +175,7 @@ class TestCombustion:
 
     def test_refresh_fire_weakness_preserves_original_resistance(self):
         """重复施加火弱点只刷新持续时间，结束后恢复初始抗性。"""
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         firefly = _unit('firefly')
         e = _enemy()
         e.element_res['火'] = 0.20
@@ -194,7 +192,7 @@ class TestCombustion:
 
     def test_fire_weakness_and_lingsha_e6_restore_independently(self):
         """火弱点与浮元E6叠加后，无论先后结束都不覆盖另一效果。"""
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         firefly = _unit('firefly')
         lingsha = _unit('lingsha', position=2, eidolon=6)
         e = _enemy()
@@ -203,7 +201,7 @@ class TestCombustion:
         sys = _mk_sys(state)
 
         sys.spawn(state, lingsha, 'lingsha_fuyuan')
-        from engine.core.combat_sim import _apply_skill_effects
+        from engine.core.combat_engine import _apply_skill_effects
         _apply_skill_effects(
             firefly, state, firefly.char.skills['skill_enhanced'], 'skill_enhanced',
         )
@@ -236,7 +234,7 @@ class TestCombustion:
 
     def test_ult_break_dmg_bonus_on_enhanced_attack(self):
         """终结技: 强化攻击使目标受到萨姆造成的击破伤害+20%（本次攻击, 击破段）"""
-        from engine.core.combat_sim import _apply_toughness_damage
+        from engine.core.combat_engine import _apply_toughness_damage
         e1 = _enemy(toughness=10)
         firefly = _unit('firefly')
         firefly.extra['combustion'] = True

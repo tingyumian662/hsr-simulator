@@ -3,13 +3,9 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _super_break_rate, _apply_toughness_damage,
-)
-from engine.core.effect_resolver import (
-    _fugue_cloudfire_apply, _fugue_foxian_def_down, _fugue_trace2_team_be,
-    _eid_fugue_e2_energy, _eid_fugue_e2_ult,
-)
+from engine.core.combat_engine import _use_skill, _super_break_rate, _apply_toughness_damage
+from engine.runtime import SimUnit, SimState
+from engine.characters.fugue import _fugue_cloudfire_apply, _fugue_foxian_def_down, _fugue_trace2_team_be, _eid_fugue_e2_energy, _eid_fugue_e2_ult
 
 
 def _enemy(hp=500000, toughness=200, fire_res=0.0):
@@ -50,7 +46,7 @@ class TestCloudfire:
         _use_skill(fugue, state, 'basic_attack')  # 击破主韧性
         assert e.is_broken
         # 削云火昭（削韧10×5次普攻 → 80韧性需要 8 次）
-        from engine.core.combat_sim import _apply_toughness_damage
+        from engine.core.combat_engine import _apply_toughness_damage
         stats = compute_combat_stats(fugue.char, None, None, None)
         for _ in range(8):
             _apply_toughness_damage(state, fugue, e, 10.0, '火', 'basic_attack', stats)
@@ -67,7 +63,7 @@ class TestCloudfire:
         _fugue_cloudfire_apply(fugue, state)
         e.is_broken = True
         e.toughness = 0.0
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         _begin_enemy_turn(state, e)
         assert e.extra_toughness == pytest.approx(80.0, abs=1e-6)  # 未恢复
 
@@ -106,7 +102,7 @@ class TestCloudfire:
 class TestFoxian:
     def test_foxian_break_effect_buff(self):
         """狐祈: 目标击破特攻+30%（BUFF_REGISTRY）"""
-        from engine.core.combat_sim import BUFF_REGISTRY
+        from engine.core.combat_engine import BUFF_REGISTRY
         assert BUFF_REGISTRY['fugue_foxian']['BREAK_EFFECT'] == pytest.approx(30.0, abs=1e-9)
 
     def test_foxian_ignores_weakness_half(self):
@@ -153,7 +149,7 @@ class TestFoxian:
     def test_chizhuo_enhanced_basic(self):
         """炽灼状态下普攻强化为扩散（主100%+相邻50%）"""
         fugue = _unit('fugue')
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
         fugue.buffs.append(TimedBuff(source_id='fugue', attributes={'_chizhuo': 1},
                                      remaining_turns=3, param_id='fugue_chizhuo'))
         e1 = _enemy(toughness=200)
@@ -178,9 +174,7 @@ class TestSuperBreakSource:
 class TestBroadcastBreakHooks:
     def test_ally_break_triggers_fugue_owner_hooks(self):
         """队友击破时，忘归人行迹和E2仍以忘归人为持有者结算。"""
-        from engine.core.effect_resolver import (
-            _eid_fugue_e2_energy, _fugue_trace2_team_be,
-        )
+        from engine.characters.fugue import _eid_fugue_e2_energy, _fugue_trace2_team_be
 
         fugue = _unit('fugue', eidolon=2)
         ally = _unit('seele', position=2)
@@ -233,7 +227,7 @@ class TestEidolons:
         state = SimState(enemies=[_enemy()], units=[fugue, ally])
         state.extra['navs'] = {0: 500.0, 1: 600.0}
         _eid_fugue_e2_ult(fugue, state)
-        from engine.core.combat_sim import _effective_spd
+        from engine.core.combat_engine import _effective_spd
         expect = 600.0 - (10000.0 / _effective_spd(ally, state)) * 0.24
         assert state.extra['navs'][1] == pytest.approx(expect, abs=1e-6)
 

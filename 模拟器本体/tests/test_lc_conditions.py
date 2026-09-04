@@ -4,11 +4,8 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import load_lightcone, LightCone, LightConeEffect
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimUnit, SimState, TimedBuff, _build_effective_stats,
-    _apply_lc_condition_corrections, _lc_target_correct,
-    _lc_apply_event_effect, _process_lc_effects, simulate,
-)
+from engine.core.combat_engine import _build_effective_stats, _apply_lc_condition_corrections, _lc_target_correct, _lc_apply_event_effect, _process_lc_effects, simulate
+from engine.runtime import SimUnit, SimState, TimedBuff
 
 
 def _enemy(hp=500000, count=1):
@@ -145,7 +142,7 @@ class TestEventBuffer:
 class TestRealLightCone:
     def test_stellar_sea_blackbox(self):
         """星海巡航黑盒: 低血敌人被击杀 → 击杀事件挂ATK40% buff"""
-        from engine.core.combat_sim import simulate
+        from engine.core.combat_engine import simulate
         lc = load_lightcone('cruising_in_the_stellar_sea')
         chars = [{'char': load_character('seele', 'data/characters'),
                   'position': 1, 'lightcone': lc}]
@@ -166,7 +163,7 @@ class TestMultihitPath:
     def test_bounce_applies_target_condition(self):
         """弹射路径同样应用目标相关光锥条件（星海巡航 HP≤50% CR+16%）"""
         import copy
-        from engine.core.combat_sim import _multihit_damage
+        from engine.core.combat_engine import _multihit_damage
         lc = load_lightcone('cruising_in_the_stellar_sea')
         u = _unit('seele', lc=lc)
         # 面板 CR 调至 0.50（含静态 0.32）: 低血保留→暴击; 高血抵消 0.16→0.34 不暴
@@ -191,7 +188,7 @@ class TestEventActions:
 
     def test_epoch_sp_recovery(self):
         """时代铭记: 终结技后回1SP"""
-        from engine.core.combat_sim import _process_lc_effects
+        from engine.core.combat_engine import _process_lc_effects
         lc = load_lightcone('epoch_etched_in_golden_blood')
         u = _unit('bronya', lc=lc)
         state = SimState(enemies=[_enemy()], units=[u])
@@ -201,7 +198,7 @@ class TestEventActions:
 
     def test_when_she_decided_wave_energy(self):
         """当她决定看见: 波次回15能量（吃 ENERGY_REGEN 倍率）"""
-        from engine.core.combat_sim import _process_lc_effects
+        from engine.core.combat_engine import _process_lc_effects
         lc = load_lightcone('当她决定看见')
         u = _unit('yinlang', lc=lc)
         state = SimState(enemies=[_enemy()], units=[u])
@@ -212,7 +209,7 @@ class TestEventActions:
 
     def test_past_self_mirror_team_energy(self):
         """镜中故我: 波次全队回10能量"""
-        from engine.core.combat_sim import _process_lc_effects
+        from engine.core.combat_engine import _process_lc_effects
         lc = load_lightcone('past_self_in_mirror')
         u = _unit('bronya', lc=lc)
         ally = _unit('xilian', position=2)
@@ -224,7 +221,7 @@ class TestEventActions:
 
     def test_solitary_healing_kill_energy(self):
         """孤独的疗愈: 击杀回6能量"""
-        from engine.core.combat_sim import _process_lc_effects
+        from engine.core.combat_engine import _process_lc_effects
         lc = load_lightcone('solitary_healing')
         u = _unit('pela', lc=lc)
         state = SimState(enemies=[_enemy()], units=[u])
@@ -233,7 +230,7 @@ class TestEventActions:
 
     def test_something_irreplaceable_heal(self):
         """无可取代的东西: 击杀/受击回8%攻击生命"""
-        from engine.core.combat_sim import _process_lc_effects, _build_effective_stats
+        from engine.core.combat_engine import _process_lc_effects, _build_effective_stats
         lc = load_lightcone('something_irreplaceable')
         u = _unit('mydei', lc=lc)
         u.current_hp = u.max_hp * 0.5
@@ -248,7 +245,7 @@ class TestEventActions:
 
     def test_unmapped_empty_attrs_still_warns(self):
         """未映射的空attrs事件效果仍 WARN（不回退为静默）"""
-        from engine.core.combat_sim import _process_lc_effects
+        from engine.core.combat_engine import _process_lc_effects
         u = _unit('seele', lc=_lc([_mk_effect(
             'trigger_effect', 'event_kill', {}, '击杀后回能(未映射)')]))
         state = SimState(enemies=[_enemy()], units=[u])

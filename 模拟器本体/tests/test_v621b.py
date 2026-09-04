@@ -9,12 +9,10 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy, load_enemy
 from engine.models.equipment import load_lightcone
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (
-    SimState, SimUnit, TimedBuff, PlayerStatus,
-    _multihit_damage, _exec_extra_turn, _respawn_wave,
-    _use_skill, _ult_post, simulate, _next_y_actor, _set_av,
-)
-from engine.systems.remembrance import RemembranceSystem, _poem_tiankong
+from engine.core.combat_engine import _multihit_damage, _exec_extra_turn, _respawn_wave, _use_skill, _ult_post, simulate, _next_y_actor
+from engine.runtime import SimState, SimUnit, TimedBuff, PlayerStatus, _set_av
+from engine.systems.remembrance import RemembranceSystem
+from engine.characters.fengjin import _poem_tiankong
 
 
 def _enemy(hp=500000, toughness=200, eid='x'):
@@ -220,7 +218,8 @@ class TestXiadieE2EnhancedSkill:
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)  # 死龙召唤（E2 pending 已置位）
         u.xinrui = 20000.0
-        rem.xiadie_ai(u, state)
+        from engine.characters.xiadie import xiadie_ai
+        xiadie_ai(u, state)
         assert '遐蝶E2: 强化战技+30%新蕊' in '\n'.join(state.log)
 
 

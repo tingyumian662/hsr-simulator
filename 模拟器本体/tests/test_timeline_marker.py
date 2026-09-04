@@ -3,7 +3,8 @@ import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import SimUnit, SimState, _check_fatal, MARKER_ACTIONS
+from engine.core.combat_engine import _check_fatal
+from engine.runtime import SimUnit, SimState
 from engine.systems.timeline_marker import TimelineMarkerSystem
 
 
@@ -31,7 +32,11 @@ def _state(e, *units):
 
 def _mk_sys(state):
     sys = TimelineMarkerSystem()
-    sys.action_handlers.update(MARKER_ACTIONS)
+    from engine.characters import (marker_actions, marker_despawns,
+                                   marker_spawns)
+    sys.action_handlers.update(marker_actions(state))
+    sys.despawn_handlers.update(marker_despawns(state))
+    sys.spawn_handlers.update(marker_spawns(state))
     state.extra['_marker_sys'] = sys
     return sys
 

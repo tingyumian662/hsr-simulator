@@ -2,7 +2,7 @@
 import pytest
 from engine.models.character import load_character
 from engine.models.enemy import Enemy
-from engine.core.combat_sim import simulate
+from engine.core.combat_engine import simulate
 
 
 def _enemy(res=None):
@@ -20,7 +20,8 @@ class TestAglaea:
     def test_tailor_inherits_effective_speed(self):
         """衣匠的35%速度继承应包含阿格莱雅的战斗中速度 Buff。"""
         from engine.core.attributes import compute_combat_stats
-        from engine.core.combat_sim import SimState, SimUnit, TimedBuff, _effective_spd
+        from engine.core.combat_engine import _effective_spd
+        from engine.runtime import SimState, SimUnit, TimedBuff
         from engine.systems.remembrance import RemembranceSystem
 
         char = load_character('aglaea', 'data/characters')
@@ -39,7 +40,8 @@ class TestAglaea:
         u.buffs.append(TimedBuff(
             source_id='test_2', attributes={'SPD_PERCENT': 10.0}, remaining_turns=2,
         ))
-        rem._aglaea_sync_memsprite(u, state)
+        from engine.characters.aglaea import _aglaea_sync_memsprite
+        _aglaea_sync_memsprite(u, state)
         assert u.memsprite_unit.base_stats.SPD == pytest.approx(
             _effective_spd(u, state) * 0.35, rel=1e-9,
         )
@@ -121,7 +123,7 @@ class TestMydei:
 
     def test_fatal_recovery(self):
         """血仇致命攻击: 水与泥土不退出，否则退出+回50%"""
-        from engine.core.combat_sim import _mydei_fatal_recovery
+        from engine.characters.mydei import _mydei_fatal_recovery
         c = load_character('mydei', 'data/characters')
         s = simulate([{'char': c, 'position': 1}], _enemy(), max_av=50)
         u = s.units[0]

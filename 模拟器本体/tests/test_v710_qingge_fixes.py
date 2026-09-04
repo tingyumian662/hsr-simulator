@@ -13,10 +13,11 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy
 from engine.models.equipment import RelicPiece, RelicSet
 from engine.core.attributes import compute_combat_stats
-from engine.core.combat_sim import (SimState, SimUnit, simulate,
-                                    _get_relic_conditions, _lc_team_advance,
-                                    _qingge_gain_atmo, _use_skill, TimedBuff)
+from engine.core.combat_engine import simulate, _get_relic_conditions, _lc_team_advance, _use_skill
+from engine.characters.robin_summeretto import _qingge_gain_atmo
+from engine.runtime import SimState, SimUnit, TimedBuff
 from engine.systems.remembrance import RemembranceSystem
+from engine.characters.robin_summeretto import _qingge_summon_variant
 
 
 def _enemy(hp=500000):
@@ -37,6 +38,10 @@ def _state(units, enemies=None):
     st.extra['navs'] = {i: 100.0 + 100 * i for i in range(len(units))}
     rem = RemembranceSystem()
     st.extra['_rem_sys'] = rem
+    # M4批2b: 旁路攻击单测需自注册晴歌监听（on_attack_action 事件契约）
+    if any(getattr(u.char, 'id', '') == 'robin_summeretto' for u in units):
+        from engine.characters import robin_summeretto
+        robin_summeretto.INIT(st)
     return st
 
 
@@ -52,7 +57,7 @@ class TestSingleEntityMemsprite:
         u = _unit('robin_summeretto')
         state = _state([u])
         rem = state.extra['_rem_sys']
-        ms = rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        ms = _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         assert ms.extra.get('qingge_members') == 1
         assert u.current_energy == pytest.approx(20.0)  # 贴近海的心跳仅首次召唤
         _qingge_gain_atmo(state, 6.0)  # 6 → 档位2
@@ -70,7 +75,7 @@ class TestSingleEntityMemsprite:
         state = _state([u])
         rem = state.extra['_rem_sys']
         base_vuln = u.base_stats.VULNERABILITY_APPLIED
-        rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln + 0.08)
         _qingge_gain_atmo(state, 6.0)
         assert u.base_stats.VULNERABILITY_APPLIED == pytest.approx(base_vuln + 0.12)
@@ -99,7 +104,7 @@ class TestAtmoFromBypassAttackPaths:
         qg = _unit('robin_summeretto')
         fx = _unit('feixiao', pos=2)
         state = _state([qg, fx])
-        from engine.core.combat_sim import _feixiao_fua
+        from engine.characters.feixiao import _feixiao_fua
         _feixiao_fua(state, fx, state.enemies[0])
         assert qg.extra.get('qingge_atmo', 0.0) == pytest.approx(1.0)
 
@@ -108,7 +113,7 @@ class TestAtmoFromBypassAttackPaths:
         qg = _unit('robin_summeretto')
         hn = _unit('himeko_nova', pos=2)
         state = _state([qg, hn])
-        from engine.core.combat_sim import _hn_support_skill
+        from engine.characters.himeko_nova import _hn_support_skill
         _hn_support_skill(state, hn)
         assert qg.extra.get('qingge_atmo', 0.0) == pytest.approx(1.0)
 
@@ -117,7 +122,7 @@ class TestAtmoFromBypassAttackPaths:
         qg = _unit('robin_summeretto')
         hn = _unit('himeko_nova', pos=2)
         state = _state([qg, hn])
-        from engine.core.combat_sim import _hn_ultimate
+        from engine.characters.himeko_nova import _hn_ultimate
         _hn_ultimate(state, hn)
         assert qg.extra.get('qingge_atmo', 0.0) == pytest.approx(1.0)
 
@@ -129,7 +134,7 @@ class TestAtmoFromBypassAttackPaths:
         fx.buffs.append(TimedBuff(source_id='robin_summeretto', attributes={},
                                   remaining_turns=2, param_id='qingge_guest',
                                   source_name='特邀嘉宾'))
-        from engine.core.combat_sim import _feixiao_fua
+        from engine.characters.feixiao import _feixiao_fua
         _feixiao_fua(state, fx, state.enemies[0])
         assert qg.extra.get('qingge_atmo', 0.0) == pytest.approx(3.0)
 
@@ -142,7 +147,7 @@ class TestE1TrueDamageTarget:
         u.eidolon_rank = 1
         state = _state([u], enemies=[_enemy(hp=enemy_hp)])
         rem = state.extra['_rem_sys']
-        ms = rem._qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
+        ms = _qingge_summon_variant(state, u, u.char.memsprite, '贝茜')
         u.extra['qingge_record'] = 1000.0
         return state, rem, u, ms
 

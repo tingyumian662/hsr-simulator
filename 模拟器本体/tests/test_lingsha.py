@@ -4,14 +4,10 @@ from engine.models.character import load_character
 from engine.models.enemy import Enemy, EnemyStatus
 from engine.core.attributes import compute_combat_stats
 from engine.core.damage import calculate_damage
-from engine.core.combat_sim import (
-    SimUnit, SimState, _use_skill, _build_effective_stats,
-    MARKER_ACTIONS, MARKER_DESPAWN, MARKER_SPAWN,
-)
+from engine.core.combat_engine import _use_skill, _build_effective_stats
+from engine.runtime import SimUnit, SimState
 from engine.systems.timeline_marker import TimelineMarkerSystem
-from engine.core.effect_resolver import (
-    _trace_lingsha_t2_be_to_atk_heal, _eid_lingsha_e2_ult,
-)
+from engine.characters.lingsha import _trace_lingsha_t2_be_to_atk_heal, _eid_lingsha_e2_ult
 
 
 def _enemy(hp=500000, toughness=200):
@@ -33,9 +29,11 @@ def _unit(cid, position=1, eidolon=0, **extra):
 
 def _mk_sys(state):
     sys = TimelineMarkerSystem()
-    sys.action_handlers.update(MARKER_ACTIONS)
-    sys.despawn_handlers.update(MARKER_DESPAWN)
-    sys.spawn_handlers.update(MARKER_SPAWN)
+    from engine.characters import (marker_actions, marker_despawns,
+                                   marker_spawns)
+    sys.action_handlers.update(marker_actions(state))
+    sys.despawn_handlers.update(marker_despawns(state))
+    sys.spawn_handlers.update(marker_spawns(state))
     state.extra['_marker_sys'] = sys
     return sys
 
@@ -57,7 +55,7 @@ class TestHealAndBuff:
 
     def test_skill_heal_uses_effective_atk(self):
         """战斗中的攻击力增益应提高灵砂战技治疗。"""
-        from engine.core.combat_sim import TimedBuff
+        from engine.runtime import TimedBuff
 
         lingsha = _unit('lingsha')
         lingsha.buffs.append(TimedBuff(
@@ -108,7 +106,7 @@ class TestHealAndBuff:
 class TestE1:
     def test_e1_def_down_on_break(self):
         """E1: 击破后敌方 DEF-20% (击破期间持续, 韧性恢复移除)"""
-        from engine.core.effect_resolver import _eid_lingsha_e1_break
+        from engine.characters.lingsha import _eid_lingsha_e1_break
         lingsha = _unit('lingsha', eidolon=1)
         e = _enemy(toughness=10)
         state = SimState(enemies=[e], units=[lingsha])
@@ -116,13 +114,13 @@ class TestE1:
         state.current_av = 0.0
         _use_skill(lingsha, state, 'basic_attack')  # 击破
         assert e.status_attribute('def_reduction') == pytest.approx(0.2, abs=1e-9)
-        from engine.core.combat_sim import _begin_enemy_turn
+        from engine.core.combat_engine import _begin_enemy_turn
         _begin_enemy_turn(state, e)  # 敌方回合: 韧性恢复
         assert e.status_attribute('def_reduction') == pytest.approx(0.0, abs=1e-9)
 
     def test_e1_def_down_on_ally_break(self):
         """E1 的击破期间减防由任何我方击破触发。"""
-        from engine.core.effect_resolver import _eid_lingsha_e1_break
+        from engine.characters.lingsha import _eid_lingsha_e1_break
 
         lingsha = _unit('lingsha', eidolon=1)
         ally = _unit('seele', position=2)
@@ -148,8 +146,8 @@ class TestE1:
 class TestTrace3:
     def test_ally_hp_loss_triggers_fuyuan_pursuit(self):
         """队友受伤时，灵砂持有的遗爇仍应使浮元立即追击。"""
-        from engine.core.combat_sim import _apply_hit
-        from engine.core.effect_resolver import _trace_lingsha_t3_pursuit
+        from engine.core.combat_engine import _apply_hit
+        from engine.characters.lingsha import _trace_lingsha_t3_pursuit
 
         lingsha = _unit('lingsha')
         ally = _unit('seele', position=2)
@@ -167,7 +165,7 @@ class TestTrace3:
 class TestE2:
     def test_e2_ult_team_be(self):
         """E2: 终结技后全队击破特攻+40% 3回合"""
-        from engine.core.effect_resolver import _eid_lingsha_e2_ult
+        from engine.characters.lingsha import _eid_lingsha_e2_ult
         lingsha = _unit('lingsha', eidolon=2)
         ally = _unit('seele', position=2)
         state = SimState(enemies=[_enemy()], units=[lingsha, ally])
@@ -225,7 +223,7 @@ class TestFuyuanInteg:
 
     def test_e6_fuyuan_handles_no_remaining_enemy(self):
         """E6 浮元清场后不应继续对空目标随机取样。"""
-        from engine.core.combat_sim import _lingsha_fuyuan_action
+        from engine.characters.lingsha import _lingsha_fuyuan_action
 
         lingsha = _unit('lingsha', eidolon=6)
         e = _enemy(hp=1)
