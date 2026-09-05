@@ -1,4 +1,5 @@
 """REST API — 数据列表 + 队伍模拟"""
+import functools
 import json, logging, os
 from pathlib import Path
 
@@ -89,35 +90,114 @@ def _build_file_index(subdir):
     return sorted([f for f in os.listdir(d) if f.endswith('.json') and not f.startswith('_')])
 
 
-def _build_lightcone_index():
+# ═══ v7.19.1: 进程内数据缓存（web 层专用, 引擎零改动）═══
+# _load_json_cached 按 (path, mtime_ns, size) 键控原始 dict——文件编辑即失效;
+# 派生表（光锥索引/套装表/角色对象）lru_cache 按目录签名缓存, 目录内增删改文件即重建。
+# 共享安全依据（勘察 2026-09-05）: api/引擎全链路对 Character/RelicSet 只读,
+# simulate() 第一行 deepcopy(configs) 自带隔离。
+
+_JSON_CACHE: dict = {}
+
+
+def _load_json_cached(path) -> dict:
+    p = str(path)
+    st = os.stat(p)
+    key = (p, st.st_mtime_ns, st.st_size)
+    val = _JSON_CACHE.get(key)
+    if val is None:
+        with open(p, encoding="utf-8") as fh:
+            val = json.load(fh)
+        for stale in [k for k in _JSON_CACHE if k[0] == p and k != key]:
+            del _JSON_CACHE[stale]
+        _JSON_CACHE[key] = val
+    return val
+
+
+def _dir_sig(subdir) -> tuple:
+    """目录签名 = sorted (文件名, mtime_ns)——派生表缓存键"""
+    d = DATA_DIR / subdir
+    if not d.exists():
+        return ()
+    return tuple((f, (d / f).stat().st_mtime_ns) for f in _build_file_index(subdir))
+
+
+@functools.lru_cache(maxsize=4)
+def _lightcone_index(sig) -> dict:
     """Map canonical JSON ids and legacy filename stems to trusted data files."""
     index = {}
-    for filename in _build_file_index("light_cones"):
-        path = DATA_DIR / "light_cones" / filename
-        with open(path, encoding="utf-8") as fh:
-            data = json.load(fh)
-        stem = path.stem
-        index[data.get("id", stem)] = path
-        index.setdefault(stem, path)
+    for filename, _mtime in sig:
+        data = _load_json_cached(DATA_DIR / "light_cones" / filename)
+        stem = Path(filename).stem
+        index[data.get("id", stem)] = filename
+        index.setdefault(stem, filename)
     return index
+
+
+@functools.lru_cache(maxsize=512)
+def _lightcone_obj(lightcone_id: str, sig, rank: int = 0):
+    index = _lightcone_index(sig)
+    if lightcone_id not in index:
+        return None
+    lc = LightCone.from_json(str(DATA_DIR / "light_cones" / index[lightcone_id]))
+    if rank:  # v7.20.0: 显式叠影 1-5（0=JSON 默认档）; 工厂内覆写后再缓存, 防共享对象串档
+        lc.rank = rank
+    return lc
+
+
+# v7.20.0 档位审计（批0）: 无 values 数组但引擎按 rank 算术缩放的光锥
+_RANK_SCALED_NO_VALUES = {"resolution_shines_as_pearls_of_sweat"}
+
+
+def _lc_rank_info(lc_raw: dict) -> dict:
+    """v7.20.0: 光锥叠影数据面——scaled=数值随叠影档缩放; default=选择时的默认档。
+
+    - scaled（values 五档或 rank 算术 handler）: 默认按稀有度（4★→5, 5★→1, 项目主规则）;
+    - 单档: 默认=JSON 顶层 rank 字段（录入校准档——抓取批量 4★=5/抽卡5★=1/商店赠送5★=5,
+      例外 landaus_choice=1; 数值不随叠影缩放, 所见即所算）。"""
+    scaled = (any(e.get("values") for e in lc_raw.get("effects", []))
+              or lc_raw.get("id") in _RANK_SCALED_NO_VALUES)
+    if scaled:
+        default = 1 if lc_raw.get("rarity", 5) >= 5 else 5
+    else:
+        default = int(lc_raw.get("rank", 1) or 1)
+    return {"rank_scaled": scaled, "default_rank": default}
+
+
+@functools.lru_cache(maxsize=512)
+def _character_obj(char_id: str, sig):
+    return load_character(char_id)
+
+
+@functools.lru_cache(maxsize=4)
+def _relic_sets(sig) -> dict:
+    sets = {}
+    for filename, _mtime in sig:
+        try:
+            rs = RelicSet.from_json(str(DATA_DIR / "relics" / filename))
+            sets[rs.name] = rs
+        except Exception:
+            pass  # 跳过损坏的遗器文件
+    return sets
 
 
 def _load_character_or_404(char_id: str):
     """从角色数据索引加载请求角色，并规范化不存在时的响应。"""
     try:
-        return load_character(char_id)
+        return _character_obj(char_id, _dir_sig("characters"))
     except Exception:
         raise HTTPException(status_code=404, detail=f"角色 {char_id} 不存在")
 
 
-def _load_lightcone_or_422(lightcone_id: Optional[str]):
-    """从光锥数据索引加载请求光锥，避免用户 ID 参与路径解析。"""
+def _load_lightcone_or_422(lightcone_id: Optional[str], rank: Optional[int] = None):
+    """从光锥数据索引加载请求光锥，避免用户 ID 参与路径解析。
+
+    rank: v7.20.0 叠影档（1-5）; None=JSON 默认档（不传字段零行为变化）。"""
     if not lightcone_id:
         return None
-    index = _build_lightcone_index()
-    if lightcone_id not in index:
+    lc = _lightcone_obj(lightcone_id, _dir_sig("light_cones"), rank or 0)
+    if lc is None:
         raise HTTPException(status_code=422, detail=f"光锥 {lightcone_id} 不存在")
-    return LightCone.from_json(str(index[lightcone_id]))
+    return lc
 
 
 # ==== API ====
@@ -128,8 +208,7 @@ async def list_data():
     chars = []
     for f in _build_file_index("characters"):
         fp = DATA_DIR / "characters" / f
-        with open(fp, encoding='utf-8') as fh:
-            c = json.load(fh)
+        c = _load_json_cached(fp)
         chars.append({
             "id": c.get("id", f.replace(".json", "")),
             "name": c["name"], "element": c["element"], "path": c["path"],
@@ -141,8 +220,7 @@ async def list_data():
     lcs = []
     for f in _build_file_index("light_cones"):
         fp = DATA_DIR / "light_cones" / f
-        with open(fp, encoding='utf-8') as fh:
-            lc = json.load(fh)
+        lc = _load_json_cached(fp)
         lcs.append({
             "id": lc.get("id", f.replace(".json", "")),
             "name": lc["name"], "path": lc["path"], "rarity": lc.get("rarity", 5),
@@ -150,6 +228,8 @@ async def list_data():
             "unsupported_effects": sum(
                 1 for e in lc.get("effects", [])
                 if e.get("condition_code") == "unsupported"),
+            # v7.20.0: 叠影数据面（档位审计批0）——前端默认档与"单档"徽标的数据源
+            **_lc_rank_info(lc),
         })
 
     relic_files = _build_file_index("relics")
@@ -157,8 +237,7 @@ async def list_data():
     inner_relics = []  # 内圈（仅二件套）
     for f in relic_files:
         fp = DATA_DIR / "relics" / f
-        with open(fp, encoding='utf-8') as fh:
-            r = json.load(fh)
+        r = _load_json_cached(fp)
         has_4pc = any(e.get("pieces_required", 0) == 4 for e in r.get("effects", []))
         entry = {"name": r["name"]}
         if has_4pc:
@@ -171,8 +250,7 @@ async def list_data():
     rec_fp = DATA_DIR / "recommendations.json"
     if rec_fp.exists():
         try:
-            with open(rec_fp, encoding='utf-8') as fh:
-                recommendations = json.load(fh)
+            recommendations = _load_json_cached(rec_fp)
         except (json.JSONDecodeError, OSError):
             recommendations = {}
 
@@ -231,6 +309,8 @@ async def keysets():
 class TeamMember(BaseModel):
     char_id: str = Field(min_length=1, max_length=64)
     lc_id: Optional[str] = None
+    # v7.20.0: 光锥叠影档 1-5; None=JSON 默认档（不传字段零行为变化, smoke 口径不变）
+    lc_rank: Optional[int] = Field(None, ge=1, le=5)
     eidolon: int = Field(0, ge=0, le=6)
     relics: dict = {}
     substats: dict = {}
@@ -266,21 +346,16 @@ class SimRequest(BaseModel):
 @router.post("/recommend")
 async def recommend_substats(req: SimRequest):
     """根据角色当前配装推荐最优副词条分配"""
-    relic_sets = {}
-    for f in _build_file_index("relics"):
-        try:
-            rs = RelicSet.from_json(str(DATA_DIR / "relics" / f))
-            relic_sets[rs.name] = rs
-        except Exception:
-            pass  # 跳过损坏的遗器文件
+    relic_sets = _relic_sets(_dir_sig("relics"))  # v7.19.1: 目录签名缓存表（损坏文件容错在缓存层）
 
     results = []
-    # v7.19.0: 队伍命途上下文（组队条件型常驻被动: 那刻夏智识计数, 口径含自身）
-    team_paths = [_load_character_or_404(m.char_id).path for m in req.team]
+    # v7.19.1: 角色单轮加载复用（此前 team_paths 与成员循环各加载一次, 双读磁盘）
+    chars = [_load_character_or_404(m.char_id) for m in req.team]
+    team_paths = [c.path for c in chars]  # v7.19.0 队伍命途上下文（组队条件型常驻被动, 口径含自身）
     for i, member in enumerate(req.team):
         cid = member.char_id
-        char = _load_character_or_404(cid)
-        lc = _load_lightcone_or_422(member.lc_id)
+        char = chars[i]
+        lc = _load_lightcone_or_422(member.lc_id, member.lc_rank)
 
         cfg = member.relics
         set4, set2 = cfg.get("set4", ""), cfg.get("set2", "")
@@ -329,19 +404,13 @@ async def recommend_substats(req: SimRequest):
 @router.post("/preview")
 async def preview_stats(req: SimRequest):
     """预览角色面板（含副词条）"""
-    relic_sets = {}
-    for f in _build_file_index("relics"):
-        try:
-            rs = RelicSet.from_json(str(DATA_DIR / "relics" / f))
-            relic_sets[rs.name] = rs
-        except Exception:
-            pass  # 跳过损坏的遗器文件
+    relic_sets = _relic_sets(_dir_sig("relics"))  # v7.19.1: 目录签名缓存表（损坏文件容错在缓存层）
 
     results = []
     for i, member in enumerate(req.team):
         cid = member.char_id
         char = _load_character_or_404(cid)
-        lc = _load_lightcone_or_422(member.lc_id)
+        lc = _load_lightcone_or_422(member.lc_id, member.lc_rank)
 
         try:
             pieces = _build_relic_pieces(member.relics, member.substats)
@@ -365,19 +434,13 @@ async def preview_stats(req: SimRequest):
 async def run_simulation(req: SimRequest):
     """运行队伍模拟"""
     # 加载遗器套装
-    relic_sets = {}
-    for f in _build_file_index("relics"):
-        try:
-            rs = RelicSet.from_json(str(DATA_DIR / "relics" / f))
-            relic_sets[rs.name] = rs
-        except Exception:
-            pass  # 跳过损坏的遗器文件
+    relic_sets = _relic_sets(_dir_sig("relics"))  # v7.19.1: 目录签名缓存表（损坏文件容错在缓存层）
 
     configs = []
     for i, member in enumerate(req.team):
         cid = member.char_id
         char = _load_character_or_404(cid)
-        lc = _load_lightcone_or_422(member.lc_id)
+        lc = _load_lightcone_or_422(member.lc_id, member.lc_rank)
 
         # 遗器
         pieces = _build_relic_pieces(member.relics, member.substats)

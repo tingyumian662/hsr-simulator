@@ -197,7 +197,7 @@ class TestEnemyMarkers:
 class TestHealRecord:
     def test_time_waits_record_is_consumed_by_ally_attack(self):
         """时节不居: 任意我方角色攻击都应消费持有者的治疗记录。"""
-        holder = _unit('lingsha', lc_id='时节不居')
+        holder = _unit('lingsha', lc_id='time_waits_for_no_one')
         ally = _unit('seele', position=2)
         enemy = _enemy()
         state = SimState(enemies=[enemy], units=[holder, ally])
@@ -213,7 +213,7 @@ class TestHealRecord:
         """光锥持有者通过行动条标记治疗时也应产生治疗记录。"""
         from engine.core.combat_engine import _marker_heal_allies
 
-        holder = _unit('lingsha', lc_id='时节不居')
+        holder = _unit('lingsha', lc_id='time_waits_for_no_one')
         holder.current_hp -= 100.0
         state = SimState(enemies=[_enemy()], units=[holder])
 
@@ -223,7 +223,7 @@ class TestHealRecord:
 
     def test_time_waits_for_no_one_extra_damage(self):
         """时节不居: 治疗记录36% → 攻击后附加伤害"""
-        u = _unit('lingsha', lc_id='时节不居')
+        u = _unit('lingsha', lc_id='time_waits_for_no_one')
         e = _enemy()
         state = SimState(enemies=[e], units=[u])
         state.extra['lc_last_heal_amt'] = 1000.0
@@ -265,7 +265,7 @@ class TestSleepLikeDead:
 class TestFlowersWorld:
     def test_sp_spent_defpen(self):
         """花花世界迷人眼: 每消耗1SP无视5%防御（4层封顶）"""
-        u = _unit('trailblazer_elation', lc_id='花花世界迷人眼')
+        u = _unit('trailblazer_elation', lc_id='dazzling_world')
         state = SimState(enemies=[_enemy()], units=[u])
         # _build_effective_stats 内置条件修正 → 动态按 SP 消耗比例
         s0 = _build_effective_stats(u, state)
@@ -674,8 +674,8 @@ class TestV54ReviewRegressions:
 
     def test_time_waits_heal_record_is_per_holder(self):
         """多个时节不居持有者必须各自记录治疗与每回合触发次数。"""
-        u1 = _unit('lingsha', lc_id='时节不居')
-        u2 = _unit('lingsha', position=2, lc_id='时节不居')
+        u1 = _unit('lingsha', lc_id='time_waits_for_no_one')
+        u2 = _unit('lingsha', position=2, lc_id='time_waits_for_no_one')
         enemy = _enemy()
         state = SimState(enemies=[enemy], units=[u1, u2])
 

@@ -1,0 +1,33 @@
+{
+  "id": "time_waits_for_no_one",
+  "name": "时节不居",
+  "rarity": 5,
+  "rank": 1,
+  "path": "丰饶",
+  "base_HP": 1270,
+  "base_ATK": 476,
+  "base_DEF": 463,
+  "effects": [
+    {
+      "type": "trigger_effect",
+      "condition": "",
+      "attributes": {},
+      "condition_code": "event_heal",
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "",
+      "attributes": {},
+      "condition_code": "event_attack",
+      "target": "self"
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "",
+      "attributes": {},
+      "condition_code": "event_self_attack",
+      "target": "self"
+    }
+  ]
+}

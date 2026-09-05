@@ -105,9 +105,12 @@ function renderTeam(){
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input id="lc-search${i}" aria-label="搜索光锥${i+1}" placeholder="搜索当前命途光锥" oninput="filterLightCones(${i})">
         </div>
-        <select id="lc${i}" aria-label="选择光锥${i+1}"><option value="">--</option></select>
+        <select id="lc${i}" aria-label="选择光锥${i+1}" onchange="syncRankDefault(${i})"><option value="">--</option></select>
       </div>
-      <label class="field"><span>星魂</span><select id="eid${i}">${[0,1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>
+      <div class="field-grid">
+        <label class="field"><span>星魂</span><select id="eid${i}">${[0,1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>
+        <label class="field"><span>叠影<span id="rank-note${i}"></span></span><select id="rank${i}" aria-label="光锥叠影${i+1}">${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}</select></label>
+      </div>
       <details><summary>遗器配置</summary>
         <div class="details-body">
         <div class="field"><span>外圈四件套</span><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="relic4-search${i}" aria-label="搜索外圈遗器${i+1}" placeholder="搜索遗器" oninput="filterRelics(${i},'4')"></div><select id="set4_${i}" onchange="smartRecommend(${i})"></select></div>
@@ -344,6 +347,7 @@ function onCharChange(i){
   document.getElementById(`lc-search${i}`).value = '';
   document.getElementById(`lc${i}`).value = '';
   populateLightCones(i, '');
+  syncRankDefault(i);  // v7.20.0: 光锥清空 → 叠影回默认 1
   document.getElementById(`slot-name${i}`).textContent = char ? char.name : '未选择角色';
   document.getElementById(`slot${i}`).classList.toggle('is-selected', Boolean(char));
   renderCharacterCascader(i);
@@ -387,6 +391,7 @@ function applyRecommendedLoadout(i, char){
     moveOptionsToTop(lcSel, lcVals);
     if([...lcSel.options].some(o=>o.value===firstVal(lcVals))){
       lcSel.value = firstVal(lcVals);
+      syncRankDefault(i);  // v7.20.0: 套用推荐光锥 → 叠影设默认档
       applied.push('光锥');
     }
   }
@@ -419,6 +424,23 @@ function applyRecommendedLoadout(i, char){
   if(applied.length) console.log(`已套用推荐装备: ${char.name} (${applied.join('/')})`);
 }
 
+// v7.20.0: 光锥叠影默认档——/api/list 的 rank_scaled/default_rank 驱动:
+// 五档数据光锥按稀有度默认（4★→5, 5★→1）; 单档光锥默认=录入校准档（所见即所算）,
+// 控件标注"单档·按S{N}计算"（五档数据补录后标注自动消失）
+function syncRankDefault(i){
+  const rankSel = document.getElementById(`rank${i}`);
+  if(!rankSel) return;
+  const note = document.getElementById(`rank-note${i}`);
+  const lc = ALL.light_cones.find(l=>l.id===document.getElementById(`lc${i}`).value);
+  if(!lc){
+    rankSel.value = '1';
+    if(note) note.textContent = '';
+    return;
+  }
+  rankSel.value = String(lc.default_rank || 1);
+  if(note) note.textContent = lc.rank_scaled ? '' : `（单档·按S${lc.default_rank||1}计算）`;
+}
+
 function populateLightCones(i, query){
   const cid = document.getElementById(`char${i}`).value;
   const char = ALL.characters.find(c=>c.id===cid);
@@ -444,6 +466,7 @@ function getConfig(i){
   return {
     char_id: document.getElementById(`char${i}`).value,
     lc_id: document.getElementById(`lc${i}`).value||null,
+    lc_rank: parseInt(document.getElementById(`rank${i}`).value)||null,  // v7.20.0 叠影档
     eidolon: parseInt(document.getElementById(`eid${i}`).value),
     relics: {
       set4: document.getElementById(`set4_${i}`).value,

@@ -956,7 +956,8 @@ def _marginal_benefit(stats: CombatStats, char: Character, profile: CharProfile,
             delta_hp = base_hp * (roll_value / 100.0)
             usable = min(stats.HP + delta_hp, hi) - max(stats.HP, lo)
             if usable > 0:
-                d_cr = usable / float(hcc.get("per_points", 100)) \
+                # v7.19.1: per_points 0/None 兜底 100（数据误写防除零, 审核积压 P3-1）
+                d_cr = usable / float(hcc.get("per_points") or 100) \
                     * float(hcc.get("crit_rate_pct", 0.0)) / 100.0
                 d_cr = min(d_cr, max(0.0, 1.0 - min(stats.CRIT_RATE, 1.0)))
                 if d_cr > 0:
@@ -1419,6 +1420,11 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
                         base.CRIT_DMG += v / 100.0
                     elif k == StatType.CRIT_RATE.value:
                         base.CRIT_RATE = min(base.CRIT_RATE + v / 100.0, 1.0)
+                    else:
+                        # v7.19.1: 未知 stats 键 fail-loud（防未来字段静默失效, 审核积压 P3-4）
+                        raise ValueError(
+                            f"team_path_passives unsupported stat key {k!r} "
+                            f"for {char.id} (supported: CRIT_RATE/CRIT_DMG)")
 
     # v5.5: 击破角色策略配置（流萤: 完全燃烧四动速度达标 + 放弃攻击词条）
     break_cfg = BREAK_CHAR_CONFIG.get(char.id, {})

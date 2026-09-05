@@ -199,7 +199,7 @@ class TestEventActions:
     def test_when_she_decided_wave_energy(self):
         """当她决定看见: 波次回15能量（吃 ENERGY_REGEN 倍率）"""
         from engine.core.combat_engine import _process_lc_effects
-        lc = load_lightcone('当她决定看见')
+        lc = load_lightcone('when_she_decided_to_see')
         u = _unit('yinlang', lc=lc)
         state = SimState(enemies=[_enemy()], units=[u])
         _process_lc_effects(u, state, 'on_wave_start')

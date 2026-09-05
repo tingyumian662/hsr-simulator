@@ -66,30 +66,30 @@
       "units": [
         [
           "yinlang",
-          2941663.087108,
-          1752.0
+          2987509.937782,
+          2916.0
         ],
         [
           "evanescia",
-          729030.004184,
-          1752.0
+          1085251.922446,
+          2704.0
         ],
         [
           "sparxie",
-          2778252.395375,
-          1752.0
+          3550802.813531,
+          2810.0
         ],
         [
           "aventurine",
           0.0,
-          1107.471275
+          1155.235638
         ]
       ],
       "cycles": 10,
       "action_counts": {
         "evanescia": 25,
         "sparxie": 34,
-        "yinlang": 12
+        "yinlang": 16
       }
     },
     "t4_implant": {
@@ -140,5 +140,5 @@
   "roster_count": 92,
   "recommend_digest": "ca28d60b3a08a4516fa956d8c3607a86018060f916e8d7851187e481c24d9179",
   "solo_digest": "c18d4ebc5851925b1893f3116cea9cdc5315563e875c067be98072c8112062b1",
-  "generated_at": "2026-09-04T18:56:30"
+  "generated_at": "2026-09-06T00:22:41"
 }
