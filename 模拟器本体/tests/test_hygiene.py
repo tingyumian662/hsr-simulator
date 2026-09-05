@@ -83,5 +83,5 @@ class TestStatsExposure:
             skills = d.get('skills') or {}
             has_basic = 'basic_attack' in skills or 'basic_attack_enhanced' in skills
             (full if has_basic else shells).append(d['id'])
-        assert len(full) == 40
-        assert len(shells) == 52
+        assert len(full) == 44  # v7.21.0 Fate四角色 录入 40→44
+        assert len(shells) == 48

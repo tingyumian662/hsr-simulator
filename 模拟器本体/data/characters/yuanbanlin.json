@@ -1,0 +1,163 @@
+{
+  "id": "yuanbanlin",
+  "name": "远坂凛",
+  "element": "量子",
+  "path": "智识",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1048,
+  "base_ATK": 698,
+  "base_DEF": 460,
+  "base_SPD": 102,
+  "taunt": 75,
+  "max_energy": 160,
+  "trace_stats": {
+    "CRIT_DMG": 37.3,
+    "ATK_percent": 18.0,
+    "DMG_BONUS_QUANTUM": 8.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "八极拳",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": []
+    },
+    "skill": {
+      "name": "宝石剑·泽尔里奇",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 180.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": []
+    },
+    "skill_experiment": {
+      "name": "第二魔法实验",
+      "type": "skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 90.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [],
+      "_mechanism": {
+        "enhance": "宝石能量≥15 或 SP≥7 时战技强化(AI 切键); E1 影子宝石模式优先",
+        "cast": "全体90% + 每轮耗3宝石对随机单体90% 弹射(≤33轮); SP>2 时耗至2、每点+2宝石; E1 影子模式: 弹射耗影子宝石, 不耗宝石不转化SP"
+      }
+    },
+    "ultimate": {
+      "name": "山脉震撼·明星之薪",
+      "type": "ultimate",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 600.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        },
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "all_except_main"
+        }
+      ],
+      "effects": [
+        {
+          "type": "energy_regen",
+          "target": "self",
+          "value": 5
+        }
+      ],
+      "_mechanism": {
+        "note": "+1战技点; 敌全体易伤+20% 3回合; E6 +24宝石+1额外回合; 行迹3 +12宝石"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "秉持优雅",
+      "description": "远坂凛在场时，战技点上限额外增加2点。进入战斗时,远坂凛的攻击力提高150%，量子属性抗性穿透提高15%，若Archer在队伍中，Archer也会获得该效果。",
+      "hook_name": "yuanbanlin_trace1_elegant"
+    },
+    {
+      "name": "淑女风范",
+      "description": "进入战斗时和施放强化战技后，远坂凛的速度提高20%，持续3回合。",
+      "hook_name": "yuanbanlin_trace2_lady"
+    },
+    {
+      "name": "财源广进",
+      "description": "远坂凛施放终结技时，获得12点【宝石能量】。",
+      "hook_name": "yuanbanlin_trace3_funding"
+    }
+  ],
+  "eidolons": [
+    {
+      "name": "宝石翁的学徒",
+      "description": "若单次强化战技消耗的【宝石能量】数量大于等于30点,远坂凛获得与消耗的【宝石能量】数量相同的【影子宝石】。 持有【影子宝石】时，战技强化为【第二魔法实验】，强化战技会消耗所有【影子宝石】，不触发将战技点转化为【宝石能量】的效果且不消耗【宝石能量】。",
+      "hook_name": "yuanbanlin_e1"
+    },
+    {
+      "name": "位面的旅行者",
+      "description": "远坂凛造成的战技伤害提高30%。远坂凛在场时,我方全体造成的战技伤害为原伤害的130%。",
+      "hook_name": "yuanbanlin_e2"
+    },
+    {
+      "name": "圣杯战争:胜利纪念",
+      "description": "战技等级+2,最多不超过15级;普攻等级+1,最多不超过10级。",
+      "hook_name": "yuanbanlin_e3"
+    },
+    {
+      "name": "红色•恶魔•三倍速",
+      "description": "天赋【宝石魔术】的暴击伤害提高效果对远坂凛生效时,效果可以叠加,最多可叠加2层。",
+      "hook_name": "yuanbanlin_e4"
+    },
+    {
+      "name": "金星神的青睐",
+      "description": "终结技等级+2,最多不超过15级;天赋等级+2,最多不超过15级。",
+      "hook_name": "yuanbanlin_e5"
+    },
+    {
+      "name": "这次没掉链子!",
+      "description": "远坂凛的全属性抗性穿透提高20%。施放终结技时，获得24点【宝石能量】和1个额外回合。",
+      "hook_name": "yuanbanlin_e6"
+    }
+  ],
+  "_energy_note": "160 常规能量; 宝石能量: 开战20(项目主裁决)/SP每消耗恢复1点+1, 终结技+12(行迹3)/+24(E6)/秘技+10",
+  "_mechanism": {
+    "talent": "任意我方消耗/恢复SP → 造成变动者暴伤+70%(Lv10)2回合(实时刷新≈常驻; 项目主裁决)",
+    "joint": "自在远坂流: Archer施放伪·螺旋剑后, SP≤3 或该回路已施5次未触发 → 凛300%+Archer300%全体量子合击+4SP; 每凛回合结束复位1次",
+    "base_stats_note": "白值按项目主 2026-09-06 提供(网页wiki数据有误, 非txt复制问题)"
+  },
+  "_source": "角色技能介绍/智识/远坂凛.txt（白值/能量按项目主 2026-09-06 提供; 拼音 id 替换英文壳 rin_tohsaka）"
+}

@@ -79,9 +79,10 @@ def _gain_energy(u: SimUnit, amt: float, *, state=None, percent: bool = False,
     before = u.current_energy
     u.current_energy = min(cap, u.current_energy + raw)
     gained = u.current_energy - before
-    # v6.9 千冶·刃行迹1·百炼骨: 溢出能量最多积攒80（终结技后恢复）
-    if u.char.id == 'qianye' and raw > gained and state is not None:
-        u.extra['qianye_overflow'] = min(80.0, u.extra.get('qianye_overflow', 0.0) + (raw - gained))
+    # v7.21.0: 溢出能量观察者相位（原 qianye 内联分支泛化, 千冶/Saber 银行各自挂观察者）
+    if raw > gained and state is not None:
+        _ensure_phase_tables(state)
+        _obs_phase(state, 'energy_overflow_bank', u, overflow=raw - gained)
     if state is not None and gained > 0:
         # 千冶·刃行迹1: 能量恢复至上限时解除自身所有负面效果。
         if u.char.id == 'qianye' and u.current_energy >= (u.char.max_energy or 0) \
@@ -103,16 +104,22 @@ def _gain_energy(u: SimUnit, amt: float, *, state=None, percent: bool = False,
     return gained
 
 
-def _gain_skill_points(state, amount: int = 1) -> int:
+def _gain_skill_points(state, amount: int = 1, actor=None) -> int:
     """Recover team skill points and notify effects that count recovery events.
 
     Recovery-triggered effects count each requested point even when the shared
     resource is already capped, matching effects whose text explicitly includes
     overflow.
+    v7.21.1: actor=造成恢复的角色（普攻+1SP/光锥回SP 等已知施法者场景）,
+    供 sp_change 观察者精确归因（远坂凛天赋口径: buff 加在造成变动者上）。
     """
     amount = max(int(amount), 0)
     before = state.skill_points
     state.skill_points = min(state.max_sp, state.skill_points + amount)
+    # v7.21.0: SP 变动观察者相位（Archer 行迹3 守护者/后续资源感知角色）
+    if state.skill_points != before:
+        _ensure_phase_tables(state)
+        _obs_phase(state, 'sp_change', actor, delta=state.skill_points - before)
     for _ in range(amount):
         for owner in state.units:
             lc = getattr(owner, 'lightcone', None)
@@ -1103,7 +1110,7 @@ def _lc_restore_sp_if_be_threshold(state, u):
     """镜中故我: 终结技后，击破特攻达到150%时恢复1个战技点。"""
     if _build_effective_stats(u, state).BREAK_EFFECT < 1.5:
         return
-    _gain_skill_points(state)
+    _gain_skill_points(state, actor=u)
     state.log.append('  光锥[past_self_in_mirror] 击破特攻达标→回1SP')
 
 
@@ -2051,6 +2058,9 @@ def _deduct_skill_point_cost(state, u, sp_cost) -> bool:
     state.skill_points -= sp_cost
     spent_points += int(sp_cost)
     state.extra['_last_sp_spent'] = spent_points
+    # v7.21.0: SP 变动观察者相位（Archer 行迹3 守护者/后续资源感知角色）
+    _ensure_phase_tables(state)
+    _obs_phase(state, 'sp_change', u, delta=-int(sp_cost))
     # v6.10.6 C2: 花火幻相——每消耗1战技点叠1层(上限3), 每层全敌受伤+4%(2回合刷新);
     # E2 每层额外降防10%; 行迹2 单回合耗≥3→下次战技免SP; 行迹1 持CD buff者耗SP→花火回1能量
     sparkle = next((x for x in state.units
@@ -2268,7 +2278,7 @@ def _us_pay_costs(u: SimUnit, state: SimState, skill, skill_key: str,
         # v5.3: 强化普攻也恢复1战技点（实机普攻类统一恢复; 忘归人冉冉方炽等）
         # v5.7: 数据驱动例外——阿格莱雅孤锋千吻/昔涟向着爱与明天"无法恢复战技点"(_sp_recover: 0)
         if skill.cost.get("_sp_recover", 1):
-            _gain_skill_points(state)
+            _gain_skill_points(state, actor=u)
     # 终结技消耗全部能量；其他技能回复能量
     if is_ultimate_action:
         # M5a 相位 ult_energy_override: 返回 True=已自扣能量（晴歌E6 Fever 保留溢出）

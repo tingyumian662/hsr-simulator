@@ -1,0 +1,119 @@
+{
+  "id": "jierjialameishi",
+  "name": "吉尔伽美什",
+  "element": "雷",
+  "path": "毁灭",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1125,
+  "base_ATK": 717,
+  "base_DEF": 509,
+  "base_SPD": 97,
+  "taunt": 125,
+  "max_energy": 360,
+  "trace_stats": {
+    "CRIT_RATE": 18.7,
+    "ATK_percent": 17.0,
+    "DMG_BONUS_LIGHTNING": 8.0
+  },
+  "skills": {
+    "basic_attack": {
+      "name": "漫不经心",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {"stat": "ATK", "scale": 100.0, "damageType": "direct", "element": "雷", "target": "single_enemy"}
+      ],
+      "effects": []
+    },
+    "skill": {
+      "name": "王之财宝",
+      "type": "skill",
+      "cost": {"skill_points": 1},
+      "target": "blast",
+      "multipliers": [
+        {"stat": "ATK", "scale": 280.0, "damageType": "direct", "element": "雷", "target": "single_enemy"},
+        {"stat": "ATK", "scale": 140.0, "damageType": "direct", "element": "雷", "target": "adjacent"}
+      ],
+      "effects": [],
+      "_mechanism": {
+        "buff": "获得王来承认(无视防御30%, 3回合; E1对全队生效+自身ATK60%+回40能)",
+        "state": "来兴致了状态下不耗SP(competence sp_cost_override); 施放后清空兴致(速度回落)",
+        "note": "E2 主目标+100%/相邻+50%; 削韧 主20+邻10"
+      }
+    },
+    "ultimate": {
+      "name": "天地乖离·开辟之星",
+      "type": "ultimate",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {"stat": "ATK", "scale": 400.0, "damageType": "direct", "element": "雷", "target": "all_enemies"},
+        {"stat": "ATK", "scale": 100.0, "damageType": "direct", "element": "雷", "_target": "bounce", "_hits": 10}
+      ],
+      "effects": [
+        {"type": "energy_regen", "target": "self", "value": 5}
+      ],
+      "_mechanism": {
+        "note": "E6 弹射段+80%(→180); 削韧 全体40/弹射10; 黄金律耗尽每点终结技暴伤+100%"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "史诗的源头",
+      "description": "吉尔伽美什施放终结技时，获得2点【兴致】。我方其他角色施放终结技时，吉尔伽美什额外获得2点【兴致】，并固定恢复等同于本次消耗能量值30%的能量。",
+      "hook_name": "jierjialameishi_trace1_epic"
+    },
+    {
+      "name": "英雄的孤傲",
+      "description": "本场战斗中，吉尔伽美什每获得1点【兴致】，使自身暴击伤害提高25%，该效果最多叠加6层。",
+      "hook_name": "jierjialameishi_trace2_pride"
+    },
+    {
+      "name": "王霸的竞逐",
+      "description": "吉尔伽美什在场时，使我方全体目标攻击力提高20%，暴击伤害提高20%。若目标能量上限大于140，每超过1点能量上限使攻击力和暴击伤害额外提高1%，最多额外提高100%。",
+      "hook_name": "jierjialameishi_trace3_kingly"
+    }
+  ],
+  "eidolons": [
+    {
+      "name": "见证一切之人",
+      "description": "当吉尔伽美什持有【王来承认】时,【王来承认】无视防御力的效果对其他队友也生效,且【王来承认】额外使吉尔伽美什攻击力提高60%。施放战技时额外固定恢复40能量。",
+      "hook_name": "jierjialameishi_e1"
+    },
+    {
+      "name": "通晓万物之智",
+      "description": "吉尔伽美什进入战斗时获得5点【兴致】,施放终结技时额外获得5点【兴致】。战技【王之财宝】对主目标造成的伤害倍率提高100%,对相邻目标造成的伤害倍率提高50%。",
+      "hook_name": "jierjialameishi_e2"
+    },
+    {
+      "name": "跋涉千里之旅",
+      "description": "战技等级+2,最多不超过15级;普攻等级+1,最多不超过10级。",
+      "hook_name": "jierjialameishi_e3"
+    },
+    {
+      "name": "唯我独尊之王",
+      "description": "吉尔伽美什的能量恢复效率提高20%。",
+      "hook_name": "jierjialameishi_e4"
+    },
+    {
+      "name": "人神诀别之剑",
+      "description": "终结技等级+2,最多不超过15级;天赋等级+2,最多不超过15级",
+      "hook_name": "jierjialameishi_e5"
+    },
+    {
+      "name": "挚友淬锻之魂",
+      "description": "终结技【天地乖离·开辟之星】的弹射伤害倍率提高80%。吉尔伽美什在场时,使我方角色的全属性抗性穿透提高20%。队友施放终结技时,吉尔伽美什获得1点【黄金律】,最多累计3点。自身施放终结技时消耗全部【黄金律】,每消耗1点【黄金律】使造成的终结技伤害的暴击伤害提高100%。",
+      "hook_name": "jierjialameishi_e6"
+    }
+  ],
+  "_energy_note": "360 常规能量; 兴致驱动: 队友行动+1/终结技+2(行迹1)/E2开战+5/连携+3; 每点兴致SPD+10%; 首次达10点进入来兴致了(整场, 仅战技且免SP, 战技后清空)",
+  "_mechanism": {
+    "joint_attack": "本王允许你进攻: Gil/Saber 攻击累计8点(按技能次数)→任意单位攻击后触发双人全体合击(Gil 400%雷+Saber 600%风), Gil+3兴致, Saber调 saber._saber_joint_reward(+120能/下次终结技120%)",
+    "auto_basic": "初始(未进入来兴致了)自身回合开始时自动施放普攻",
+    "tech_note": "天之锁秘技: 进战全敌雷伤倍率 txt 未给出——暂只实现+3兴致进战, 伤害倍率待项目主提供"
+  },
+  "_source": "角色技能介绍/毁灭/吉尔伽美什.txt（ATK 717 按项目主 2026-09-06 裁决; 拼音 id 替换英文壳 gilgamesh）"
+}

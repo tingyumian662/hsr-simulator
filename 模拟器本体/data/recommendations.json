@@ -943,5 +943,106 @@
     "rope": [
       "ATK_percent"
     ]
+  },
+  "saber": {
+    "light_cone": "a_thankless_coronation",
+    "set4": [
+      "恶海逐波的船长",
+      "识海迷坠的学者"
+    ],
+    "set2": [
+      "寰宇生研院"
+    ],
+    "body": [
+      "CRIT_RATE",
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_WIND",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent",
+      "ENERGY_REGEN"
+    ]
+  },
+  "jierjialameishi": {
+    "light_cone": "i_am_as_you_behold",
+    "set4": [
+      "识海迷坠的学者"
+    ],
+    "set2": [
+      "寰宇生研院"
+    ],
+    "body": [
+      "CRIT_RATE",
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_LIGHTNING",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
+  },
+  "archer": {
+    "light_cone": "the_hell_where_ideals_burn",
+    "set4": [
+      "星如我见的领航员",
+      "繁星璀璨的天才"
+    ],
+    "set2": [
+      "奇想蕉乐园",
+      "繁星竞技场"
+    ],
+    "body": [
+      "CRIT_RATE",
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_QUANTUM",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "yuanbanlin": {
+    "light_cone": "flickering_stars",
+    "set4": [
+      "繁星璀璨的天才"
+    ],
+    "set2": [
+      "寰宇生研院"
+    ],
+    "body": [
+      "CRIT_RATE",
+      "CRIT_DMG"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_QUANTUM",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
   }
 }

@@ -302,6 +302,17 @@ SKILL_HOOKS = [_skill_hook_0, _skill_hook_1]
 MARKERS = {"qianye_wrath": _qianye_wrath_marker_action}
 
 
+def _qianye_energy_overflow(u, state, overflow=0.0, **kw):
+    """OBSERVER energy_overflow_bank: 行迹1·百炼骨——溢出能量最多积攒80（终结技后恢复）。
+    v7.21.0: 原引擎内联分支 verbatim 迁入（泛化溢出观察者相位的回迁半边）。"""
+    if u.char.id != CHAR_ID or overflow <= 0:
+        return
+    u.extra['qianye_overflow'] = min(80.0, u.extra.get('qianye_overflow', 0.0) + overflow)
+
+
+OBSERVER_HOOKS = {'energy_overflow_bank': _qianye_energy_overflow}
+
+
 # ---- M5a: 常规回合 tick（原引擎 _begin_regular_turn 内联, verbatim 迁入）----
 
 def _qianye_turn_tick(u, state):

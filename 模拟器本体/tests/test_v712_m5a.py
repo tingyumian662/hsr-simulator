@@ -81,14 +81,15 @@ class TestOrderLocks:
     def test_turn_tick_zone_order_locked(self):
         assert TURN_TICK_ZONE_ORDER['pre'] == (
             'seele', 'qianye', 'xiadie', 'tribbie', 'hysilens', 'cipher', 'cerydra',
-            'sunday', 'ruan_mei', 'robin', 'acheron', 'feixiao', 'anaxa')
+            'sunday', 'ruan_mei', 'robin', 'acheron', 'feixiao', 'anaxa',
+            'jierjialameishi', 'archer', 'yuanbanlin')
         assert TURN_TICK_ZONE_ORDER['post_control'] == ('huohuo',)
         assert TURN_TICK_ZONE_ORDER['late'] == ('xilian', 'mydei', 'aglaea')
 
     def test_settle_pipeline_order_locked(self):
-        assert len(SETTLE_PIPELINE_ORDER) == 15
+        assert len(SETTLE_PIPELINE_ORDER) == 20
         assert SETTLE_PIPELINE_ORDER[0] == ('tribbie', 'settle_self')
-        assert SETTLE_PIPELINE_ORDER[-1] == ('phainon', 'settle_named')
+        assert SETTLE_PIPELINE_ORDER[-1] == ('yuanbanlin', 'settle_self')
 
     def test_module_tick_zones_all_known(self):
         """角色模块注册的 tick 区必须都在保序表内（防静默丢派发）。"""

@@ -16,9 +16,101 @@
     "DMG_BONUS_QUANTUM": 22.4,
     "ATK_percent": 18.0
   },
-  "skills": {},
-  "traces": [],
-  "eidolons": [],
-  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
-  "_source": "fribbels/hsr-optimizer (base stats verified)"
+  "skills": {
+    "basic_attack": {
+      "name": "干将·莫邪",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {"stat": "ATK", "scale": 100.0, "damageType": "direct", "element": "量子", "target": "single_enemy"}
+      ],
+      "effects": []
+    },
+    "skill": {
+      "name": "伪·螺旋剑",
+      "type": "skill",
+      "cost": {"skill_points": 2},
+      "target": "single_enemy",
+      "multipliers": [
+        {"stat": "ATK", "scale": 360.0, "damageType": "direct", "element": "量子", "target": "single_enemy"}
+      ],
+      "effects": [],
+      "_mechanism": {
+        "circuit": "进入回路连接(战技后本回合不结束, X轴连续行动); 战技伤害+100%(Lv10口径)叠2层(E6→3层)持续至退出; 5次战技/SP不足2/波次敌人更替→退出",
+        "note": "削韧20"
+      }
+    },
+    "ultimate": {
+      "name": "无限剑制",
+      "type": "ultimate",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {"stat": "ATK", "scale": 1000.0, "damageType": "direct", "element": "量子", "target": "single_enemy"}
+      ],
+      "effects": [
+        {"type": "energy_regen", "target": "self", "value": 5}
+      ],
+      "_mechanism": {
+        "note": "+2充能(≤4); E2 施放时敌方量子抗性-20%+量子弱点2回合; E4 终结技伤害+150%; 削韧30"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "投影魔术",
+      "description": "Archer在场时，战技点上限额外增加2点。",
+      "hook_name": "archer_trace1_projection"
+    },
+    {
+      "name": "正义伙伴",
+      "description": "Archer进入战斗时获得1点充能。",
+      "hook_name": "archer_trace2_ally"
+    },
+    {
+      "name": "守护者",
+      "description": "我方获得战技点后，若战技点大于等于4点，Archer的暴击伤害提高120%，持续1回合。",
+      "hook_name": "archer_trace3_guardian"
+    }
+  ],
+  "eidolons": [
+    {
+      "name": "未曾触及的理想",
+      "description": "单个回合内施放3次战技后，为我方恢复2个战技点。",
+      "hook_name": "archer_e1"
+    },
+    {
+      "name": "未能实现的幸福",
+      "description": "施放终结技时，使敌方目标的量子属性的抗性降低20%，并为其添加量子属性弱点，持续2回合。",
+      "hook_name": "archer_e2"
+    },
+    {
+      "name": "难为凡庸的意气",
+      "description": "战技等级+2，最多不超过15级；普攻等级+1，最多不超过10级。",
+      "hook_name": "archer_e3"
+    },
+    {
+      "name": "难称英雄的一生",
+      "description": "造成的终结技伤害提高150%。",
+      "hook_name": "archer_e4"
+    },
+    {
+      "name": "无铭孤影的守望",
+      "description": "终结技等级+2，最多不超过15级；天赋等级+2，最多不超过15级。",
+      "hook_name": "archer_e5"
+    },
+    {
+      "name": "无尽徘徊的巡礼",
+      "description": "回合开始时为我方恢复1个战技点。自身战技提供的伤害提高效果可以叠加的上限层数提高1层。造成的战技伤害无视20%的防御力。",
+      "hook_name": "archer_e6"
+    }
+  ],
+  "_energy_note": "220 常规能量; 充能(≤4): 终结技+2/行迹2开战+1/秘技+1, 心眼追击每次消耗1点",
+  "_mechanism": {
+    "circuit": "回路连接: 战技后 append X轴额外回合(本回合不结束口径); 层数 buff 挂 TimedBuff 至退出时清除",
+    "mind_eye": "心眼(真): 队友攻击技能后→消耗1充能对主目标追击200%量子+回1SP(目标死亡转随机)",
+    "tech": "千里眼(进战): 全敌200%量子+1充能"
+  },
+  "_source": "角色技能介绍/巡猎/archer.txt（ATK 621 按项目主 2026-09-06 裁决）"
 }
