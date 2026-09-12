@@ -169,6 +169,12 @@ button svg { width: 15px; height: 15px; }
 #sim-status[data-state="success"] { color: var(--success); }
 #sim-status[data-state="error"] { color: var(--danger); }
 
+/* v7.24.0: 伤害汇总标题行（标题+复制诊断按钮） */
+.summary-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.summary-head .section-title { flex: 1; margin-bottom: 10px; }
+.summary-head .button-secondary { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; margin-top: -4px; font-size: 11px; cursor: pointer; }
+.summary-head .button-secondary svg { width: 13px; height: 13px; }
+
 .summary-total { margin-bottom: 10px; }
 .summary-total strong { display: block; color: var(--gold-soft); font: 22px/1.2 Consolas,monospace; font-variant-numeric: tabular-nums; }
 .summary-total span { color: var(--muted); font-size: 11px; }

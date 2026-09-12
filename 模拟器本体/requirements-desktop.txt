@@ -1,0 +1,4 @@
+# v7.23.0 桌面窗口/打包专用依赖（web 开发模式不需要, 不入 requirements.txt）
+# 安装: pip install -r requirements-desktop.txt
+pywebview>=5.0
+pyinstaller>=6.10

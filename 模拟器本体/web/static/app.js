@@ -8,12 +8,19 @@ let RECOMMENDATIONS = {};
 // v7.17.0: 键集单源——副词条 9 键契约与四槽主词条 options 均来自 /api/keysets
 let KEYSETS = {substats: [], main_stats: {}};
 const CASCADER_STATE = Array.from({length:4},()=>({activePath:'',open:false}));
+// v7.24.0: 版本号（/api/list 附带, data/VERSION 单源; 缺省 dev）与最近一次模拟
+// （诊断导出用——测试者反馈自带版本+配置+结果上下文）
+let APP_VERSION = 'dev';
+let lastSim = null;
 
 async function init(){
   const [listRes, keyRes] = await Promise.all([fetch('/api/list'), fetch('/api/keysets')]);
   ALL = await listRes.json();
   KEYSETS = await keyRes.json();
   RECOMMENDATIONS = ALL.recommendations || {};
+  APP_VERSION = ALL.version || 'dev';
+  const kicker = document.getElementById('brand-kicker');
+  if(kicker) kicker.textContent = `Combat Analysis Terminal · ${APP_VERSION}`;
   renderEnemies();
   renderTeam();
 }
@@ -566,6 +573,7 @@ async function runSim(){
       html += `<div class="summary-row"><div class="summary-bar"><span>${u.name}</span><span>${u.damage.toLocaleString()} · ${u.pct}%</span></div><div class="summary-track" style="--pct:${width}%"></div></div>`;
     });
     document.getElementById('summary-content').innerHTML = html;
+    lastSim = {request: body, data};
     status.dataset.state = 'success';
     status.textContent = `模拟完成 · ${data.turns} 回合`;
   }catch(e){
@@ -577,6 +585,56 @@ async function runSim(){
 }
 
 function switchTab(t){}
+
+// ── v7.24.0: 一键复制诊断（测试者反馈自带 版本+配置+结果 上下文）──
+async function _copyText(text){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){ /* 回退 execCommand */ }
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  }catch(e){ return false; }
+}
+
+async function copyDiagnostics(){
+  const btn = document.querySelector('#summary-panel .button-secondary span');
+  const restore = () => { if(btn) btn.textContent = '复制诊断'; };
+  if(!lastSim){
+    alert('尚无模拟结果可复制——先完成一次模拟');
+    return;
+  }
+  const {request, data} = lastSim;
+  const lines = [
+    '=== 星穹铁道战斗模拟器 · 诊断信息 ===',
+    `版本: ${APP_VERSION}`,
+    `时间: ${new Date().toISOString()}`,
+    '',
+    '-- 队伍与敌方配置 --',
+    JSON.stringify(request),
+    '',
+    '-- 结果 --',
+    `总伤害: ${data.total_damage} · 回合: ${data.turns}`
+      + ` · 轮次: ${data.cycles != null ? data.cycles : '-'}`,
+  ];
+  (data.summary || []).forEach(u=>{
+    lines.push(`${u.name}: ${u.damage} (${u.pct}%)${u.alive === false ? ' [阵亡]' : ''}`);
+  });
+  lines.push('行动数: ' + JSON.stringify(data.action_counts || {}));
+  const ok = await _copyText(lines.join('\n'));
+  if(ok && btn){ btn.textContent = '已复制'; setTimeout(restore, 1500); }
+  else { alert('复制失败——请手动截图'); }
+}
 
 // === 智能推荐 ===
 function setStats(i, vals){

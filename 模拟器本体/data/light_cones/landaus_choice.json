@@ -9,10 +9,11 @@
   "effects": [
     {
       "type": "permanent_buff",
-      "condition": "受到的伤害降低16%（S1, 用户提供 16%/18%/20%/22%/24%）",
+      "condition": "受到的伤害降低16%/18%/20%/22%/24%",
       "attributes": {
         "DMG_REDUCTION": 16.0
-      }
+      },
+      "values": [16, 18, 20, 22, 24]
     },
     {
       "type": "trigger_effect",
@@ -22,5 +23,6 @@
       "target": "self"
     }
   ],
-  "id": "landaus_choice"
+  "id": "landaus_choice",
+  "_note": "v7.22.1 values 五档自条件注记「用户提供 16/18/20/22/24」固化; 同名落选文件 landau_s_choice 已按裁决清除"
 }

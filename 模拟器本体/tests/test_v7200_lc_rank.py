@@ -59,15 +59,18 @@ class TestRankInfoListing:
         assert lcs["in_the_night"]["rank_scaled"] is False
         assert lcs["in_the_night"]["default_rank"] == 1
         assert lcs["gugu_gaga_adventure"]["default_rank"] == 5  # 录入=叠五(0e38553)
-        assert lcs["landaus_choice"]["default_rank"] == 1       # 4★ 例外: S1 校准
         assert lcs["elation_overflow_blessing"]["default_rank"] == 5  # 商店/赠送类 5★
+        # v7.22.1: landaus_choice 条件注记五档固化为 values → scaled（4★ 默认 S5）
 
     def test_tier_distribution(self):
         lcs = self._lcs()
         scaled = [l for l in lcs.values() if l["rank_scaled"]]
-        assert len(scaled) == 8  # 7 values + 决心如汗珠般闪耀
+        # v7.22.1: 原 8 + 回填 7 把; v7.25.0 向浪花掷下盛夏 +1
+        assert len(scaled) == 16
+        assert lcs["landaus_choice"]["rank_scaled"] is True
+        assert lcs["cast_summer_into_waves"]["rank_scaled"] is True
         singles = [l for l in lcs.values() if not l["rank_scaled"]]
-        assert len(singles) == 135  # 用户可见 143 把（_template 不入列表）
+        assert len(singles) == 125  # 用户可见 141 把（_template 不入列表; 落选 3 份已清除）
         assert all(1 <= l["default_rank"] <= 5 for l in lcs.values())
 
 

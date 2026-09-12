@@ -9,7 +9,7 @@
 """
 from engine.hooks.base import ResolvedEffect, HookRegistry
 from engine.characters import (  # M3/M4: 角色包行迹/星魂处理器（按名引用）
-    aglaea, changyeyue, evanescia, fengjin, firefly, himeko_nova, huohuo,
+    aglaea, aventurine_waveflair, changyeyue, evanescia, fengjin, firefly, himeko_nova, huohuo,
     lingsha, robin_summeretto, silver_wolf, sparxie, trailblazer_elation,
     trailblazer_remembrance, acheron, anaxa, bronya, busitu, cerydra, cipher, dan_heng_permansor_terrae,
     feixiao, fu_xuan, fugue, hysilens, mydei, phainon, qianye, robin,
@@ -191,6 +191,19 @@ TRACE_REGISTRY: dict[str, dict] = {
     },
     "yinlang_speed_to_elation": {
         "trigger": None, "action": None, "source_name": "行迹·速度转化",
+    },
+    # 砂金·戏浪（v7.25.0; 机制全部在角色模块相位/观察器/INIT 实现）
+    "aventurine_waveflair_spd_to_elation": {
+        # 行迹1·极乐派对 SPD→欢愉度 — 由 ElationSystem.eff_stats 相位处理
+        "trigger": None, "action": None, "source_name": "行迹·极乐派对",
+    },
+    "aventurine_waveflair_old_dream": {
+        # 行迹2·旧梦淘金 CD+48 常驻/队友技能全队CD — 角色模块 INIT + on_attack_action
+        "trigger": None, "action": None, "source_name": "行迹·旧梦淘金",
+    },
+    "aventurine_waveflair_storm": {
+        # 行迹3·纵享惊涛 双分支 — 角色模块 INIT + on_attack_action
+        "trigger": None, "action": None, "source_name": "行迹·纵享惊涛",
     },
     # 开拓者·欢愉
     "trailblazer_atk_to_elation": {
@@ -887,6 +900,13 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "yaoguang_e4": {"trigger": "on_enter_battle", "action": yaoguang._eid_yaoguang_e4, "source_name": "爻光E4"},
     "yaoguang_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "爻光E5"},
     "yaoguang_e6": {"trigger": "on_enter_battle", "action": yaoguang._eid_yaoguang_e6, "source_name": "爻光E6"},
+    # 砂金·戏浪（v7.25.0; E1/E2/E4/E6 效果在角色模块 INIT/热意管线内实现）
+    "aventurine_waveflair_e1": {"trigger": None, "action": None, "source_name": "砂金E1"},
+    "aventurine_waveflair_e2": {"trigger": None, "action": None, "source_name": "砂金E2"},
+    "aventurine_waveflair_e3": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "砂金E3"},
+    "aventurine_waveflair_e4": {"trigger": None, "action": None, "source_name": "砂金E4"},
+    "aventurine_waveflair_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "砂金E5"},
+    "aventurine_waveflair_e6": {"trigger": None, "action": None, "source_name": "砂金E6"},
     # 银狼
     "yinlang_e1": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e1, "source_name": "银狼E1"},
     "yinlang_e2": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e2, "source_name": "银狼E2"},

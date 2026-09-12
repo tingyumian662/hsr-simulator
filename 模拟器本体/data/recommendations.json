@@ -657,7 +657,7 @@
     ]
   },
   "changyeyue": {
-    "light_cone": "to_evernight_s_stars",
+    "light_cone": "starlight_to_the_long_night",
     "set4": [
       "再创天地的救世主"
     ],
@@ -1044,5 +1044,15 @@
       "ENERGY_REGEN",
       "ATK_percent"
     ]
+  }
+,
+  "aventurine_waveflair": {
+    "light_cone": "cast_summer_into_waves",
+    "set4": ["闪耀功勋的魔法少女"],
+    "set2": ["零号关卡朋克洛德"],
+    "body": ["CRIT_RATE"],
+    "feet": ["SPD_PERCENT"],
+    "sphere": ["DEF_percent", "HP_percent"],
+    "rope": ["ENERGY_REGEN"]
   }
 }

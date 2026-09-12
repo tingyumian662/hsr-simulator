@@ -36,12 +36,15 @@ class TestShellPrimaryByBaseStats:
             assert _analyze_character(_load(cid)).primary_stat == "ATK", cid
 
     def test_def_tanks(self):
-        # 杰帕德 DEF 12.5 行迹不达标曾落 ATK; 砂金·戏浪/萨博白值 DEF≥600
-        for cid in ("gepard", "aventurine_waveflair", "march_7th"):
+        # 杰帕德 DEF 12.5 行迹不达标曾落 ATK; 萨博白值 DEF≥600
+        for cid in ("gepard", "march_7th"):
             assert _analyze_character(_load(cid)).primary_stat == "DEF", cid
         # v7.21.0: saber 白值 DEF 654 但技能组全 ATK 缩放——空壳期按白值兜底判 DEF,
         # 录入后按真实倍率判 ATK（高防攻击C, 非防御缩放）
+        # v7.25.0: aventurine_waveflair 同型（壳 DEF 752→录入 606, 直伤技 ATK 缩放,
+        # 欢愉段 stat=NONE; 按真实倍率判 ATK）
         assert _analyze_character(_load("saber")).primary_stat == "ATK"
+        assert _analyze_character(_load("aventurine_waveflair")).primary_stat == "ATK"
 
     def test_blade_hp(self):
         # 刃 1358/543: HP≥1300 且 ATK<600 → HP（此前误判 ATK）

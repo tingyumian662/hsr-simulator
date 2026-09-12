@@ -563,7 +563,13 @@ def _qingge_summon_variant(state, summoner, ms_data, name):
         base_stats=ms_stats,
     )
     ms_unit.current_energy = 0
-    ms_unit.runtime_spd = 0.0  # Fever前不在行动条(界外), 进Fever时激活
+    # v7.23.2 项目主裁决: 「晴空乐手」被召唤后即在行动条上按自身速度行动
+    # （回合开始施放忆灵技）——非仅限 Fever 期, 战技与忆灵技之间无直接联动;
+    # 此前界外 SPD=0 锁死导致气氛不足的队伍晴歌全程零伤害。Fever 内速度
+    # 仍由 _qingge_ms_spd 按气氛刷新（登台重盖章语义不变）。
+    ms_unit.runtime_spd = ms_stats.SPD
+    ms_unit.extra['next_av'] = state.current_av + AV_PER_TURN / max(ms_stats.SPD, 1.0)
+    _stamp_av_key(state, ('ms', id(ms_unit)))
     ms_unit.extra['qingge_members'] = 1  # 成员档位1=贝茜
     state.memsprites.append(ms_unit)
     summoner.memsprite_unit = ms_unit
@@ -636,7 +642,25 @@ def _rs_ms_post_settle(u, state, skill_key):
     return None
 
 
+def _rs_ms_reheal(u, state, ms_data=None, existing=None, **kw):
+    """PHASE ms_reheal (v7.23.1): 晴空乐手在场时的战技重复施放——
+    回血100%×技能等级 + 气氛+6。原逻辑寄居在 ms_build 的 existing 分支, 而
+    remembrance.summon_memsprite 对在场忆灵提前返回（通用回血50%）, 该分支
+    自 v6.12.0 起引擎路径不可达（Fever 比设计慢）。返回忆灵表示已完全处理;
+    无在场忆灵返回 None 交回通用路径。"""
+    if existing is None:
+        return None
+    # v7.0.0 A3: E3战技+2→Lv12 每级+5%惯例消费
+    heal = existing.max_hp * 1.0 * _skill_level_factor(u, 'skill')
+    existing.current_hp = min(existing.max_hp, existing.current_hp + heal)
+    _qingge_gain_atmo(state, 6.0, cause='战技·晴空乐手已在场')
+    state.log.append(f'  战技: {existing.data.name}已在场→回血{heal:.0f} '
+                     f'(HP={existing.current_hp:.0f}/{existing.max_hp:.0f}) + 晴歌气氛+6')
+    return existing
+
+
 PHASE_HOOKS['ms_build'] = _rs_ms_build
+PHASE_HOOKS['ms_reheal'] = _rs_ms_reheal
 PHASE_HOOKS['ms_ai'] = _rs_ms_ai
 PHASE_HOOKS['ms_scale_mod'] = _rs_ms_scale_mod
 PHASE_HOOKS['ms_post_settle'] = _rs_ms_post_settle

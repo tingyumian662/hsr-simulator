@@ -22,12 +22,15 @@ def _enemy(hp=500000, toughness=200):
 def _unit(cid, position=1, eidolon=0, lc_id=None, **extra):
     from engine.models.equipment import load_lightcone
     c = load_character(cid, 'data/characters')
-    stats = compute_combat_stats(c, None, None, None)
+    # v7.23.1: lc_id 时面板随光锥计算——与引擎不变量对齐（base_stats 含光锥
+    # 静态属性; 原先"面板不带光锥、事后挂上"的构造与 simulate 真实流程不符）
+    lc = load_lightcone(lc_id, 'data/light_cones') if lc_id else None
+    stats = compute_combat_stats(c, lc, None, None)
     u = SimUnit(char=c, base_stats=stats, position=position)
     u.max_hp = u.current_hp = stats.HP
     u.eidolon_rank = eidolon
-    if lc_id:
-        u.lightcone = load_lightcone(lc_id, 'data/light_cones')
+    if lc:
+        u.lightcone = lc
     u.extra.update(extra)
     return u
 
@@ -298,20 +301,22 @@ class TestDachangPerHitStack:
 
 class TestZhijinMemspriteCrit:
     def test_zhijin_bonus_applies_to_memsprite(self):
-        """v6.2: 织锦层数→忆灵暴伤+9%/层（满6层+54%）"""
+        """v6.2: 织锦层数→忆灵暴伤+9%/层（满6层+54%）
+        v7.23.1: 忆灵面板与持有者同口径条件修正——静态满层54%按层保留
+        （6层=全部保留）, 不再有"静态缺失+动态补 0.09/层"的旧特例。"""
         u = _unit('aglaea', lc_id='time_woven_into_gold')
         state = SimState(enemies=[_enemy()], units=[u])
         rem = RemembranceSystem()
         state.extra['_rem_sys'] = rem
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
-        # 6层织锦
+        # 6层织锦: 静态 54% 全额保留
         u.lc_stacks['time_woven_into_gold::zhijin'] = 6
         stats = _ms_effective_stats(ms, state)
-        assert stats.CRIT_DMG == pytest.approx(ms.base_stats.CRIT_DMG + 0.54, abs=1e-9)
+        assert stats.CRIT_DMG == pytest.approx(ms.base_stats.CRIT_DMG, abs=1e-9)
 
     def test_zhijin_zero_stack_no_bonus(self):
-        """v6.2: 无织锦层数→忆灵暴伤不变"""
+        """v6.2: 无织锦层数→忆灵暴伤不含该加成（静态54%被全额抵消）"""
         u = _unit('aglaea', lc_id='time_woven_into_gold')
         state = SimState(enemies=[_enemy()], units=[u])
         rem = RemembranceSystem()
@@ -319,7 +324,7 @@ class TestZhijinMemspriteCrit:
         rem.summon_memsprite(state, u, u.char.memsprite)
         ms = u.memsprite_unit
         stats = _ms_effective_stats(ms, state)
-        assert stats.CRIT_DMG == pytest.approx(ms.base_stats.CRIT_DMG, abs=1e-9)
+        assert stats.CRIT_DMG == pytest.approx(ms.base_stats.CRIT_DMG - 0.54, abs=1e-9)
 
     def test_no_zhijin_lc_no_bonus(self):
         """v6.2: 无织锦光锥→忆灵暴伤不变"""

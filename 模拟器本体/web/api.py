@@ -20,6 +20,12 @@ from engine.constants import (RELIC_MAIN_STAT_VALUES, SUB_STAT_VALUES, StatType,
 router = APIRouter()
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
+# v7.24.0: 应用版本单一事实源 data/VERSION（随版本轮次与 HARNESS 同步 bump）;
+# dev 模式缺失时回退 "dev"。exe 经 add-data data/ 打包, 显示版本=构建版本。
+_VERSION_FILE = DATA_DIR / "VERSION"
+APP_VERSION = (_VERSION_FILE.read_text(encoding="utf-8").strip()
+               if _VERSION_FILE.is_file() else "dev")
+
 # v7.3: 主词条满级值/副词条中档值统一取自 engine.constants（此前三处硬编码副本）;
 # 副词条键含效果命中（9 键契约, 项目主裁决）
 # v7.17.0: 主词条双键收录（name 大写形 + value 原形）——前端与 recommendations.json 的
@@ -152,8 +158,9 @@ def _lc_rank_info(lc_raw: dict) -> dict:
     """v7.20.0: 光锥叠影数据面——scaled=数值随叠影档缩放; default=选择时的默认档。
 
     - scaled（values 五档或 rank 算术 handler）: 默认按稀有度（4★→5, 5★→1, 项目主规则）;
-    - 单档: 默认=JSON 顶层 rank 字段（录入校准档——抓取批量 4★=5/抽卡5★=1/商店赠送5★=5,
-      例外 landaus_choice=1; 数值不随叠影缩放, 所见即所算）。"""
+    - 单档: 默认=JSON 顶层 rank 字段（录入校准档——抓取批量 4★=5/抽卡5★=1/商店赠送5★=5
+      ）, 数值不随叠影缩放, 所见即所算。
+    - v7.22.1: landaus_choice 条件注记五档固化为 values（原 4★ S1 例外随之消亡）。"""
     scaled = (any(e.get("values") for e in lc_raw.get("effects", []))
               or lc_raw.get("id") in _RANK_SCALED_NO_VALUES)
     if scaled:
@@ -254,7 +261,8 @@ async def list_data():
         except (json.JSONDecodeError, OSError):
             recommendations = {}
 
-    return {"characters": chars, "light_cones": lcs, "outer_relics": outer_relics,
+    return {"version": APP_VERSION,
+            "characters": chars, "light_cones": lcs, "outer_relics": outer_relics,
             "inner_relics": inner_relics, "recommendations": recommendations}
 
 

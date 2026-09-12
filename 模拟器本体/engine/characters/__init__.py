@@ -8,6 +8,7 @@ CHAR_ID / SKILL_HOOKS / AI / TECHNIQUE / MARKERS；行迹与星魂处理器为�
 from engine.characters import (  # noqa: F401
     acheron,
     aglaea,
+    aventurine_waveflair,
     boothill,
     bronya,
     busitu,
@@ -56,6 +57,7 @@ from engine.characters import (  # noqa: F401
 
 PILOTS = (acheron,
           aglaea,
+          aventurine_waveflair,
           boothill,
           bronya,
           busitu,
@@ -101,7 +103,7 @@ PILOTS = (acheron,
           yaoguang,
           yinlang)
 ELATION_PILOT_IDS = ("yinlang", "yaoguang", "trailblazer_elation", "huohuo",
-                     "evanescia", "sparxie")
+                     "evanescia", "sparxie", "aventurine_waveflair")
 
 
 def activate(state, team_ids, elation_active=False):

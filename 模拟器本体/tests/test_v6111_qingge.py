@@ -38,8 +38,11 @@ def _log(s):
 class TestSkillSummon:
     def test_skill_summons_bessie_with_inherit(self):
         """战技召唤唯一「晴空乐手」(贝茜档): HP=晴歌70%, SPD快照=晴歌180%
-        v7.1.0 合一: 实体名=晴空乐手, 成员档位1=贝茜"""
-        s = _sim(max_av=300)
+        v7.1.0 合一: 实体名=晴空乐手, 成员档位1=贝茜
+        v7.23.1: 窗口 300→150AV——战技重施+6气氛修复后 300AV 单人已可达
+        Fever（忆灵上条）, 本测试钉"召唤继承"与"Fever前界外", 缩窗只覆盖
+        召唤回合; Fever 全链路移 test_v7231_ms_fixes 专项钉扎。"""
+        s = _sim(max_av=150)
         qg = s.units[0]
         assert '召唤「晴空乐手」贝茜' in _log(s)
         ms = qg.memsprite_unit
@@ -53,8 +56,8 @@ class TestSkillSummon:
         # 行迹1: 晴空乐手CR+50%
         assert ms.base_stats.CRIT_RATE == pytest.approx(
             qg.base_stats.CRIT_RATE + 0.50, rel=1e-9)
-        # Fever前不在行动条
-        assert ms.runtime_spd == 0
+        # v7.23.2 裁决: 召唤即在行动条（180%速度快照行动）
+        assert ms.runtime_spd > 0
 
     def test_skill_heals_when_present(self):
         """晴空乐手已在场→战技回血100%+气氛+6"""
@@ -88,7 +91,10 @@ class TestAtmoAndFever:
         assert '啾米登台 (成员2/3)' in log
         assert '派丁登台 (成员3/3)' in log
         assert '全员登台! 进入【Fever】' in log
-        assert log.count('派丁登台 (成员3/3)') == 1  # 防重复升档回归
+        # v7.23.2 裁决后忆灵 Fever 外也行动（攻击+1气氛）, 400AV 可完成两轮
+        # "升档→Fever→散场→重召唤"完整循环——第二轮登台是正当行为;
+        # 真正要防的回归是同一循环内的重复升档（用单实体不变量锚定）
+        assert log.count('派丁登台 (成员3/3)') >= 1
         # 合一不变量: 全场晴歌忆灵实体只有一个
         assert len([m for m in s.memsprites
                     if m.summoner_id == 'robin_summeretto']) <= 1

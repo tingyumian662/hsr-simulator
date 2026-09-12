@@ -10,11 +10,34 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击率提高18%/21%/24%/27%/30%",
    "attributes": {
     "CRIT_RATE": 18.0
-   }
+   },
+   "values": [18, 21, 24, 27, 30]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "我方任意角色在自身同一回合内累计消耗大于等于4点战技点时，装备者获得【闪耀王冠】，持续3回合",
+   "attributes": {},
+   "target": "self"
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "装备者持有【闪耀王冠】时，我方全体造成的伤害无视目标20%/24%/28%/32%/36%的防御力（常驻近似）",
+   "attributes": {
+    "DEF_PEN": 20.0
+   },
+   "values": [20, 24, 28, 32, 36]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "装备者持有【闪耀王冠】时，装备者造成的战技伤害提高72%/84%/96%/108%/120%（常驻近似）",
+   "attributes": {
+    "DMG_BONUS_SKILL": 72.0
+   },
+   "values": [72, 84, 96, 108, 120]
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主原稿 2026-09-07（录入原稿/光锥技能补充/星火悄然闪耀.txt; 白值 846 以 txt 为准 2026-09-06 裁决）"
 }

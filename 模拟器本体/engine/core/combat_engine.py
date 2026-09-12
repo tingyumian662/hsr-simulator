@@ -965,6 +965,7 @@ LC_EVENT_CODES = {
     "event_hp_loss": "on_hp_loss",
     "event_memsprite_attack": "on_memsprite_attack",
     "event_memsprite_despawn": "on_memsprite_despawn",
+    "event_elation_skill": "on_elation_skill",  # v7.25.0 向浪花掷下盛夏
 }
 
 def _lc_rank_value(u, default, code=None):
@@ -1048,6 +1049,11 @@ LC_EVENT_ACTIONS = {
         lambda s, u: _lc_heal_record_extra_damage(s, u),
     ("time_waits_for_no_one", "on_attack"):
         lambda s, u: _lc_heal_record_extra_damage(s, u),
+    # 向浪花掷下盛夏: 欢愉技→【风口】SPD%/换式→【潮流】欢愉度% + 每3次回1SP (v7.25.0)
+    ("cast_summer_into_waves", "on_elation_skill"):
+        lambda s, u: _lc_cast_summer_elation(s, u),
+    ("cast_summer_into_waves", "on_wave_start"):
+        lambda s, u: _lc_cast_summer_wave(s, u),
     # 如泥酣眠: 普攻/战技未造成暴击时CR+36% 1回合（期望模式: 按未暴击概率1-CR触发, 3回合CD）
     ("sleep_like_the_dead", "on_self_attack"):
         lambda s, u: _lc_sleep_like_dead_miss_crit(s, u),
@@ -1623,6 +1629,48 @@ def _lc_record_heal(s, u):
     u.extra['lc_heal_record'] = amt + s.extra.get('lc_last_heal_amt', 0.0)
 
 
+def _lc_cast_summer_elation(s, u):
+    """向浪花掷下盛夏: 施放欢愉技时获得【风口】(SPD+%/叠影档, 常驻);
+    与上一次欢愉技形态不同→【潮流】(欢愉度+%/叠影档, 常驻); 每3次回1SP。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'cast_summer_into_waves' or lc.path != u.char.path:
+        return
+    spd_pct = _lc_rank_value(u, 24.0, code='event_elation_skill')
+    u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != 'lc_csw_fengkou']
+    u.buffs.append(TimedBuff(source_id=lc.id, attributes={'SPD_PERCENT': spd_pct},
+                             remaining_turns=-1, param_id='lc_csw_fengkou',
+                             source_name='风口'))
+    s.log.append(f'  光锥[cast_summer_into_waves] 【风口】SPD+{spd_pct:g}%')
+    form = u.extra.get('avw_last_form', '')
+    prev = u.extra.get('lc_csw_last_form', None)
+    if prev is not None and form != prev:
+        elv = _lc_rank_value(u, 40.0, code='event_elation_skill_chaoliu')
+        u.buffs = [b for b in u.buffs
+                   if getattr(b, 'param_id', '') != 'lc_csw_chaoliu']
+        u.buffs.append(TimedBuff(source_id=lc.id, attributes={'ELATION_LEVEL': elv},
+                                 remaining_turns=-1, param_id='lc_csw_chaoliu',
+                                 source_name='潮流'))
+        s.log.append(f'  光锥[cast_summer_into_waves] 换式→【潮流】欢愉度+{elv:g}%')
+    u.extra['lc_csw_last_form'] = form
+    cnt = u.extra.get('lc_csw_casts', 0) + 1
+    if cnt >= 3:
+        u.extra['lc_csw_casts'] = 0
+        _gain_skill_points(s, 1, actor=u)
+        s.log.append('  光锥[cast_summer_into_waves] 施放3次欢愉技→回1战技点')
+    else:
+        u.extra['lc_csw_casts'] = cnt
+
+
+def _lc_cast_summer_wave(s, u):
+    """向浪花掷下盛夏: 每个波次开始时恢复1个战技点(并清3次计数)。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'cast_summer_into_waves' or lc.path != u.char.path:
+        return
+    u.extra['lc_csw_casts'] = 0
+    _gain_skill_points(s, 1, actor=u)
+    s.log.append('  光锥[cast_summer_into_waves] 波次开始→回1战技点')
+
+
 def _lc_heal_record_extra_damage(s, u):
     """时节不居: 攻击后按记录治疗量36%对随机受击敌附加伤害（每回合最多1次）"""
     if u.extra.get('lc_heal_record_used_this_turn'):
@@ -1635,11 +1683,14 @@ def _lc_heal_record_extra_damage(s, u):
         return
     u.extra['lc_heal_record_used_this_turn'] = True
     u.extra['lc_heal_record'] = 0.0
-    extra = record * 0.36
+    # v7.22.1: 比率按叠影档 values 取（原稿 36/42/48/54/60%, 原硬编码 36%=S1）
+    ratio = _lc_rank_value(u, 36.0, code='event_attack')
+    extra = record * ratio / 100.0
     t = random.choice(targets)
     _commit_enemy_damage(s, u, t, extra)
     u.total_damage_dealt += extra
-    s.log.append(f'  光锥[time_waits_for_no_one] 时节不居: 附加伤害{extra:.0f} (治疗记录{record:.0f}×36%)')
+    s.log.append(f'  光锥[time_waits_for_no_one] 时节不居: 附加伤害{extra:.0f} '
+                 f'(治疗记录{record:.0f}×{ratio:.0f}%)')
 
 
 def _lc_sleep_like_dead_miss_crit(s, u):

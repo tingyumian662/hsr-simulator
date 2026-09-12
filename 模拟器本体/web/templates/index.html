@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>星穹铁道战斗模拟器</title>
-<link rel="stylesheet" href="/static/style.css?v=20260829-1">
+<link rel="stylesheet" href="/static/style.css?v=20260907-1">
 </head>
 <body>
 <header class="app-header">
@@ -13,7 +13,7 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg>
     </div>
     <div class="brand-copy">
-      <div class="brand-kicker">Combat Analysis Terminal</div>
+      <div class="brand-kicker" id="brand-kicker">Combat Analysis Terminal</div>
       <h1>星穹铁道战斗模拟器</h1>
     </div>
   </div>
@@ -47,7 +47,13 @@
     <div id="sim-status" aria-live="polite">等待配置</div>
   </div>
   <div class="card summary-card" id="summary-panel" style="display:none">
-    <h3 class="section-title">伤害汇总</h3>
+    <div class="summary-head">
+      <h3 class="section-title">伤害汇总</h3>
+      <button class="button-secondary" type="button" onclick="copyDiagnostics()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        <span>复制诊断</span>
+      </button>
+    </div>
     <div id="summary-content"></div>
   </div>
 </div>
@@ -65,7 +71,7 @@
 </div>
 </div>
 
-<script src="/static/app.js?v=20260904-1"></script>
+<script src="/static/app.js?v=20260907-1"></script>
 </body>
 </html>
 

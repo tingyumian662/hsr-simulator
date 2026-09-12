@@ -69,6 +69,10 @@ class ElationSystem:
         yao_ext = _obs_phase(state, 'goodshow_yaoguang', None, char_id=char_id)
         if yao_ext is not None:
             duration += yao_ext
+        # v7.25.0 砂金·戏浪天赋: 好活当赏获得时持续时间+1回合
+        avw_ext = _obs_phase(state, 'goodshow_avw', None, char_id=char_id)
+        if avw_ext is not None:
+            duration += avw_ext
         return state.elation_state.grant_good_show(
             char_id, amount, duration=duration, source=source)
 
@@ -113,10 +117,15 @@ class ElationSystem:
             [u for u in state.units if u.char.cast_number > 0 and u.is_alive],
             key=lambda u: u.char.cast_number)
 
-        for u in elation_units:
-            _use_skill(u, state, "elation_skill")
-            # v7.15.0 相位 aha_trace: 阿哈时刻银狼特殊行迹（HS 结算在处理器内）
-            _char_phase(state, u, 'aha_trace', n=n)
+        # v7.25.0 aha_running: 阿哈施放窗口标记（砂金 All in 形态判定消费）
+        state.extra['aha_running'] = True
+        try:
+            for u in elation_units:
+                _use_skill(u, state, "elation_skill")
+                # v7.15.0 相位 aha_trace: 阿哈时刻银狼特殊行迹（HS 结算在处理器内）
+                _char_phase(state, u, 'aha_trace', n=n)
+        finally:
+            state.extra['aha_running'] = False
 
         state.laugh_points = 0.0
         for u in state.units:
@@ -170,6 +179,10 @@ class ElationSystem:
         effective_spd = s.SPD + s._base_SPD * s.SPD_PERCENT
         # v7.15.0 相位 eff_stats_yinlang: 行迹1 欢愉度加成（→新s|None）
         s2 = _char_phase(state, u, 'eff_stats_yinlang', s=s, effective_spd=effective_spd)
+        if s2 is not None:
+            s = s2
+        # v7.25.0 相位 eff_stats_avw: 砂金行迹1·极乐派对 SPD→欢愉度（→新s|None）
+        s2 = _char_phase(state, u, 'eff_stats_avw', s=s, effective_spd=effective_spd)
         if s2 is not None:
             s = s2
         # 闪耀功勋4件套: 笑点→欢愉DEF穿透 (每5笑点+1%, 上限10层)

@@ -31,7 +31,7 @@
     },
     {
       "type": "conditional_buff",
-      "condition": "装备者攻击敌方目标时，使其防御力降低12/15/18/21/24%，持续2回合",
+      "condition": "当敌方目标受到装备者攻击时，装备者使其防御力降低12%/15%/18%/21%/24%，持续2回合。同类效果无法叠加",
       "attributes": {},
       "condition_code": "event_self_attack",
       "target": "self",
@@ -44,5 +44,5 @@
       ]
     }
   ],
-  "_source": "fribbels/hsr-optimizer"
+  "_source": "fribbels/hsr-optimizer; 文案对齐项目主原稿 2026-09-07"
 }

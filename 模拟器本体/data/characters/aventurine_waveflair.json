@@ -5,20 +5,268 @@
   "path": "欢愉",
   "level": 80,
   "ascension": 6,
-  "base_HP": 1242,
-  "base_ATK": 427,
-  "base_DEF": 752,
-  "base_SPD": 103,
+  "base_HP": 1164,
+  "base_ATK": 485,
+  "base_DEF": 606,
+  "base_SPD": 107,
   "taunt": 100,
-  "max_energy": 140,
+  "max_energy": 130,
+  "cast_number": 156,
   "trace_stats": {
-    "DEF_percent": 12.5,
-    "SPD_percent": 9.0,
-    "CRIT_RATE": 18.7
+    "CRIT_RATE": 18.7,
+    "ELATION_LEVEL": 10.0,
+    "SPD_percent": 9.0
   },
-  "skills": {},
-  "traces": [],
-  "eidolons": [],
-  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
-  "_source": "fribbels/hsr-optimizer (base stats verified)"
+  "combat_passive_stats": {
+    "CRIT_DMG": 48.0
+  },
+  "_trace_stats_note": "SPD_percent=9.0实际为速度+9(固定值)。欢愉度10%已含基础。",
+  "_combat_passive_note": "CRIT_DMG 48 = 行迹2「旧梦淘金」无条件段（战斗内常驻, 不上面板）。",
+  "elation_stats": {},
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·激流，正中红心",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ],
+      "_note": "普攻回能20"
+    },
+    "skill": {
+      "name": "战技·绝杀，热砂沸腾",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 240.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        }
+      ],
+      "_mechanism": {
+        "laugh_gain": "获得4个笑点",
+        "heat_gain": "获得4点【热意】(模块 u.extra['avw_heat'], 上限30/E2→50)",
+        "goodshow_extra": "持有【好活当赏】时额外造成40%量子属性欢愉伤害(模块手写段)",
+        "e4": "E4: 施放时全队无视18%防御3回合",
+        "trace2_reset": "施放时重置行迹2可触发次数(6次)"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·胜局，凌越飓浪之上",
+      "type": "ultimate",
+      "cost": {
+        "energy": 130
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 400.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": {
+        "laugh_gain": "获得6个笑点",
+        "heat_gain": "获得8点【热意】",
+        "spd_buff": "自身速度提高30%(满级), 持续4回合(模块 post_effects TimedBuff SPD_PERCENT 白值基准)",
+        "goodshow_extra": "持有【好活当赏】时额外造成72%量子属性欢愉伤害(模块手写段)"
+      }
+    },
+    "talent": {
+      "name": "天赋·抛注，听深渊回响",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "goodshow_duration": "砂金的好活当赏获得时持续时间+1回合(2→3)",
+        "ally_attack": "队友施放攻击后, 砂金获得1点【热意】和1个笑点(on_attack_action 订阅)",
+        "heat_cap": "【热意】上限30点(E2→50)",
+        "threshold_cast": "【热意】达到10点时立即施放1次固定计入20笑点的【举杯！敬炽烈一夏】(laugh_n_override=20), 并使下一次阿哈时刻中施放的欢愉技强化为【All in！】(E1 追加20/30阈值, E2 追加40/50)",
+        "goodshow_hold": "持有【好活当赏】时战技额外40%/终结技额外72%量子属性欢愉伤害"
+      }
+    },
+    "technique": {
+      "name": "秘技·于静水掀起风浪",
+      "type": "technique",
+      "technique_category": "attack",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "量子",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 20.0
+        }
+      ],
+      "_mechanism": "主动攻击进战: 全体100%ATK量子伤害 + 2点【热意】 + 20点【好活当赏】(3回合)"
+    },
+    "elation_skill": {
+      "name": "欢愉技·举杯！敬炽烈一夏",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "NONE",
+          "scale": 60.0,
+          "damageType": "elation",
+          "element": "量子",
+          "_target": "all_enemies"
+        },
+        {
+          "stat": "NONE",
+          "scale": 18.0,
+          "damageType": "elation",
+          "element": "量子",
+          "_target": "bounce",
+          "_hits": 10
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 10.0
+        }
+      ],
+      "_note": "回能5",
+      "_mechanism": {
+        "参演编号": 156,
+        "all_in": "【All in！敬炽烈一夏】同倍率, 施放时消耗所有【热意】, 每消耗1点额外对随机敌方单体造成1次21%量子欢愉伤害(模块 skill_adjust_post 追加弹射段)",
+        "all_in_trigger": "天赋阈值施放后的下一次阿哈时刻欢愉技强化为 All in; E6 施放2次欢愉技后后续全部为 All in",
+        "e6_no_cost": "E6: 阿哈时刻外施放 All in 造成额外伤害时不再消耗【热意】",
+        "e2_heat": "E2: 施放欢愉技后额外获得4点【热意】"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "极乐派对",
+      "description": "速度大于等于140时，使自身欢愉度提高30%，之后每超过1点速度使自身欢愉度额外提高1%，最多计入200点超出的速度",
+      "hook_name": "aventurine_waveflair_spd_to_elation"
+    },
+    {
+      "name": "旧梦淘金",
+      "description": "暴击伤害提高48%。队友施放普攻、战技、追加攻击或终结技后，使我方全体暴击伤害提高48%，持续3回合，并使砂金•戏浪额外获得2点【热意】，该效果最多触发6次，砂金•戏浪施放战技时重置可触发次数",
+      "hook_name": "aventurine_waveflair_old_dream"
+    },
+    {
+      "name": "纵享惊涛",
+      "description": "开战队伍存在其他欢愉角色: 全体欢愉度+20%, 砂金额外+80%; 仅自身欢愉: 欢愉技视为追加攻击, 队友攻击后+2好活当赏+1笑点, 阿哈速度+25",
+      "hook_name": "aventurine_waveflair_storm"
+    }
+  ],
+  "_special_trace_details": {
+    "trace1": {
+      "threshold": 140,
+      "base_pct": 30.0,
+      "per_spd_pct": 1.0,
+      "max_bonus_spd": 200
+    },
+    "trace2": {
+      "cd_bonus": 48.0,
+      "team_cd": 48.0,
+      "duration": 3,
+      "max_triggers": 6
+    },
+    "trace3": {
+      "branch_multi": {
+        "team_elation_pct": 20.0,
+        "self_extra_pct": 80.0
+      },
+      "branch_solo": {
+        "followup_as": true,
+        "goodshow_per_ally_attack": 2,
+        "laugh_per_ally_attack": 1,
+        "aha_speed_bonus": 25
+      }
+    }
+  },
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "抵作筹码的假日",
+      "description": "全属性抗性穿透提高24%。天赋获得强化：【热意】达到10点/20点/30点时，都会立即施放【举杯！敬炽烈一夏】",
+      "hook_name": "aventurine_waveflair_e1"
+    },
+    {
+      "rank": 2,
+      "name": "闲情如海潮涨落",
+      "description": "【热意】上限提高至50点，达到40点/50点时，也会触发天赋施放【举杯！敬炽烈一夏】。施放欢愉技后额外获得4点【热意】",
+      "hook_name": "aventurine_waveflair_e2"
+    },
+    {
+      "rank": 3,
+      "name": "冰镇的午后邀约",
+      "description": "战技等级+2，最多不超过15级；天赋等级+2，最多不超过15级；欢愉技等级+1，最多不超过15级",
+      "hook_name": "aventurine_waveflair_e3"
+    },
+    {
+      "rank": 4,
+      "name": "无需同阳光交易",
+      "description": "砂金•戏浪施放战技时，使我方全体造成的伤害无视敌方目标18%的防御力，持续3回合",
+      "hook_name": "aventurine_waveflair_e4"
+    },
+    {
+      "rank": 5,
+      "name": "掷身于满贯风暴",
+      "description": "终结技等级+2，最多不超过15级；普攻等级+1，最多不超过10级；欢愉技等级+1，最多不超过15级",
+      "hook_name": "aventurine_waveflair_e5"
+    },
+    {
+      "rank": 6,
+      "name": "将往日兑作一场狂飙",
+      "description": "砂金•戏浪造成的欢愉伤害增笑25%。砂金•戏浪施放2次欢愉技后，其后续施放的所有欢愉技均为【All in！敬炽烈一夏】，且在阿哈时刻外施放欢愉技【All in！敬炽烈一夏】造成额外伤害时不再消耗【热意】",
+      "hook_name": "aventurine_waveflair_e6"
+    }
+  ],
+  "_source": "项目主原稿 角色技能介绍/欢愉/砂金·戏浪.txt（2026-09-12）; 壳白值(fribbels 1242/427/752)废弃",
+  "_pending": ""
 }

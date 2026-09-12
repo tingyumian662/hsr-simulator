@@ -9,14 +9,15 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击率提高16%/20%/24%/28%/32%",
    "attributes": {
     "CRIT_RATE": 16.0
-   }
+   },
+   "values": [16, 20, 24, 28, 32]
   },
   {
    "type": "conditional_buff",
-   "condition": "战斗开始时，若我方战技点上限>=6，装备者攻击力提高40%",
+   "condition": "进入战斗时，若我方的战技点上限大于等于6点，使装备者的攻击力提高40%/50%/60%/70%/80%",
    "attributes": {
     "ATK_percent": 40.0
    },
@@ -25,19 +26,20 @@
   },
   {
    "type": "conditional_buff",
-   "condition": "每次施放战技后，攻击力提高10%，最多叠加4层（最高40%）",
+   "condition": "装备者每次施放战技后，使装备者的攻击力提高10%/12%/15%/17%/20%，最多叠加4次",
    "attributes": {},
    "condition_code": "stack_gain:on_skill:skill_stack:4:self:",
    "target": "self"
   },
   {
    "type": "conditional_buff",
-   "condition": "每次施放战技后，攻击力提高10%，最多叠加4层（最高40%）",
+   "condition": "持有战技叠层时，装备者攻击力提高（每层10%/12%/15%/17%/20%，4层合计40%/48%/60%/68%/80%）",
    "attributes": {
     "ATK_percent": 40.0
    },
    "condition_code": "stack:skill_stack:4"
   }
  ],
- "id": "the_hell_where_ideals_burn"
+ "id": "the_hell_where_ideals_burn",
+ "_source": "项目主原稿 2026-09-07（录入原稿/光锥技能补充/理想燃烧的地狱.txt）"
 }

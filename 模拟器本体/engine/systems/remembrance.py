@@ -107,7 +107,11 @@ class MemSpriteUnit:
 def _ms_effective_stats(ms_unit, state=None):
     """忆灵有效面板: 基础面板 + 暂存 buff（v5.6.1: 忆灵 buff 系统接入——
     英豪4pc/长夜月行迹2 等忆灵侧增益经此生效, 死龙等无 buffs 的忆灵行为不变）
-    v6.2: 织锦"及忆灵"段——装备者光锥织锦层数→忆灵暴伤+9%/层（time_woven_into_gold）"""
+    v7.23.1: 光锥条件修正与持有者同口径——忆灵 base_stats 深拷贝自召唤者, 携带
+    光锥条件行的静态值而此前无任何抵消（致长夜的星光【夜色】门控、织金岁月
+    【织锦】满层 54%CD 等在忆灵侧无条件常驻）。现对忆灵副本执行与持有者
+    _build_effective_stats 相同的 _apply_lc_condition_corrections; 原织锦
+    动态特例（0.09/层）已由通用按层抵消覆盖, 删除防双算。"""
     s = copy.deepcopy(ms_unit.base_stats)
     for b in getattr(ms_unit, 'buffs', []):
         for attr, val in b.attributes.items():
@@ -116,10 +120,9 @@ def _ms_effective_stats(ms_unit, state=None):
         summoner = next((x for x in state.units
                          if x.char.id == ms_unit.summoner_id), None)
         lc = getattr(summoner, 'lightcone', None)
-        if lc and lc.id == 'time_woven_into_gold':
-            stack = summoner.lc_stacks.get('time_woven_into_gold::zhijin', 0)
-            if stack > 0:
-                s.CRIT_DMG += 0.09 * stack
+        if summoner is not None and lc is not None:
+            from engine.core.combat_engine import _apply_lc_condition_corrections
+            _apply_lc_condition_corrections(summoner, state, s)
     return s
 
 
@@ -171,7 +174,13 @@ class RemembranceSystem:
                          if m.data.name == ms_data.name and m.summoner_id == summoner.char.id), None)
         _ensure_phase_tables(state)
         if existing:
-            # v7.16.0 相位 ms_reheal_skip: 已在场回血豁免（阿格莱雅走 JSON heal, 
+            # v7.23.1 相位 ms_reheal: 角色"在场重施"自管（晴歌战技=回血100%×技能
+            # 等级+气氛+6）。返回 MemSpriteUnit 表示已完全处理; 未注册者走原路径。
+            handled = _char_phase(state, summoner, 'ms_reheal', ms_data=ms_data,
+                                  existing=existing)
+            if handled is not None:
+                return handled
+            # v7.16.0 相位 ms_reheal_skip: 已在场回血豁免（阿格莱雅走 JSON heal,
             # v5.7 语义: 通用分支再回50%会与 heal effect 叠加成100%）
             if not _char_phase(state, summoner, 'ms_reheal_skip'):
                 existing.current_hp = min(existing.max_hp, existing.current_hp + existing.max_hp * 0.50)

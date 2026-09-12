@@ -1,0 +1,44 @@
+{
+ "id": "cast_summer_into_waves",
+ "name": "向浪花掷下盛夏",
+ "rarity": 5,
+ "rank": 1,
+ "path": "欢愉",
+ "base_HP": 952,
+ "base_ATK": 582,
+ "base_DEF": 529,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者的暴击率提高18%/21%/24%/27%/30%",
+   "attributes": {
+    "CRIT_RATE": 18.0
+   },
+   "values": [18, 21, 24, 27, 30]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放欢愉技时，获得【风口】，【风口】使装备者的速度提高24%/28%/32%/36%/40%（常驻）",
+   "attributes": {},
+   "values": [24, 28, 32, 36, 40],
+   "condition_code": "event_elation_skill",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "若施放的欢愉技与上一次施放的欢愉技不同，则额外获得【潮流】，【潮流】使装备者的欢愉度提高40%/55%/70%/85%/100%（常驻）",
+   "attributes": {},
+   "values": [40, 55, 70, 85, 100],
+   "condition_code": "event_elation_skill_chaoliu",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "每个波次开始时或装备者每施放3次欢愉技后，恢复1个战技点",
+   "attributes": {},
+   "condition_code": "event_wave_start",
+   "target": "self"
+  }
+ ],
+ "_source": "项目主原稿 角色技能介绍/欢愉/砂金·戏浪.txt 推荐装备段（2026-09-12, 全五档 values）"
+}

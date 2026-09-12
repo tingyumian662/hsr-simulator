@@ -1,33 +1,52 @@
 {
-  "id": "time_waits_for_no_one",
-  "name": "时节不居",
-  "rarity": 5,
-  "rank": 1,
-  "path": "丰饶",
-  "base_HP": 1270,
-  "base_ATK": 476,
-  "base_DEF": 463,
-  "effects": [
-    {
-      "type": "trigger_effect",
-      "condition": "",
-      "attributes": {},
-      "condition_code": "event_heal",
-      "target": "self"
-    },
-    {
-      "type": "trigger_effect",
-      "condition": "",
-      "attributes": {},
-      "condition_code": "event_attack",
-      "target": "self"
-    },
-    {
-      "type": "trigger_effect",
-      "condition": "",
-      "attributes": {},
-      "condition_code": "event_self_attack",
-      "target": "self"
-    }
-  ]
+ "id": "time_waits_for_no_one",
+ "name": "时节不居",
+ "rarity": 5,
+ "rank": 1,
+ "path": "丰饶",
+ "base_HP": 1270,
+ "base_ATK": 476,
+ "base_DEF": 463,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者生命上限提高18%/21%/24%/27%/30%",
+   "attributes": {
+    "HP_percent": 18.0
+   },
+   "values": [18, 21, 24, 27, 30]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "治疗量提高12%/14%/16%/18%/20%",
+   "attributes": {
+    "HEAL_BONUS": 12.0
+   },
+   "values": [12, 14, 16, 18, 20]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者对我方目标提供治疗时，记录治疗量",
+   "attributes": {},
+   "condition_code": "event_heal",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当任意我方目标施放攻击后，根据记录治疗量的36%/42%/48%/54%/60%，对随机1个受到攻击的敌方目标造成基于装备者属性的附加伤害。该伤害不受加成影响，每回合最多结算1次",
+   "attributes": {},
+   "values": [36, 42, 48, 54, 60],
+   "condition_code": "event_attack",
+   "target": "self"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当任意我方目标施放攻击后，根据记录治疗量的36%/42%/48%/54%/60%，对随机1个受到攻击的敌方目标造成基于装备者属性的附加伤害。该伤害不受加成影响，每回合最多结算1次",
+   "attributes": {},
+   "values": [36, 42, 48, 54, 60],
+   "condition_code": "event_self_attack",
+   "target": "self"
+  }
+ ],
+ "_source": "项目主原稿 2026-09-07（录入原稿/光锥技能补充/时节不居.txt）"
 }
