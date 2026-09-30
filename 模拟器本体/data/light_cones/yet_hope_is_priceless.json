@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击率提高16%/19%/22%/25%/28%",
    "attributes": {
     "CRIT_RATE": 16.0
-   }
+   },
+   "values": [
+    16,
+    19,
+    22,
+    25,
+    28
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者在战斗中暴击伤害大于120%时，每超过20%，追加攻击造成的伤害提高12%/14%/16%/18%/20%，该效果可叠加4层",
+   "attributes": {},
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ],
+   "condition_code": "event_battle_start"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "战斗开始时和装备者施放普攻后，使终结技或追加攻击造成的伤害无视目标20%/24%/28%/32%/36%的防御，持续2回合",
+   "attributes": {},
+   "values": [
+    20,
+    24,
+    28,
+    32,
+    36
+   ],
+   "condition_code": "event_basic_after"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量; 暴伤转追击叠层动态结算+无视防窗口(普攻重臂)"
 }

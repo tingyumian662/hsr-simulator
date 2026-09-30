@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的生命上限提高8%/9%/10%/11%/12%",
    "attributes": {
     "HP_percent": 8.0
-   }
+   },
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放战技时，治疗量提高16%/19%/22%/25%/28%，持续2回合",
+   "attributes": {},
+   "values": [
+    16,
+    19,
+    22,
+    25,
+    28
+   ],
+   "condition_code": "event_skill_after_healbuff"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

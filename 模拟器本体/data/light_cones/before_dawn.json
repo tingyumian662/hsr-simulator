@@ -10,11 +10,59 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者暴击伤害提高36%/42%/48%/54%/60%",
    "attributes": {
     "CRIT_DMG": 36.0
-   }
+   },
+   "values": [
+    36,
+    42,
+    48,
+    54,
+    60
+   ]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者战技造成的伤害提高18%/21%/24%/27%/30%",
+   "attributes": {
+    "DMG_BONUS_SKILL": 18.0
+   },
+   "values": [
+    18,
+    21,
+    24,
+    27,
+    30
+   ]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者终结技造成的伤害提高18%/21%/24%/27%/30%",
+   "attributes": {
+    "DMG_BONUS_ULTIMATE": 18.0
+   },
+   "values": [
+    18,
+    21,
+    24,
+    27,
+    30
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放战技或终结技后，获得【梦身】效果。触发追加攻击时，消耗【梦身】，使追加攻击造成的伤害提高48%/56%/64%/72%/80%",
+   "attributes": {},
+   "values": [
+    48,
+    56,
+    64,
+    72,
+    80
+   ],
+   "condition_code": "event_skill_after"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量; 梦身状态机(战技/终结技臂→首次追击消耗)"
 }

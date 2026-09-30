@@ -307,7 +307,7 @@ def test_complete_roster_emits_no_unregistered_effect_warnings():
         if "basic_attack" in (data.get("skills") or {}):
             complete_ids.append(path.stem)
 
-    assert len(complete_ids) == 45  # v7.25.0 砂金·戏浪录入 44→45
+    assert len(complete_ids) == 46  # v7.26.0 真珠录入 45→46
     for eidolon in (0, 6):
         for char_id in complete_ids:
             state = simulate(
@@ -342,4 +342,6 @@ def test_yinlang_elation_skill_gains_hidden_score_once_per_cast():
     aha_system.execute_aha(aha_state)
 
     assert direct.hidden_score == 15.0
-    assert aha.hidden_score == 16.0
+    # v7.26.0 项目主裁决(实时叠加): 阿哈结算不再喂隐藏分——欢愉技施放时
+    # 笑点增量(+15)已实时计入, 结算路径废除(旧口径为 15+1=16 双计)
+    assert aha.hidden_score == 15.0

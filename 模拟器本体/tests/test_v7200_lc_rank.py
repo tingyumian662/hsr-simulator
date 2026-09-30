@@ -54,9 +54,11 @@ class TestRankInfoListing:
         assert lcs["rise_and_sing"]["default_rank"] == 1
         assert lcs["resolution_shines_as_pearls_of_sweat"]["rank_scaled"] is True
         # 单档光锥: 默认=录入校准档（JSON rank 字段）
-        assert lcs["dance_dance_dance"] == {**lcs["dance_dance_dance"],
-                                            "rank_scaled": False, "default_rank": 5}
-        assert lcs["in_the_night"]["rank_scaled"] is False
+        # v8.2.2: 舞！舞！舞！补五档 values → scaled(4★ 默认 S5)
+        assert lcs["dance_dance_dance"]["rank_scaled"] is True
+        assert lcs["dance_dance_dance"]["default_rank"] == 5
+        # v8.2.2: 于夜色中补五档 values → scaled(5★ 默认 S1)
+        assert lcs["in_the_night"]["rank_scaled"] is True
         assert lcs["in_the_night"]["default_rank"] == 1
         assert lcs["gugu_gaga_adventure"]["default_rank"] == 5  # 录入=叠五(0e38553)
         assert lcs["elation_overflow_blessing"]["default_rank"] == 5  # 商店/赠送类 5★
@@ -65,12 +67,17 @@ class TestRankInfoListing:
     def test_tier_distribution(self):
         lcs = self._lcs()
         scaled = [l for l in lcs.values() if l["rank_scaled"]]
-        # v7.22.1: 原 8 + 回填 7 把; v7.25.0 向浪花掷下盛夏 +1
-        assert len(scaled) == 16
+        # v7.22.1: 原 8 + 回填 7 把; v7.25.0 向浪花掷下盛夏 +1; v7.26.0 献给明日的色彩 +1;
+        # v8.0.0 三把; v8.1.0 智识十把; v8.2.0 乙组59把; v8.2.2 丙组54+新3把+尾4把=全量145
+        assert len(scaled) == 145
         assert lcs["landaus_choice"]["rank_scaled"] is True
         assert lcs["cast_summer_into_waves"]["rank_scaled"] is True
+        assert lcs["hues_devoted_to_tomorrow"]["rank_scaled"] is True
+        assert lcs["welcome_to_galaxy_city"]["rank_scaled"] is True
+        assert lcs["elation_overflow_blessing"]["rank_scaled"] is True
+        assert lcs["moment_of_victory"]["rank_scaled"] is True
         singles = [l for l in lcs.values() if not l["rank_scaled"]]
-        assert len(singles) == 125  # 用户可见 141 把（_template 不入列表; 落选 3 份已清除）
+        assert len(singles) == 0  # 全量 145 把五档齐备(v8.2.2 光锥数据工程收官)（_template 不入列表; 落选 3 份已清除）
         assert all(1 <= l["default_rank"] <= 5 for l in lcs.values())
 
 

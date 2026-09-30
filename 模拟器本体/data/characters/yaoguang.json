@@ -126,7 +126,7 @@
       "_mechanism": "非进战: 开战自动触发1次战技(免SP)→结界+全队欢愉度=爻光欢愉度×20% (v6.10.3 引擎init_battle)"
     },
     "elation_skill": {
-      "name": "欢愉技·凶星低语",
+      "name": "欢愉技·赠君一卦，火树银花",
       "type": "elation_skill",
       "cost": {},
       "target": "all_enemies",
@@ -154,14 +154,22 @@
           "value": 20.0
         },
         {
+          "type": "toughness_reduction",
+          "target": "bounce",
+          "value": 25.0
+        },
+        {
           "type": "debuff",
           "target": "all_enemies",
           "value": 16.0,
           "paramId": "凶星低语"
         }
       ],
+      "_note": "回能5(ENERGY_GAIN通用表, v7.26.2 裁决7)",
       "_mechanism": {
+        "skill_order": "原稿语序: 先使敌方全体陷入【凶星低语】再结算伤害——本次伤害自身吃易伤(effects_pre_cast 预挂, v7.26.3)",
         "凶星低语": "敌方受到伤害提高16%，持续3回合(易伤乘区)",
+        "toughness": "削韧 5*5+20: 弹射行25(5跳均分=每跳5)+全体行20",
         "参演编号": 116
       }
     }

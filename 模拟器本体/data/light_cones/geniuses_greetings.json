@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高16%/20%/24%/28%/32%",
    "attributes": {
     "ATK_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放终结技后，使装备者与忆灵造成的普攻伤害提高20%/25%/30%/35%/40%，持续3回合",
+   "attributes": {},
+   "values": [
+    20,
+    25,
+    30,
+    35,
+    40
+   ],
+   "condition_code": "event_ult_after_basicdmg"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高24%/28%/32%/36%/40%",
    "attributes": {
     "ATK_percent": 24.0
-   }
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放攻击后，每击中1名不同的敌方目标，恢复3.0/3.5/4.0/4.5/5.0点能量，每次攻击最多通过该方式恢复3次能量",
+   "attributes": {},
+   "values": [
+    3,
+    3.5,
+    4,
+    4.5,
+    5
+   ],
+   "condition_code": "event_attack_targets_energy"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放终结技后，使我方全体速度提高12/14/16/18/20点，持续1回合",
+   "attributes": {},
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ],
+   "condition_code": "event_ult_after_team_spd"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

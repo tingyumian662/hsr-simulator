@@ -893,7 +893,7 @@ def test_complete_roster_e0_e6_and_mixed_team_smoke():
         data = json.loads(path.read_text(encoding='utf-8'))
         if 'basic_attack' in (data.get('skills') or {}):
             complete_ids.append(path.stem)
-    assert len(complete_ids) == 45  # v7.25.0 砂金·戏浪录入 44→45
+    assert len(complete_ids) == 46  # v7.26.0 真珠录入 45→46
 
     for eidolon in (0, 6):
         for char_id in complete_ids:

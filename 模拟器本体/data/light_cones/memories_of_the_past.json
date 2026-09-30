@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的击破特攻提高28%/35%/42%/49%/56%",
    "attributes": {
     "BREAK_EFFECT": 28.0
-   }
+   },
+   "values": [
+    28,
+    35,
+    42,
+    49,
+    56
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放攻击后，额外恢复4/5/6/7/8点能量，该效果单个回合内不可重复触发",
+   "attributes": {},
+   "values": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "condition_code": "event_attack_once_energy"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

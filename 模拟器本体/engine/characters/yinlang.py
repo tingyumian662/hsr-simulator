@@ -5,6 +5,7 @@ import random
 from engine.runtime import _enemy_for_damage
 from engine.core.combat_engine import _build_effective_stats, _commit_enemy_damage, _use_skill
 from engine.core.damage import calculate_damage
+from engine.systems.elation import gain_laugh
 
 
 def _silver_wolf_apply_entry_effects(state):
@@ -58,14 +59,24 @@ def _eid_yinlang_e6(u, state, **kw):
     state.log.append('  银狼E6: 欢愉增笑+50%, 禁限弱点植入(全属性弱点+抗性归零/-20%)')
 
 
-def _yl_ai(u, state, *, elation, max_av, navs, uidx, **__):
+def _yl_ai(u, state, *, elation, max_av=None, navs=None, uidx=None, **__):
+    # 裁决13: 奖励关暂停后的再施放额外回合(优先于常规分支)
+    if 'yinlang_reward_state' in u.extra:
+        seg, bb = u.extra.pop('yinlang_reward_state')
+        silver_enhanced_basic(u, state, seg_left=seg, bb_left=bb)
+        return
     if u.invincible_active:
         silver_enhanced_basic(u, state)
     elif u.hidden_score >= HS_ULT_COST:
         # 动态开大阈值: 开大后剩余HS需≥120才能吃满30%独立乘区
-        # 开大消耗60, 行迹返还20, 光锥返还20(如有) → 阈值=60+120-20-光锥返还=160-光锥返还
-        lc_refund = HS_LC_GAIN if not u.lc_ult_used else 0
-        hs_threshold = HS_ULT_COST + 120 - HS_TALENT_GAIN - lc_refund  # 140 或 160
+        # 开大消耗60, 行迹返还20 → 基础阈值160; 戴银河城且回笑已臂时再降N(叠影档)
+        lc = getattr(u, 'lightcone', None)
+        lc_refund = 0.0
+        if lc is not None and lc.id == 'welcome_to_galaxy_city' \
+                and lc.path == u.char.path and u.extra.get('galaxy_laugh_armed', True):
+            from engine.core.combat_engine import _lc_rank_value
+            lc_refund = _lc_rank_value(u, 20.0, code='event_ult_after')
+        hs_threshold = HS_ULT_COST + 120 - HS_TALENT_GAIN - lc_refund
         remaining = max_av - state.current_av
         # 近结束时允许提前开大(不掉轴)
         can_early = remaining < 350 and u.hidden_score >= HS_ULT_COST + HS_TALENT_GAIN
@@ -97,15 +108,11 @@ def _laugh_gen(u, state, skill_key):
     if u.char.path != "欢愉" or (skill_key not in ("basic_attack", "skill") and not is_tb_elation):
         return
     if u.char.id == 'yinlang':
-        laugh = 5 if skill_key == 'skill' else 0
+        laugh = 5 if skill_key == "skill" else 0
         if laugh <= 0:
             return
-        state.laugh_points += laugh
-        elation = state.extra.get('_elation')
-        if elation:
-            elation.gain_hidden_score(state, u, laugh)
-        else:
-            u.hidden_score = min(300.0, u.hidden_score + laugh)
+        # v7.26.0 裁决3: 笑点统一入口（实时同步隐藏分, 无需手动双写）
+        gain_laugh(state, laugh)
 
 
 def _silver_invincible_elation(u, state, skill_key):
@@ -194,7 +201,6 @@ PHASE_HOOKS['post_attack_elation'] = _yinlang_post_attack_elation
 # 无敌玩家专属常量（原 elation 常量区迁入）
 HS_ULT_COST = 60       # 终结技消耗隐藏分
 HS_TALENT_GAIN = 20    # 天赋：进无敌+20HS
-HS_LC_GAIN = 20        # 光锥：自释终结技+20HS
 INVINCIBLE_MAX = 3     # 无敌玩家强化普攻次数
 
 
@@ -221,22 +227,21 @@ def silver_ult(u, state):
     u.invincible_basics_done = 0
     u.extra['yinlang_blindbox_prob'] = 1.0
     _silver_wolf_apply_entry_effects(state)
+    # v8.0.0: 直调路径补光锥 on_ult 派发(欢迎来到银河城等终结技光锥此前对银狼永不触发)
+    from engine.core.combat_engine import _process_lc_effects
+    _process_lc_effects(u, state, "on_ult")
     if u.eidolon_rank >= 2:
         for buff in u.buffs:
             if getattr(buff, 'remaining_turns', -1) >= 0:
                 buff.remaining_turns += 1
 
-    lc_bonus = 0
-    if not u.lc_ult_used:
-        state.laugh_points += HS_LC_GAIN
-        elation.gain_hidden_score(state, u, HS_LC_GAIN)
-        u.lc_ult_used = True
-        lc_bonus = HS_LC_GAIN
-
+    # v8.0.0: 移除遗留硬编码"光锥自释终结技+20"块(HS_LC_GAIN)——该效果实为
+    # 欢迎来到银河城的光锥效果, 已由 _lc_galaxy_ult_laugh 数据驱动实现(五档/
+    # 1次/3普攻重臂); 旧块任意光锥都触发且与真 handler 双算
     ha = u.hidden_score
     state.log.append(
         f'[{state.current_av:6.0f}AV] 银狼 无敌玩家启动! '
-        f'HS={hs:.0f}->扣{HS_ULT_COST}->+天赋{HS_TALENT_GAIN}+LC{lc_bonus}={ha:.0f} '
+        f'HS={hs:.0f}->扣{HS_ULT_COST}->+天赋{HS_TALENT_GAIN}={ha:.0f} '
         f'CR+{elation._hidden_score_cr(ha)*100:.1f}% '
         f'CD+{elation._hidden_score_cd(ha,u.base_stats.CRIT_RATE)*100:.1f}%')
 
@@ -288,8 +293,7 @@ def silver_blindbox(u, state, *, force=False, laugh_n_override=None):
         _gain_skill_points(state, 2)
         effect = '炸弹(+2SP)'
     else:
-        state.laugh_points += 3
-        elation.gain_hidden_score(state, u, 3)
+        gain_laugh(state, 3)  # v7.26.0 裁决3: 统一入口
         effect = '怪味豆(+3笑点)'
     u.total_damage_dealt += total
     next_probability = probability * 0.20 if not force else probability
@@ -304,8 +308,16 @@ def silver_technique_wave(u, state):
     return silver_blindbox(u, state, force=True, laugh_n_override=99.0)
 
 
-def silver_enhanced_basic(u, state):
-    from engine.core.combat_engine import _gain_skill_points
+def silver_enhanced_basic(u, state, seg_left=None, bb_left=None):
+    """奖励关（强化普攻）。v7.26.5 裁决12/13 重构:
+    - 盲盒交错: 每33段弹射暂停触发1次(共3次; 暂停点=剩余67/34/1段), 非集中末尾
+    - 全灭暂停: 记录剩余段数/盲盒次数结束本次技能, 新敌入场后经 _yl_reward_resume
+      获得额外回合并基于剩余再施放; 每回合首次触发时自身所有增益效果延长1回合
+    - 削韧: 弹射每段0.2(原文0.2*100), 最后一击30(均分段)
+    - 最后一击"由敌方全体均分": 每目标 100%/N 段(此前误为每目标各吃全额100%)
+    - 暂停不计入强化普攻完成次数(完整施放=含再施放的整体)"""
+    from engine.core.combat_engine import (_gain_skill_points,
+                                           _flat_toughness_with_break)
     elation = _elation_sys(state)
     s = elation.eff_stats(u, state)
     damage_mult = 1.0 + min(int(u.hidden_score / 60), 2) * 0.15
@@ -315,13 +327,10 @@ def silver_enhanced_basic(u, state):
     td, hs = 0.0, u.hidden_score
     has_gs = state.elation_state.get_good_show_total(u.char.id) > 0
     is_crit = s.CRIT_RATE >= 0.5
+    if seg_left is None:
+        seg_left, bb_left = 100, 3
 
-    # 100 段弹射
-    for _ in range(100):
-        alive = state.alive_enemies()
-        if not alive:
-            break
-        t = random.choice(alive)
+    def _bounce_one(t):
         dmg_type = "elation" if has_gs else "direct"
         scaling = 0 if has_gs else s.ATK
         laugh_n = state.elation_state.get_good_show_total(u.char.id) if has_gs else 0
@@ -329,22 +338,21 @@ def silver_enhanced_basic(u, state):
                              u.char.element, 80, is_crit,
                              laugh_n=laugh_n, crit_mode="expected")
         _commit_enemy_damage(state, u, t, d.final_damage)
-        td += d.final_damage
+        _flat_toughness_with_break(state, u, t, 0.2, u.char.element,
+                                   'basic_attack', s)
+        return d.final_damage
 
-    # 3 次盲盒：成功概率按上次成功后的20%递减，基础伤害由敌方全体均分。
-    bb_dmg, bb_parts = 0.0, []
-    alive = state.alive_enemies() or state.enemies
-    for _ in range(3):
+    def _blindbox_once(bb_parts):
+        alive = state.alive_enemies() or state.enemies
         probability = u.extra.get('yinlang_blindbox_prob', 1.0)
         if random.random() > probability:
             bb_parts.append('未触发盲盒')
-            continue
+            return 0.0
         u.extra['yinlang_blindbox_prob'] = probability * 0.20
         bh = sum(calculate_damage(s, _enemy_for_damage(t), 0, 90.0, "elation",
                                   u.char.element, 80, is_crit,
                                   laugh_n=hs, crit_mode="expected").final_damage
                  for t in alive if t.HP > 0)
-        bb_dmg += bh
         live_targets = [t for t in alive if t.HP > 0]
         if live_targets and bh > 0:
             share = bh / len(live_targets)
@@ -352,43 +360,71 @@ def silver_enhanced_basic(u, state):
                 _commit_enemy_damage(state, u, target, share)
         roll = random.random()
         if roll < 0.33:
-            td += bh * 0.20
             if live_targets:
                 sword_target = max(live_targets, key=lambda target: target.HP)
                 _commit_enemy_damage(state, u, sword_target, bh * 0.20,
                                      damage_type='true_damage',
                                      record_cipher=False)
             bb_parts.append(f'大剑(+{bh*0.20:.0f}真伤)')
+            return bh + bh * 0.20  # 均分伤+大剑真伤均计入总量
         elif roll < 0.66:
             _gain_skill_points(state, 2)
             bb_parts.append('炸弹(+2SP)')
         else:
-            state.laugh_points += 3
-            elation.gain_hidden_score(state, u, 3)
-            hs = u.hidden_score
+            gain_laugh(state, 3)  # v7.26.0 裁决3: 统一入口
             bb_parts.append('怪味豆(+3笑点)')
+        return bh
+
+    # 弹射 + 交错盲盒（裁决12: 暂停点在剩余 67/34/1 段处）
+    bb_dmg, bb_parts = 0.0, []
+    while seg_left > 0:
+        alive = state.alive_enemies()
+        if not alive:
+            _yl_reward_suspend(u, state, seg_left, bb_left)
+            state.log.append(f'  奖励关·全灭暂停: 剩余{seg_left}段/{bb_left}盲盒')
+            return  # 暂停不计完成次数, 待新敌再施放
+        t = random.choice(alive)
+        td += _bounce_one(t)
+        seg_left -= 1
+        if bb_left > 0 and seg_left in (67, 34, 1):
+            bb_left -= 1
+            bb_dmg += _blindbox_once(bb_parts)
+    # 段数耗尽仍有剩余盲盒(再施放边界): 补齐
+    while bb_left > 0:
+        bb_left -= 1
+        bb_dmg += _blindbox_once(bb_parts)
+        if not state.alive_enemies():
+            _yl_reward_suspend(u, state, 0, bb_left)
+            state.log.append(f'  奖励关·全灭暂停: 剩余0段/{bb_left}盲盒')
+            return
     td += bb_dmg
 
-    # 最后一击
-    for t in (state.alive_enemies() or state.enemies):
-        if t.HP <= 0:
-            continue
-        dmg_type = "elation" if has_gs else "direct"
-        scaling = 0 if has_gs else s.ATK
-        laugh_n = state.elation_state.get_good_show_total(u.char.id) if has_gs else 0
-        d = calculate_damage(s, _enemy_for_damage(t), scaling, 100.0, dmg_type,
-                             u.char.element, 80, is_crit,
-                             laugh_n=laugh_n, crit_mode="expected")
-        _commit_enemy_damage(state, u, t, d.final_damage)
-        td += d.final_damage
+    # 最后一击: 等同100%ATK伤害由敌方全体均分(每目标100%/N) + 削韧30(均分)
+    final_alive = state.alive_enemies()
+    if final_alive:
+        per_scale = 100.0 / len(final_alive)
+        for t in final_alive:
+            dmg_type = "elation" if has_gs else "direct"
+            scaling = 0 if has_gs else s.ATK
+            laugh_n = state.elation_state.get_good_show_total(u.char.id) if has_gs else 0
+            d = calculate_damage(s, _enemy_for_damage(t), scaling, per_scale, dmg_type,
+                                 u.char.element, 80, is_crit,
+                                 laugh_n=laugh_n, crit_mode="expected")
+            _commit_enemy_damage(state, u, t, d.final_damage)
+            _flat_toughness_with_break(state, u, t, 30.0 / len(final_alive),
+                                       u.char.element, 'basic_attack', s)
+            td += d.final_damage
 
     u.total_damage_dealt += td
     u.invincible_basics_done += 1
+    # v8.0.0 欢迎来到银河城: 强化普攻计入"3次普攻后重臂"计数
+    from engine.core.combat_engine import _lc_galaxy_count_basic
+    _lc_galaxy_count_basic(state, u)
     n = u.invincible_basics_done
     u.damage_log.append((f"强化普攻#{n}", td, "enhanced_basic"))
     state.log.append(
         f'[{state.current_av:6.0f}AV] {u.char.name} 强化普攻#{n}: {td:.0f} '
-        f'(HS={hs:.0f}, x{damage_mult:.2f}) 盲盒伤害={bb_dmg:.0f} [{",".join(bb_parts)}]')
+        f'(HS={u.hidden_score:.0f}, x{damage_mult:.2f}) 盲盒伤害={bb_dmg:.0f} [{",".join(bb_parts)}]')
     state.hooks.trigger_all("on_attack_action", u=u, state=state, dealt=td > 0)
 
     if n >= INVINCIBLE_MAX:
@@ -396,17 +432,52 @@ def silver_enhanced_basic(u, state):
         u.invincible_basics_done = 0
         retained = u.hidden_score * 0.20 if u.eidolon_rank >= 1 else 0.0
         u.hidden_score = retained
-        u.lc_ult_used = False
         u.extra['yinlang_blindbox_prob'] = 1.0
         u.extra.pop('yinlang_e2_next_threshold', None)
         _silver_wolf_apply_entry_effects(state)
         state.log.append(f'  退出无敌玩家，隐藏分保留{retained:.0f}，LC重置')
 
 
+def _yl_reward_suspend(u, state, seg_left, bb_left):
+    """裁决13: 全灭暂停——记录剩余段数/盲盒; 每回合首次触发时自身增益延长1回合。"""
+    u.extra['yinlang_reward_state'] = (seg_left, bb_left)
+    last_turn = u.extra.get('yinlang_reward_last_turn', -1)
+    if last_turn != state.turn_count:
+        u.extra['yinlang_reward_last_turn'] = state.turn_count
+        for b in u.buffs:
+            if getattr(b, 'remaining_turns', -1) >= 0:
+                b.remaining_turns += 1
+
+
+def _yl_reward_resume(state):
+    """裁决13: 新敌入场→有暂停剩余的银狼获得1个额外回合(再施放剩余段数)。
+    由引擎 _respawn_wave 函数级延迟调用。"""
+    for u in state.units:
+        if u.char.id == 'yinlang' and u.is_alive \
+                and 'yinlang_reward_state' in u.extra:
+            queued = any(x is u for x, _k in state.extra.get('extra_turns', []))
+            if not queued:
+                state.extra.setdefault('extra_turns', []).append((u, 'yinlang_reward'))
+                state.log.append('  奖励关: 新敌入场→银狼获得1个额外回合(基于剩余段数再施放)')
+
+
 # ---- v7.15.0 相位: 阿哈/隐藏分/面板的银狼站点 ----
 
+def _yl_laugh_sync(_u, state, n):
+    """OBSERVER laugh_gain: v7.26.0 裁决3 实时叠加——任何角色的笑点增长
+    即时同步银狼隐藏分（上限300, 不等阿哈结算; 阿哈结算路径已废除）。"""
+    me = next((x for x in state.units
+               if x.char.id == 'yinlang' and x.is_alive), None)
+    if me is not None and float(n) > 0:
+        _elation_sys(state).gain_hidden_score(state, me, float(n))
+    return None
+
+
+OBSERVER_HOOKS = {'laugh_gain': _yl_laugh_sync}
+
+
 def _yl_aha_trace(u, state, n):
-    """PHASE aha_trace: 阿哈时刻银狼特殊行迹（HS 按笑点档位+20/40）。"""
+    """PHASE aha_trace: 阿哈时刻银狼特殊行迹（HS 按笑点档位+20/40; 额外阿哈以固定值判档）。"""
     from engine.systems.elation import (
         HS_TRACE_BONUS, HS_TRACE_THRESHOLD_HIGH, HS_TRACE_THRESHOLD_LOW)
     elation = _elation_sys(state)
@@ -414,12 +485,6 @@ def _yl_aha_trace(u, state, n):
         bonus = HS_TRACE_BONUS * (2 if n >= HS_TRACE_THRESHOLD_HIGH else 1)
         elation.gain_hidden_score(state, u, bonus)
         state.log.append(f'  银狼特殊行迹: HS+{bonus} (笑点={n:.0f})')
-    return None
-
-
-def _yl_aha_hs_gain(u, state, n):
-    """PHASE aha_hs_gain: 阿哈结算银狼隐藏分+笑点数。"""
-    _elation_sys(state).gain_hidden_score(state, u, n)
     return None
 
 
@@ -438,14 +503,16 @@ def _yl_hidden_score_e2(u, state, before):
 
 
 def _yl_eff_stats(u, state, s, effective_spd):
-    """PHASE eff_stats_yinlang: 行迹1——有效速度160起欢愉度+50%，每超1点再+2%（上限100%）。"""
+    """PHASE eff_stats_yinlang: 行迹3·假结局速通攻略——有效速度160起欢愉度+50%,
+    每超1点再+2%, 最多计入100点超出速度(=总+250%, 260速吃满)。
+    v7.26.5: 修正历史静默封顶 min(1.0,..)=+100%——原文/ARCHIVE档案卡均为此口径。"""
     if effective_spd >= 160:
-        s.ELATION_LEVEL += min(1.0, 0.50 + (effective_spd - 160.0) * 0.02)
+        over = min(100.0, effective_spd - 160.0)
+        s.ELATION_LEVEL += 0.50 + over * 0.02
         return s
     return None
 
 
 PHASE_HOOKS['aha_trace'] = _yl_aha_trace
-PHASE_HOOKS['aha_hs_gain'] = _yl_aha_hs_gain
 PHASE_HOOKS['hidden_score_e2'] = _yl_hidden_score_e2
 PHASE_HOOKS['eff_stats_yinlang'] = _yl_eff_stats

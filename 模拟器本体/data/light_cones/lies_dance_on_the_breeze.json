@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的速度提高18%/21%/24%/27%/30%",
    "attributes": {
     "SPD_percent": 18.0
-   }
+   },
+   "values": [
+    18,
+    21,
+    24,
+    27,
+    30
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放攻击后，使敌方每个单体目标陷入【茫然】(防御力降低16%-24%, 2回合)；若速度≥170再陷【失窃】(防御力降低8%-12%, 2回合)。仅最新生效",
+   "attributes": {},
+   "values": [
+    16,
+    18,
+    20,
+    22,
+    24
+   ],
+   "condition_code": "event_attack_mangran_defdown"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

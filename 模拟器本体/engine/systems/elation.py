@@ -23,6 +23,19 @@ HS_TRACE_BONUS = 20
 HS_MAX = 300       # 终结技解锁阈值60 + 可溢出240
 
 
+def gain_laugh(state, n, source=""):
+    """v7.26.0 笑点统一入口（项目主裁决 2026-09-29: 实时叠加）——
+    共享池 +n 的同时派发 laugh_gain 观察相位（银狼隐藏分即时同步, 处理器在角色包）。
+    非增长事件不走本入口: 爻光额外阿哈的固定20/40、真珠临时笑点回收。"""
+    n = float(n or 0.0)
+    if n <= 0:
+        return 0.0
+    state.laugh_points += n
+    _ensure_phase_tables(state)
+    _obs_phase(state, 'laugh_gain', None, n=n)
+    return n
+
+
 class ElationSystem:
     """欢愉子系统协调器"""
 
@@ -33,7 +46,9 @@ class ElationSystem:
         log = state.log
         elation_units = [u for u in units if u.char.path == "欢愉"]
 
-        state.laugh_points = len(elation_units)
+        # v7.26.0 裁决3: 开局播种也是笑点增长, 走统一入口实时同步银狼隐藏分
+        state.laugh_points = 0.0
+        gain_laugh(state, len(elation_units))
         # v6.7: 开局好活走统一包装（绯英方向2互转: 开局+20好活→+20能量）
         for eu in elation_units:
             self.grant_good_show(state, eu.char.id, 20.0, duration=2, source="battle_start")
@@ -73,6 +88,17 @@ class ElationSystem:
         avw_ext = _obs_phase(state, 'goodshow_avw', None, char_id=char_id)
         if avw_ext is not None:
             duration += avw_ext
+        # v7.26.0 真珠天赋: 好活持续时间无限（→新duration|None; 负数=永久批次）
+        zz_dur = _obs_phase(state, 'goodshow_zz', None, char_id=char_id)
+        if zz_dur is not None:
+            duration = zz_dur
+        # v7.26.4 裁决9: 持有上限在获得瞬间截断(超出部分不获得)——逐角色上限查询
+        cap = _obs_phase(state, 'goodshow_cap', None, char_id=char_id)
+        if cap is not None:
+            cur = state.elation_state.get_good_show_total(char_id)
+            amount = min(amount, max(0.0, float(cap) - cur))
+            if amount <= 0:
+                return None
         return state.elation_state.grant_good_show(
             char_id, amount, duration=duration, source=source)
 
@@ -96,6 +122,8 @@ class ElationSystem:
                 setattr(unit, attr, val - 1)
         # v7.15.0 相位 field_tick: 爻光结界只在爻光自身行动时递减（守卫在处理器内）
         _char_phase(state, unit, 'field_tick')
+        # v7.26.0 观察相位 ally_turn_start: 任意我方常规回合开始（真珠行迹2 +5好活）
+        _obs_phase(state, 'ally_turn_start', unit)
 
     def tick_turn(self, state, unit):
         """Compatibility entry for direct callers advancing one full turn."""
@@ -107,8 +135,21 @@ class ElationSystem:
                 and state.aha_next_av < max_av)
 
     def execute_aha(self, state):
+        """常规阿哈时刻: 主循环在跑条触发点调用; 消耗全部笑点并重排阿哈行动轴。"""
+        self._run_aha_turn(state, n=state.laugh_points, consume_pool=True,
+                           reschedule=True)
+
+    def execute_extra_aha(self, state, fixed_n):
+        """v7.26.0 项目主裁决: 爻光终结技"叫来一个额外的阿哈时刻"——
+        不动正常跑条的阿哈行动轴(aha_next_av 不重排), 不动原笑点池;
+        固定 fixed_n 只用于本次欢愉技释放档位与转好活;
+        期间欢愉技触发的笑点增益照常另算入池(实时叠加口径)。"""
+        state.turn_count += 1
+        self._run_aha_turn(state, n=float(fixed_n), consume_pool=False,
+                           reschedule=False)
+
+    def _run_aha_turn(self, state, *, n, consume_pool, reschedule=True):
         _ensure_phase_tables(state)
-        n = state.laugh_points
         if n <= 0:
             return
         state.log.append(f'[Aha] AV={state.current_av:.0f} 笑点={n:.0f}')
@@ -118,33 +159,34 @@ class ElationSystem:
             key=lambda u: u.char.cast_number)
 
         # v7.25.0 aha_running: 阿哈施放窗口标记（砂金 All in 形态判定消费）
+        # v7.26.1 裁决6: aha_laugh_n=本次窗口的 N 快照(常规阿哈=全局笑点/额外阿哈=固定值),
+        # 窗口内各欢愉技倍率一律用它(引擎 laugh_n 解析消费), 结束即清除
         state.extra['aha_running'] = True
+        state.extra['aha_laugh_n'] = n
         try:
             for u in elation_units:
                 _use_skill(u, state, "elation_skill")
-                # v7.15.0 相位 aha_trace: 阿哈时刻银狼特殊行迹（HS 结算在处理器内）
+                # v7.15.0 相位 aha_trace: 阿哈时刻银狼特殊行迹（额外阿哈以固定值判档）
                 _char_phase(state, u, 'aha_trace', n=n)
         finally:
             state.extra['aha_running'] = False
+            state.extra.pop('aha_laugh_n', None)
 
-        state.laugh_points = 0.0
+        if consume_pool:
+            state.laugh_points = 0.0
         for u in state.units:
             if u.char.path == "欢愉" and u.is_alive:
                 self.grant_good_show(state, u.char.id, n, duration=2, source="aha")
-            # v7.15.0 相位 aha_hs_gain: 阿哈结算银狼隐藏分+笑点数
-            _char_phase(state, u, 'aha_hs_gain', n=n)
-        state.log.append(f'  全队+{n:.0f}好活当赏(2回合), 银狼HS+{n:.0f}')
+        # v7.26.0 裁决3: 阿哈结算不再喂银狼隐藏分（笑点实时叠加已覆盖, 此处为双计）
+        state.log.append(f'  全队+{n:.0f}好活当赏(2回合)')
 
         # v7.15.0 观察相位 aha_sparxie_settle: 火花星魂（阿哈时刻结束时触发）
         _obs_phase(state, 'aha_sparxie_settle', None, n=n)
 
-        # 爻光终结技阿哈额外回合：恢复全局笑点池 + 清除E4标记
-        if state.extra.get('yao_pending_laugh', 0) > 0:
-            state.laugh_points = state.extra['yao_pending_laugh']
-            state.extra['yao_pending_laugh'] = 0
         state.extra.pop('yao_e4_aha', None)
 
-        state.aha_next_av = state.current_av + 10000.0 / state.aha_speed
+        if reschedule:
+            state.aha_next_av = state.current_av + 10000.0 / state.aha_speed
 
     # -- 隐藏分/面板（银狼机制本体已迁 engine.characters.yinlang）--
 
@@ -185,6 +227,18 @@ class ElationSystem:
         s2 = _char_phase(state, u, 'eff_stats_avw', s=s, effective_spd=effective_spd)
         if s2 is not None:
             s = s2
+        # v7.26.0 相位 eff_stats_zz: 真珠行迹3·洞察万物 DEF→欢愉度+治疗量加成（→新s|None）
+        s2 = _char_phase(state, u, 'eff_stats_zz', s=s, effective_spd=effective_spd)
+        if s2 is not None:
+            s = s2
+        # v8.0.0 欢迎来到银河城(项目主核实): 欢愉伤害无视防御(叠影档)——elation 专属
+        lc = getattr(u, 'lightcone', None)
+        if lc is not None and lc.id == 'welcome_to_galaxy_city' \
+                and lc.path == u.char.path:
+            from engine.core.combat_engine import _lc_rank_value
+            pen = _lc_rank_value(u, 20.0, code='state_galaxy_elation_defpen')
+            s.DEF_PEN_BY_TYPE['elation'] = \
+                s.DEF_PEN_BY_TYPE.get('elation', 0.0) + pen / 100.0
         # 闪耀功勋4件套: 笑点→欢愉DEF穿透 (每5笑点+1%, 上限10层)
         if state and hasattr(u, '_active_relic_conditions') and \
            "elation_laugh_def_pen_stack" in getattr(u, '_active_relic_conditions', set()):

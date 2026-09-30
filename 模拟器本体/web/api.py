@@ -160,11 +160,13 @@ def _lc_rank_info(lc_raw: dict) -> dict:
     - scaled（values 五档或 rank 算术 handler）: 默认按稀有度（4★→5, 5★→1, 项目主规则）;
     - 单档: 默认=JSON 顶层 rank 字段（录入校准档——抓取批量 4★=5/抽卡5★=1/商店赠送5★=5
       ）, 数值不随叠影缩放, 所见即所算。
-    - v7.22.1: landaus_choice 条件注记五档固化为 values（原 4★ S1 例外随之消亡）。"""
+    - v7.22.1: landaus_choice 条件注记五档固化为 values（原 4★ S1 例外随之消亡）。
+    - v8.0.0: 显式 default_rank 字段优先（商店/赠送类 5★ 缩放光锥默认 S5, 如欢愉满溢祝福）。"""
     scaled = (any(e.get("values") for e in lc_raw.get("effects", []))
               or lc_raw.get("id") in _RANK_SCALED_NO_VALUES)
     if scaled:
-        default = 1 if lc_raw.get("rarity", 5) >= 5 else 5
+        default = int(lc_raw.get("default_rank", 0) or 0) or \
+            (1 if lc_raw.get("rarity", 5) >= 5 else 5)
     else:
         default = int(lc_raw.get("rank", 1) or 1)
     return {"rank_scaled": scaled, "default_rank": default}

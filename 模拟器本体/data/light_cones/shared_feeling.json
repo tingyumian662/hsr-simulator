@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的治疗量提高10%/12%/15%/17%/20%",
    "attributes": {
     "HEAL_BONUS": 10.0
-   }
+   },
+   "values": [
+    10,
+    12,
+    15,
+    17,
+    20
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "并在施放战技时为我方全体恢复2.0/2.5/3.0/3.5/4.0点能量",
+   "attributes": {},
+   "values": [
+    2,
+    2.5,
+    3,
+    3.5,
+    4
+   ],
+   "condition_code": "event_skill_after_teamenergy"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果命中提高24%/28%/32%/36%/40%",
    "attributes": {
     "EFFECT_HIT_RATE": 24.0
-   }
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者对同时处于大于等于3个负面效果的敌方目标造成伤害时，暴击率提高12%-20%",
+   "attributes": {},
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ],
+   "condition_code": "event_vs3debuffs_cr_unwired"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放普攻、战技、终结技后，对随机1个未持有【以太编码】的受击目标施加【以太编码】(受伤+12%-20%, 1回合)",
+   "attributes": {},
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ],
+   "condition_code": "event_cast_ether_vuln"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

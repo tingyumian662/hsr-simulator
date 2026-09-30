@@ -1,0 +1,38 @@
+{
+ "id": "hues_devoted_to_tomorrow",
+ "name": "献给明日的色彩",
+ "rarity": 5,
+ "rank": 1,
+ "path": "欢愉",
+ "base_HP": 1058,
+ "base_ATK": 476,
+ "base_DEF": 595,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者的防御力提高48%/60%/72%/84%/96%",
+   "attributes": {
+    "DEF_percent": 48.0
+   },
+   "values": [48, 60, 72, 84, 96]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者对我方全体施放欢愉技时，使敌方全体受到的伤害提高22%/27%/33%/38%/44%（持续3回合），为装备者固定恢复10点能量，并为我方全体回复等同于装备者防御力10%/12%/15%/17%/20%的生命值",
+   "attributes": {},
+   "values": [22, 27, 33, 38, 44],
+   "condition_code": "event_elation_skill",
+   "target": "all_enemies"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者对我方全体施放欢愉技时，使敌方全体受到的伤害提高22%/27%/33%/38%/44%（持续3回合），为装备者固定恢复10点能量，并为我方全体回复等同于装备者防御力10%/12%/15%/17%/20%的生命值",
+   "attributes": {},
+   "values": [10, 12, 15, 17, 20],
+   "condition_code": "event_elation_skill_hues_heal",
+   "target": "all_allies",
+   "_note": "治疗段五档载体(handler 按 condition_code 取档, 不参与事件分发; 文案与触发行同文供提取器合并)"
+  }
+ ],
+ "_source": "项目主原稿 光锥技能介绍/五星/欢愉/献给明日的色彩.txt（2026-09, 全五档 values; 治疗按 DEF 基数同比例五档 10/12/15/17/20）"
+}

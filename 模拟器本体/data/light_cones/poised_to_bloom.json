@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高16%/20%/24%/28%/32%",
    "attributes": {
     "ATK_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗时，若有两名及以上我方角色拥有任意相同命途，使这些角色的暴击伤害提高16%/20%/24%/28%/32%。同类技能无法重复生效",
+   "attributes": {},
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ],
+   "condition_code": "event_battle_start_samepath_cd"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

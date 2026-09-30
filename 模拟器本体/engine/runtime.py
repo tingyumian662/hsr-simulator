@@ -18,7 +18,8 @@ from engine.models.elation import ElationBattleState
 AV_PER_TURN = 10000.0
 
 ENERGY_GAIN = {"basic_attack": 20, "skill": 30, "ultimate": 5,
-               "basic_attack_enhanced": 20}  # v5.3 强化普攻回能（忘归人冉冉方炽等, 实机普攻类都回能）
+               "basic_attack_enhanced": 20,  # v5.3 强化普攻回能（忘归人冉冉方炽等, 实机普攻类都回能）
+               "elation_skill": 5}  # v7.26.2 裁决7: 欢愉技通用回能5（常规能量角色; 特殊能量在 _gain_energy 天然 no-op）
 
 DEFAULT_HP = 3000.0
 

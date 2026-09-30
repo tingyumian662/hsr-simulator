@@ -301,6 +301,36 @@ def _help_consume_on_ult(u, state, **kw):
         _apply_timed_buff(u, state, 'ATK_PERCENT', 48.0, 1, source='船长·Help消费')
         state.log.append('  船长·消费2层Help→ATK+48%')
 
+def _on_ally_skill_elation_buff(u, state, char_id=None, target=None, **kw):
+    """戏梦点星的伶人 4pc (v7.26.0): 装备者对我方其他单体目标施放战技或终结技→
+    目标欢愉度+16%/3回合; 装备者好活当赏≥10→全队CD+12%/3回合。
+    on_ally_skill_targeted 广播触发（u=施放者, target=被选中者, char_id=装备者）"""
+    if target is None or target is u:
+        return  # "我方其他单体目标"语义
+    if kw.get('skill_key') not in ('skill', 'ultimate'):
+        return
+    if u.char.id != char_id:
+        return  # 施放者必须是装备者本人
+    _apply_timed_buff(target, state, 'ELATION_LEVEL', 16.0, 3,
+                      source='伶人4pc', param_id='lingren_elation')
+    state.log.append(f'  伶人4pc·{u.char.name}单体技能→{target.char.name}欢愉度+16%(3回合)')
+    if state.elation_state.get_good_show_total(char_id) >= 10:
+        for eu in state.units:
+            if eu.is_alive:
+                _apply_timed_buff(eu, state, 'CRIT_DMG', 12.0, 3,
+                                  source='伶人4pc', param_id='lingren_cd')
+        state.log.append('  伶人4pc·装备者好活≥10→全队CD+12%(3回合)')
+
+def _on_basic_atk_buff(u, state, **kw):
+    """贪噬禁果的异端 4pc (v7.26.0): 施放普攻（含强化普攻）→装备者ATK+20%/2回合。
+    on_after_skill per-char 触发, 按skill_key过滤普攻族"""
+    if kw.get('skill_key') not in ('basic_attack', 'basic_attack_enhanced',
+                                   'zz_basic_dream'):
+        return
+    _apply_timed_buff(u, state, 'ATK_PERCENT', 20.0, 2,
+                      source='异端4pc', param_id='yiduan_atk')
+    state.log.append('  异端4pc·施放普攻→ATK+20%(2回合)')
+
 def _shield_ally_cd(u, state, **kw):
     """自匿星芒的隐士 4pc: 持盾队友→CD+15%
     （v5.0 P5: 由 combat_engine 护盾施加分支内联激活, 本函数废弃保留防断链）"""
@@ -374,6 +404,9 @@ DYNAMIC_RELIC_REGISTRY = {
     "gentle_rain_buff":           {"trigger": "on_heal",          "action": _gentle_rain_on_heal,          "source_name": "女武神·GentleRain（v5.2: 治疗结算触发）"},
     "help_stack_gain":            {"trigger": "on_ally_skill_targeted", "action": _help_gain_on_targeted,  "source_name": "船长·Help叠层（v5.6: 被队友单体技能选中触发, 实机语义）"},
     "help_stack_consume":         {"trigger": "on_after_skill",   "action": _help_consume_on_ult,         "source_name": "船长·Help消费（终结技2层→ATK+48%）"},
+    # v7.26.0 真珠配套新遗器
+    "on_ally_skill_targeted_elation": {"trigger": "on_ally_skill_targeted", "action": _on_ally_skill_elation_buff, "source_name": "伶人·单体技能欢愉度（装备者施放, 好活≥10附全队CD）"},
+    "on_basic_attack_atk_buff":        {"trigger": "on_after_skill",        "action": _on_basic_atk_buff,        "source_name": "异端·施放普攻ATK（含强化普攻）"},
     "shield_ally_cd":             {"trigger": None,               "action": None,                          "source_name": "隐士4pc·持盾CD（v5.0 P5 盾分支内联）"},
     "shield_effect_bonus":        {"trigger": None,               "action": None,                          "source_name": "隐士2pc·护盾效果（静态属性已在 attributes 层生效）"},
     "comburent_team_dmg":         {"trigger": "on_enter_battle",  "action": _comburent_team_dmg,           "source_name": "名冶·Comburent增伤"},

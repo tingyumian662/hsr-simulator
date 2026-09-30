@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的击破特攻提高28%/35%/42%/49%/56%",
    "attributes": {
     "BREAK_EFFECT": 28.0
-   }
+   },
+   "values": [
+    28,
+    35,
+    42,
+    49,
+    56
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放终结技时，暴击率提高15%/18%/22%/26%/30%，持续2回合",
+   "attributes": {},
+   "values": [
+    15,
+    18,
+    22,
+    26,
+    30
+   ],
+   "condition_code": "event_ult_after_cr"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高16%/20%/24%/28%/32%",
    "attributes": {
     "ATK_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放战技后，攻击力提高8%/10%/12%/14%/16%，该效果最多叠加3层",
+   "attributes": {},
+   "values": [
+    8,
+    10,
+    12,
+    14,
+    16
+   ],
+   "condition_code": "event_skill_after_atkstack"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

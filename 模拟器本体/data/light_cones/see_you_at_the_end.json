@@ -10,11 +10,46 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击伤害提高24%/28%/32%/36%/40%",
    "attributes": {
     "CRIT_DMG": 24.0
-   }
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "装备者造成的战技伤害提高24%/28%/32%/36%/40%",
+   "attributes": {
+    "DMG_BONUS_SKILL": 24.0
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "装备者造成的追加攻击伤害提高24%/28%/32%/36%/40%",
+   "attributes": {
+    "DMG_BONUS_FOLLOWUP": 24.0
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -25,12 +25,13 @@ class GoodShowInstance:
     source: str = ""                 # 来源标记: "battle_start" | "aha_moment" | 角色技能ID
 
     def tick(self):
-        """回合倒计时"""
+        """回合倒计时（负数=永久批次, 不递减）"""
         if self.remaining_turns > 0:
             self.remaining_turns -= 1
 
     def is_expired(self) -> bool:
-        return self.remaining_turns <= 0
+        # v7.26.0 真珠: remaining_turns<0 = 无限时长（天赋"持续时间无限"）, 不过期
+        return self.remaining_turns == 0
 
 
 @dataclass
@@ -96,6 +97,20 @@ class ElationBattleState:
         if character_id in self.good_shows:
             self.good_shows[character_id] = kept
         return lost
+
+    def consume_good_show(self, character_id: str, n: float) -> float:
+        """v7.26.0 真珠抵御值: 从最新批次起扣减好活当赏, 返回实际扣减量。"""
+        batches = self.good_shows.get(character_id, [])
+        want = max(float(n or 0.0), 0.0)
+        remaining = want
+        while remaining > 1e-9 and batches:
+            batch = batches[-1]
+            take = min(batch.laugh_points, remaining)
+            batch.laugh_points -= take
+            remaining -= take
+            if batch.laugh_points <= 1e-9:
+                batches.pop()
+        return want - remaining
 
     # ===== 标准事件 =====
 

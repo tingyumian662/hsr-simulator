@@ -10,11 +10,32 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果命中提高20%/25%/30%/35%/40%",
    "attributes": {
     "EFFECT_HIT_RATE": 20.0
-   }
+   },
+   "values": [
+    20,
+    25,
+    30,
+    35,
+    40
+   ]
+  },
+  {
+   "type": "permanent_buff",
+   "condition": "同时造成的持续伤害提高24%/30%/36%/42%/48%",
+   "attributes": {
+    "DMG_BONUS_ALL": 24.0
+   },
+   "values": [
+    24,
+    30,
+    36,
+    42,
+    48
+   ]
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -27,6 +27,7 @@ from engine.core.combat_engine import (
 from engine.core.damage import calculate_damage
 from engine.models.character import SkillMultiplier
 from engine.runtime import TimedBuff
+from engine.systems.elation import gain_laugh
 
 CHAR_ID = "aventurine_waveflair"
 ELEMENT = "量子"
@@ -91,11 +92,11 @@ def _avw_skill_gains(u, state, skill_key):
     if u.char.id != CHAR_ID or u.char.path != "欢愉":
         return
     if skill_key == "skill":
-        state.laugh_points += 4
+        gain_laugh(state, 4)
         u.extra["avw_old_dream_uses"] = 0  # 行迹2: 战技重置可触发次数
         _avw_gain_heat(u, state, 4, cause="战技·绝杀")
     elif skill_key == "ultimate":
-        state.laugh_points += 6
+        gain_laugh(state, 6)
         _avw_gain_heat(u, state, 8, cause="终结技·胜局")
     elif skill_key == "elation_skill":
         u.extra["avw_elation_casts"] = u.extra.get("avw_elation_casts", 0) + 1
@@ -209,13 +210,13 @@ def _avw_on_attack(u, state, dealt=True, **ctx):
                if x.char.id == CHAR_ID and x.is_alive), None)
     if me is None:
         return
-    state.laugh_points += 1
+    gain_laugh(state, 1)
     _avw_gain_heat(me, state, 1, cause="天赋·队友攻击")
     if me.extra.get("avw_solo") and _has_trace(me, TRACE3):
         el = state.extra.get("_elation")
         if el is not None:
             el.grant_good_show(state, CHAR_ID, 2, duration=3, source="纵享惊涛")
-        state.laugh_points += 1
+        gain_laugh(state, 1)
         if not state.extra.get("avw_aha_spd_armed"):
             state.extra["avw_aha_spd_armed"] = True
             state.aha_speed += 25.0

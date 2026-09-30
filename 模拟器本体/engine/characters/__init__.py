@@ -53,6 +53,7 @@ from engine.characters import (  # noqa: F401
     yuanbanlin,
     yaoguang,
     yinlang,
+    zhenzhu,
 )
 
 PILOTS = (acheron,
@@ -101,9 +102,10 @@ PILOTS = (acheron,
           xilian,
           yuanbanlin,
           yaoguang,
-          yinlang)
+          yinlang,
+          zhenzhu)
 ELATION_PILOT_IDS = ("yinlang", "yaoguang", "trailblazer_elation", "huohuo",
-                     "evanescia", "sparxie", "aventurine_waveflair")
+                     "evanescia", "sparxie", "aventurine_waveflair", "zhenzhu")
 
 
 def activate(state, team_ids, elation_active=False):

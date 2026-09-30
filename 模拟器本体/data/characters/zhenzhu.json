@@ -1,0 +1,280 @@
+{
+  "id": "zhenzhu",
+  "name": "真珠",
+  "element": "冰",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1203,
+  "base_ATK": 465,
+  "base_DEF": 727,
+  "base_SPD": 99,
+  "taunt": 100,
+  "max_energy": 180,
+  "cast_number": 104,
+  "trace_stats": {
+    "DEF_percent": 22.5,
+    "SPD_percent": 9.0,
+    "EFFECT_RES": 10.0,
+    "ELATION_LEVEL": 10.0
+  },
+  "_trace_stats_note": "SPD_percent=9.0实际为速度+9(固定值)。欢愉度10%已含基础。",
+  "elation_stats": {},
+  "skills": {
+    "basic_attack": {
+      "name": "普攻·行笔，临摹断水",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "DEF",
+          "scale": 90.0,
+          "damageType": "direct",
+          "element": "冰",
+          "target": "single_enemy"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "single_enemy",
+          "value": 10.0
+        }
+      ],
+      "_note": "普攻回能20, 恢复1战技点"
+    },
+    "basic_attack_enhanced": {
+      "name": "强化普攻·行笔，绘制末浪",
+      "type": "basic_attack_enhanced",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "DEF",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "冰",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 30.0
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "paramId": "zhenzhu_enh_heal"
+        },
+        {
+          "type": "cleanse",
+          "target": "all_allies"
+        }
+      ],
+      "_note": "回能30, 消耗1战技点",
+      "_mechanism": {
+        "form": "【深度学习】期间普攻强化为此形态(模块 key_rewrite); 每次施放消耗1点【深度学习】充能",
+        "extra_heal": "额外为当前生命值百分比最低的我方目标回复同等治疗(模块手写段, 8%DEF+160)",
+        "trace2_cleanse": "行迹2: 施放时解除我方全体目标各1个负面效果"
+      }
+    },
+    "zz_basic_dream": {
+      "name": "强化普攻·行笔，幻造星月",
+      "type": "basic_attack_enhanced",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {
+          "stat": "DEF",
+          "scale": 100.0,
+          "damageType": "direct",
+          "element": "冰",
+          "target": "all_enemies"
+        }
+      ],
+      "effects": [
+        {
+          "type": "toughness_reduction",
+          "target": "all_enemies",
+          "value": 30.0
+        },
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "paramId": "zhenzhu_enh_heal"
+        },
+        {
+          "type": "cleanse",
+          "target": "all_allies"
+        }
+      ],
+      "_note": "回能30, 恢复1战技点(引擎普攻口径)",
+      "_mechanism": {
+        "form": "【美学底本】为欢愉命途时的更深强化形态(模块 key_rewrite 三选一); 非标准键",
+        "goodshow_extra": "持有【好活当赏】时额外造成15%冰属性欢愉伤害(模块 skill_adjust_post 追加段)",
+        "base_rider": "攻击后额外造成60%冰属性欢愉伤害, 该次使用【美学底本】的属性值计算(模块手写段); E6 再追加240%"
+      }
+    },
+    "skill": {
+      "name": "战技·补缀生命的柔光",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [
+        {
+          "type": "heal",
+          "target": "all_allies",
+          "paramId": "zhenzhu_skill_heal"
+        },
+        {
+          "type": "cleanse",
+          "target": "all_allies"
+        }
+      ],
+      "_note": "回能30, 消耗1战技点",
+      "_mechanism": {
+        "goodshow_gain": "获得15点【好活当赏】(模块 u.extra 池, 上限50, 无限时长)",
+        "extra_heal": "额外为当前生命值百分比最低的我方目标回复同等治疗(模块手写段, 12%DEF+240)",
+        "trace2_cleanse": "行迹2: 施放时解除我方全体目标各1个负面效果"
+      }
+    },
+    "ultimate": {
+      "name": "终结技·鉴映灵魂的底色",
+      "type": "ultimate",
+      "cost": {
+        "energy": 180
+      },
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "goodshow_gain": "获得20点【好活当赏】",
+        "deep_learning": "【深度学习】除自身以外的指定我方单体(模块 AI 选首个非自身欢愉角色, 兜底首个非自身队友), 使其成为【美学底本】, 持有3点充能(秘技2点)",
+        "advance": "欢愉数1/2/3或以上→美学底本行动提前10%/15%/30%; 4或以上→美学底本获得1个额外回合(X轴正半轴)",
+        "extra_turn_grant": "额外回合开始时美学底本获得30好活+60笑点, 回合结束即收回(E2 时给予量×2; 笑点收回只扣发出的份额、不碰银狼隐藏分)",
+        "e2_advance": "E2: 除真珠与美学底本外的其他欢愉角色也触发行动提前"
+      }
+    },
+    "talent": {
+      "name": "天赋·吞纳沙砾，重塑生机",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": {
+        "ward_value": "【好活当赏】可作抵御值: 每点=200抵御值; 我方目标受伤时消耗抵御值抵挡60%伤害(模块 _zz_absorb_check 挂 _distribute_damage)",
+        "goodshow_pool": "真珠的好活当赏持续时间无限, 持有上限50点(goodshow_zz 观察相位改写 duration=-1)",
+        "low_hp_dr": "我方目标当前生命百分比≤50%时受到的伤害降低30%(满级)"
+      }
+    },
+    "technique": {
+      "name": "秘技·凝润珠光，复刻真迹",
+      "type": "technique",
+      "technique_category": "buff",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "使用后获得【美学底本】(模拟等价=首个非自身队友); 下一次战斗开始时获得20点【好活当赏】, 且【深度学习】持有【美学底本】并具有2点充能"
+    },
+    "elation_skill": {
+      "name": "欢愉技·渲染理性，解构欢愉",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_allies",
+      "multipliers": [],
+      "effects": [],
+      "_note": "回能5(模块 energy_gain_override)",
+      "_mechanism": {
+        "参演编号": 104,
+        "rider": "欢愉数1/2/3/4或以上→我方全体下次攻击后对攻击目标额外造成10%/15%/20%/40%对应属性欢愉伤害(模块标记+on_attack_action 消费; 元素随攻击者)",
+        "e4": "E4: 该欢愉伤害倍率提高原倍率的100%(×2)"
+      }
+    }
+  },
+  "traces": [
+    {
+      "name": "艺术壁垒",
+      "description": "进入战斗和施放终结技后，若【美学底本】为「欢愉」命途角色，使其下一次施放终结技时，为真珠固定恢复90点能量。该效果无法叠加",
+      "hook_name": "zhenzhu_art_barrier"
+    },
+    {
+      "name": "感知容差",
+      "description": "持有【好活当赏】时，使我方全体目标的效果抵抗提高50%。我方目标回合开始时，真珠获得5点【好活当赏】，最多获得50点，真珠回合开始时重置可获得数量。施放强化普攻和战技时，解除我方全体目标的1个负面效果",
+      "hook_name": "zhenzhu_perception_tolerance"
+    },
+    {
+      "name": "洞察万物",
+      "description": "真珠的防御力大于等于2400时，使自身欢愉度提高32%，之后每超过100点防御力使自身欢愉度提高3%，最多计入3600点超出的防御力。真珠获得等同于自身欢愉度20%的治疗量加成",
+      "hook_name": "zhenzhu_insight_all"
+    }
+  ],
+  "_special_trace_details": {
+    "trace1": {
+      "energy_restore": 90.0,
+      "rearm": "battle_start + 每次真珠终结技后"
+    },
+    "trace2": {
+      "res_bonus": 50.0,
+      "goodshow_per_ally_turn": 5,
+      "cycle_gain_cap": 50,
+      "cleanse_per_target": 1
+    },
+    "trace3": {
+      "def_threshold": 2400,
+      "base_elation_pct": 32.0,
+      "per_100_def_pct": 3.0,
+      "max_over_def": 3600,
+      "heal_bonus_ratio": 0.2
+    }
+  },
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "珍珠，藏在海的留白处",
+      "description": "队伍中「欢愉」命途角色数量等于2/3/4或以上时，使我方全体欢愉度提高10%/20%/60%。若我方目标受到致命伤害，不会陷入无法战斗状态，并立即回复等同于其生命上限50%的生命值。该效果单场战斗中可以触发2次",
+      "hook_name": "zhenzhu_e1"
+    },
+    {
+      "rank": 2,
+      "name": "截取，顷刻破晓的光斑",
+      "description": "我方全体目标的欢愉伤害增笑15%。施放终结技时，使除真珠和【美学底本】外的其他我方「欢愉」命途角色也触发行动提前效果，并使终结技提供的额外回合开始时获得的【好活当赏】和笑点提高100%",
+      "hook_name": "zhenzhu_e2"
+    },
+    {
+      "rank": 3,
+      "name": "速写，惊涛悬停的刹那",
+      "description": "终结技等级+2，最多不超过15级；普攻等级+1，最多不超过10级；欢愉技等级+1，最多不超过15级",
+      "hook_name": "zhenzhu_e3"
+    },
+    {
+      "rank": 4,
+      "name": "解译，唇角模糊的笑意",
+      "description": "欢愉技为我方全体目标提供的欢愉伤害倍率提高原倍率的100%",
+      "hook_name": "zhenzhu_e4"
+    },
+    {
+      "rank": 5,
+      "name": "透视，笔端星夜的肌理",
+      "description": "战技等级+2，最多不超过15级；天赋等级+2，最多不超过15级；欢愉技等级+1，最多不超过15级",
+      "hook_name": "zhenzhu_e5"
+    },
+    {
+      "rank": 6,
+      "name": "用一副躯壳，演算生命",
+      "description": "【深度学习】时，我方全体目标的全属性抗性穿透提高20%。真珠的强化普攻额外造成240%的冰属性欢愉伤害，该次欢愉伤害使用【美学底本】的属性值计算",
+      "hook_name": "zhenzhu_e6"
+    }
+  ],
+  "_source": "项目主原稿 角色技能介绍/欢愉/真珠.txt（2026-09-29）",
+  "_pending": ""
+}

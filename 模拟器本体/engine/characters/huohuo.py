@@ -152,11 +152,8 @@ def _eid_huohuo_e6(u, state, healer=None, targets=None, heal_amt=0, **kw):
 def _hh_ai(u, state, *, elation, **__):
     if u.current_energy >= u.char.max_energy:
         _use_skill(u, state, "ultimate")
-        for eu in state.units:
-            if eu.is_alive and eu.char.id != "huohuo":
-                eu.current_energy = min(eu.char.max_energy,
-                                        eu.current_energy + eu.char.max_energy * 0.20)
-        state.log.append('  藿藿终结技: 队友回能20%')
+        # v7.26.4: 队友回能20%/ATK buff 全部由 _huohuo_post_effects 相位结算
+        # (统一入口+行迹ATK档; 此前AI内联回能与post_effects双算=40%, 欢愉队自M3起双计)
     elif state.skill_points >= 2 and any(
         x.current_hp / x.max_hp < 0.5 for x in state.units
         if x.is_alive and x.char.id != "huohuo"
@@ -181,7 +178,8 @@ def _tech_huohuo(state, u, is_opener):
 
 
 CHAR_ID = "huohuo"
-ELATION_GATED = True  # AI/SKILL_HOOKS 仅欢愉队激活（M3 语义保持）
+# v7.26.4 裁决10: 移除 ELATION_GATED——藿藿是标准丰饶治疗(cast_number=0, 无欢愉技),
+# 本命AI(按需治疗/不抢SP/终结技队友回能20%)不依赖队友命途, 任意队伍安装
 AI = _hh_ai
 TECHNIQUE = _tech_huohuo
 

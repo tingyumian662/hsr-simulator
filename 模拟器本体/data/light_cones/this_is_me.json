@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者防御力提高16%/20%/24%/28%/32%",
    "attributes": {
     "DEF_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "使装备者施放终结技时造成的伤害值提高，提高数值等同于装备者防御力的60%/75%/90%/105%/120%，该效果每次施放终结技时对每个敌方目标仅生效1次",
+   "attributes": {},
+   "values": [
+    60,
+    75,
+    90,
+    105,
+    120
+   ],
+   "condition_code": "event_ult_after_def_dmg_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

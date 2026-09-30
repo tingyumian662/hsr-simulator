@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果命中提高40%/45%/50%/55%/60%",
    "attributes": {
     "EFFECT_HIT_RATE": 40.0
-   }
+   },
+   "values": [
+    40,
+    45,
+    50,
+    55,
+    60
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当有敌方目标陷入装备者施加的负面效果时，有80%基础概率使其陷入【魂迷】(每层负面+5.0%-10.0%持续伤害易伤, cap6层; 受击时攻击者SPD+10%-20% 3回合; 装备者阵亡移除)",
+   "attributes": {},
+   "values": [
+    5,
+    6.2,
+    7.5,
+    8.7,
+    10
+   ],
+   "condition_code": "event_hunmi_machine_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

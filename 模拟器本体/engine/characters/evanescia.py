@@ -6,6 +6,7 @@ from engine.runtime import TimedBuff, _enemy_for_damage
 from engine.core.combat_engine import _build_effective_stats, _commit_enemy_damage, _flat_toughness_with_break, _gain_energy, _use_skill
 from engine.core.damage import calculate_damage
 from engine.models.enemy import EnemyStatus
+from engine.systems.elation import gain_laugh
 
 
 def _evanescia_fox_teacher_fua(state, u):
@@ -69,8 +70,9 @@ def _evanescia_goodshow_extra(state, u, skill_key):
     if not alive:
         return
     # v6.7b: 终结技欢愉伤害至少计入等同于能量上限的好活当赏（txt 天赋）
-    laugh_n = max(state.elation_state.get_good_show_total('evanescia'),
-                  float(u.char.max_energy or 0))
+    # v7.26.5: 480 下限收窄到终结技段——原文仅限定终结技, 战技16%追伤吃实持好活
+    laugh_floor = float(u.char.max_energy or 0) if skill_key == 'ultimate' else 0.0
+    laugh_n = max(state.elation_state.get_good_show_total('evanescia'), laugh_floor)
     total = 0.0
     if skill_key == 'skill':
         # 战技: 对受到攻击的敌方目标（主目标+相邻）各16%欢愉伤害
@@ -118,8 +120,9 @@ def _trace_evanescia_energy_convert(u, state, amount=0, **kw):
     if amt > 0:
         elation.grant_good_show(state, 'evanescia', amt, duration=2,
                                 source='evanescia_talent')
-    # 240累计（FUA触发点, 单次获得最多记240）
-    bank = u.extra.get('evanescia_energy_bank', 0.0) + float(amount)
+    # 240累计（FUA触发点; v7.26.5: 单次最多计入240——原文"单次获得能量时最多获得
+    # 240点累计值", 大额回能不再全额入账）
+    bank = u.extra.get('evanescia_energy_bank', 0.0) + min(float(amount), 240.0)
     if bank >= 240.0:
         u.extra['evanescia_energy_bank'] = bank - 240.0
         _evanescia_fox_teacher_fua(state, u)
@@ -191,37 +194,32 @@ def _tech_evanescia(state, u, is_opener):
     进战秘技=主动攻击开怪, v6.7b 落实开怪者门控: 非开怪者不生效。"""
     if not is_opener:
         return
-    from engine.core.combat_engine import calculate_damage, _commit_enemy_damage
+    from engine.core.combat_engine import (calculate_damage, _commit_enemy_damage,
+                                           _flat_toughness_with_break)
     stats = u.base_stats
     for e in _tech_enemies(state):
         d = calculate_damage(stats, e, stats.ATK, 100.0, 'direct', '物理', 80, False,
                              crit_mode='expected')
         _commit_enemy_damage(state, u, e, d.final_damage)
         u.total_damage_dealt += d.final_damage
+        _flat_toughness_with_break(state, u, e, 20.0, '物理',
+                                   'technique', stats)  # v7.26.5: 原文削韧20整段缺失
     elation = state.extra.get('_elation')
     if elation:
         elation.grant_good_show(state, 'evanescia', 20.0, source='technique')
-    state.log.append('[秘技] 落英·散者皆忆: 全敌100%ATK物理伤 + 20好活当赏')
+    state.log.append('[秘技] 落英·散者皆忆: 全敌100%ATK物理伤(削韧20) + 20好活当赏')
 
 
 def _laugh_gen(u, state, skill_key):
-    """笑点生成（通用形态: 3 + 角色加成 + 好活加成）"""
-    is_tb_elation = (u.char.id == 'trailblazer_elation' and skill_key == 'elation_skill')
-    if u.char.path != "欢愉" or (skill_key not in ("basic_attack", "skill") and not is_tb_elation):
-        return
-    bonus = {"yaoguang": 3, "trailblazer_elation": 3}.get(u.char.id, 0)
-    if bonus and u.char.id == "trailblazer_elation":
-        _gain_energy(u, 10.0, state=state)  # v5.7: 统一入口
-    if state.elation_state.get_good_show_total(u.char.id) > 0:
-        bonus += 3
-    laugh = 3 + bonus
-    state.laugh_points += laugh
+    """v7.26.5 裁决11: 通用"攻击+3笑点"生成器移除——绯英原文无此行(战技+10笑点
+    在 _evanescia_skill_laugh 独立实现)。保留空函数防外部引用断裂。"""
+    return None
 
 
 def _evanescia_skill_laugh(u, state, skill_key):
     """绯英战技: 额外+10笑点; 欢愉技: 额外+5好活当赏（v6.7b 补, txt 欢愉技）"""
     if u.char.id == "evanescia" and skill_key == "skill":
-        state.laugh_points += 10
+        gain_laugh(state, 10)  # v7.26.0 裁决3: 统一入口
         state.log.append('  绯英战技: 额外+10笑点')
     elif u.char.id == "evanescia" and skill_key == "elation_skill":
         elation = state.extra.get('_elation')
@@ -233,7 +231,8 @@ def _evanescia_skill_laugh(u, state, skill_key):
 
 CHAR_ID = "evanescia"
 ELATION_GATED = True  # AI/SKILL_HOOKS 仅欢愉队激活（M3 语义保持）
-SKILL_HOOKS = [_laugh_gen, _evanescia_skill_laugh]
+# v7.26.5 裁决11: _laugh_gen 移出注册(原文无攻击获得笑点行)
+SKILL_HOOKS = [_evanescia_skill_laugh]
 AI = _eva_ai
 TECHNIQUE = _tech_evanescia
 
@@ -252,16 +251,11 @@ def _evanescia_ult_cast_post(u, state):
     return None
 
 
-def _evanescia_energy_gain_override(u, state, skill_key):
-    """PHASE energy_gain_override: 欢愉技能量恢复5（→新值|None, v6.7b 补）。"""
-    # txt 欢愉技: 能量恢复5（v6.7b 补）
-    if skill_key == 'elation_skill':
-        return 5.0
-    return None
+# v7.26.2 裁决7: _evanescia_energy_gain_override(欢愉技回能5)移除——
+# ENERGY_GAIN 通用表已含 elation_skill:5, 逐角色覆写不再需要
 
 
-PHASE_HOOKS = {'ult_cast_post': _evanescia_ult_cast_post,
-               'energy_gain_override': _evanescia_energy_gain_override}
+PHASE_HOOKS = {'ult_cast_post': _evanescia_ult_cast_post}  # v7.26.2: energy_gain_override 移除(欢愉技回能5已入 ENERGY_GAIN 通用表)
 
 
 # ---- M5a 批4: 伤害循环/攻击后结算相位处理器（原 _use_skill 内联, verbatim 迁入）----

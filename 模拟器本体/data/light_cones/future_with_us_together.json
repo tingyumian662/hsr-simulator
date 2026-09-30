@@ -1,0 +1,40 @@
+{
+ "id": "future_with_us_together",
+ "name": "未来，有我们一起",
+ "rarity": 4,
+ "rank": 5,
+ "path": "欢愉",
+ "base_HP": 952,
+ "base_ATK": 476,
+ "base_DEF": 330,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者的暴击伤害提高12%/15%/18%/21%/24%",
+   "attributes": {
+    "CRIT_DMG": 12.0
+   },
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放终结技后，使我方全体欢愉度提高8%/9%/10%/11%/12%，持续1回合",
+   "attributes": {},
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "condition_code": "event_ult_after_team_elation"
+  }
+ ],
+ "_source": "项目主补录(2026-10-01): 新增四星欢愉光锥"
+}

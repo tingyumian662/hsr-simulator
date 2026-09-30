@@ -23,6 +23,9 @@ def _dht_apply_shield(state, u, amount_pct, flat, source):
         if eu.is_alive:
             eu.shield = min(cap * 3.0, getattr(eu, 'shield', 0.0) + amt)
     state.log.append(f'  {source}: 全队护盾+{amt:.0f} (上限{cap*3:.0f})')
+    # v8.3.0 光锥护盾事件（与通用 etype=='shield' 分支同口径: 装备者提供护盾时触发）
+    from engine.core.combat_engine import _process_lc_effects
+    _process_lc_effects(u, state, "on_shield")
 
 
 def _dht_summon_longling(state, u, target):

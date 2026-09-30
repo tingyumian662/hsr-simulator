@@ -83,15 +83,9 @@
       "effects": [
         {
           "type": "energy_regen",
-          "target": "all_allies_but_self",
-          "value": 1.0,
+          "target": "self",
+          "value": 5.0,
           "paramId": "huohuo_ult_energy"
-        },
-        {
-          "type": "buff",
-          "target": "all_allies_but_self",
-          "value": 40.0,
-          "paramId": "huohuo_ult_atk"
         }
       ],
       "_mechanism": {

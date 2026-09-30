@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高12%/14%/16%/18%/20%",
    "attributes": {
     "ATK_percent": 12.0
-   }
+   },
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者对敌方目标造成暴击后获得一层【好运】，最多叠加4层。每层【好运】使装备者的暴击伤害提高8%/9%/10%/11%/12%，【好运】在装备者的回合结束时移除",
+   "attributes": {},
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "condition_code": "event_self_attack_luck_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

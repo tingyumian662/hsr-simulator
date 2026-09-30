@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的生命上限提高30%/37%/45%/52%/60%",
    "attributes": {
     "HP_percent": 30.0
-   }
+   },
+   "values": [
+    30,
+    37,
+    45,
+    52,
+    60
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者回合开始时，固定恢复20点能量，该效果每个波次只可触发1次",
+   "attributes": {},
+   "values": [
+    20,
+    20,
+    20,
+    20,
+    20
+   ],
+   "condition_code": "event_turn_start_wave_energy_unwired"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放战技攻击后，使目标陷入【炼狱】状态(受暴伤提高30%-60%, 受装备者暴伤额外+30%-60%)，持续2回合",
+   "attributes": {},
+   "values": [
+    30,
+    37,
+    45,
+    52,
+    60
+   ],
+   "condition_code": "event_lianyu_machine_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击伤害提高12%/15%/18%/21%/24%",
    "attributes": {
     "CRIT_DMG": 12.0
-   }
+   },
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "开拓者·记忆装备时，使我方全体目标造成的伤害提高8%/10%/12%/14%/16%，强化普攻造成的伤害提高60%/70%/80%/90%/100%",
+   "attributes": {},
+   "values": [
+    8,
+    10,
+    12,
+    14,
+    16
+   ],
+   "condition_code": "event_battle_start_tbrem_dmg"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

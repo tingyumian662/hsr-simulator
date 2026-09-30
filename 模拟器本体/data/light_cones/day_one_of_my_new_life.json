@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的防御力提高16%/18%/20%/22%/24%",
    "attributes": {
     "DEF_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    18,
+    20,
+    22,
+    24
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗后，使我方全体的全属性抗性提高8%/9%/10%/11%/12%。同类技能无法重复生效",
+   "attributes": {},
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "condition_code": "event_battle_start_team_res_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

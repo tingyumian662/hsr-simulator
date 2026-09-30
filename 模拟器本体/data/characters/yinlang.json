@@ -62,22 +62,14 @@
           "type": "toughness_reduction",
           "target": "all_enemies",
           "value": 10.0
-        },
-        {
-          "type": "energy_regen",
-          "target": "self",
-          "value": 30.0,
-          "_note": "获得5笑点"
         }
       ],
-      "_note": "无敌玩家状态下无法释放战技"
+      "_note": "获得5个笑点(模块 _laugh_gen 战技分支); 特殊能量角色不走常规回能"
     },
     "ultimate": {
       "name": "终结技·无敌玩家，启动!",
       "type": "ultimate",
-      "cost": {
-        "energy": 130
-      },
+      "cost": {},
       "target": "self",
       "multipliers": [],
       "effects": [
@@ -93,7 +85,7 @@
           "paramId": "invincible_player"
         }
       ],
-      "_note": "进入无敌玩家状态+展开结界。结界内友方消耗战技点概率触发头号补给盲盒。隐藏分≥60才可释放。"
+      "_note": "消耗60点【隐藏分】(模块 HS_ULT_COST, 特殊能量不走常规能量条); 行动提前100%由AI内联拉条实现"
     },
     "talent": {
       "name": "天赋·有我在，把把都是顺风局",

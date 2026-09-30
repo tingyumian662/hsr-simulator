@@ -276,15 +276,22 @@ class TestSparxie:
     """火花: 陷阱扣SP/E2层数上限/回能口径"""
 
     def test_trap_costs_sp(self):
+        # v7.26.5 裁决14: 陷阱连发移至 skill_adjust_post(_sparxie_trap_chain_adjust),
+        # 每次1SP/爆点, SP不足即止; 礼物逐发结算
         u = _unit('sparxie')
         st = SimState(enemies=[_enemy()], units=[u])
         _elation(st)
         u.extra['sparxie_trap_uses'] = 1
         st.skill_points = 5
         st.max_sp = 20
-        _sparxie_enhanced_settle(st, u)
+        from engine.characters.sparxie import _sparxie_trap_chain_adjust
+        from engine.models.character import load_character
+        skill = load_character('sparxie').skills['basic_attack_enhanced']
+        new = _sparxie_trap_chain_adjust(u, st, skill=skill,
+                                         skill_key='basic_attack_enhanced')
         assert u.extra['sparxie_trap_uses'] == 0
         assert st.skill_points in (4, 6)  # 扣1, 红红火火礼物可能+2
+        assert new is not None and new.multipliers[0].scale == 100.0 + 20.0
 
     def test_e2_cd_stack_cap(self):
         """E2 每消耗1爆点暴伤+10% 总层数≤4"""

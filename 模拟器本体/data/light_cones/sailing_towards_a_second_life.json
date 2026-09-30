@@ -12,7 +12,14 @@
    "condition": "",
    "attributes": {
     "BREAK_EFFECT": 60.0
-   }
+   },
+   "values": [
+    60,
+    70,
+    80,
+    90,
+    100
+   ]
   },
   {
    "type": "conditional_buff",
@@ -21,7 +28,14 @@
     "DEF_PEN_BREAK": 20.0
    },
    "condition_code": "typed_permanent",
-   "target": "self"
+   "target": "self",
+   "values": [
+    20,
+    23,
+    26,
+    29,
+    32
+   ]
   },
   {
    "type": "conditional_buff",
@@ -30,8 +44,16 @@
     "SPD_percent": 12.0
    },
    "condition_code": "state_be_threshold",
-   "target": "self"
+   "target": "self",
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ]
   }
  ],
- "id": "sailing_towards_a_second_life"
+ "id": "sailing_towards_a_second_life",
+ "_source": "项目主核实五档(2026-10-01); v8.2.2 逐行补values"
 }

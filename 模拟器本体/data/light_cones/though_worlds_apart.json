@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高64%/80%/96%/112%/128%",
    "attributes": {
     "ATK_percent": 64.0
-   }
+   },
+   "values": [
+    64,
+    80,
+    96,
+    112,
+    128
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放终结技时，为我方全体回复等同于装备者攻击力10%/12%/15%/17%/20%的生命值，额外为当前生命值最低的角色回复同等量，并使我方全体获得【卫戍】(伤害提高24%/30%/36%/42%/48%，有召唤物额外+12%/15%/18%/21%/24%)，持续3回合",
+   "attributes": {},
+   "values": [
+    10,
+    12,
+    15,
+    17,
+    20
+   ],
+   "condition_code": "event_ult_after_weishu_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

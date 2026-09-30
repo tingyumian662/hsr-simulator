@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果抵抗提高16%/20%/24%/28%/32%",
    "attributes": {
     "EFFECT_RES": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "并使装备者的治疗量提高，提高数值等同于效果抵抗的33%/36%/39%/42%/45%，最多使治疗量提高15%/18%/21%/24%/27%",
+   "attributes": {},
+   "values": [
+    33,
+    36,
+    39,
+    42,
+    45
+   ],
+   "condition_code": "event_battle_start_res_heal"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

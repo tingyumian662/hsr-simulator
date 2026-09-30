@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的能量恢复效率提高8%/10%/12%/14%/16%",
    "attributes": {
     "ENERGY_REGEN": 8.0
-   }
+   },
+   "values": [
+    8,
+    10,
+    12,
+    14,
+    16
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "并在施放终结技时治疗量提高12%/15%/18%/21%/24%",
+   "attributes": {},
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ],
+   "condition_code": "event_ult_after_healbuff"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

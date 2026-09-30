@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者攻击力提高16%/20%/24%/28%/32%",
    "attributes": {
     "ATK_percent": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者消灭敌方目标后，暴击伤害提高24%/30%/36%/42%/48%，持续3回合",
+   "attributes": {},
+   "values": [
+    24,
+    30,
+    36,
+    42,
+    48
+   ],
+   "condition_code": "event_kill"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

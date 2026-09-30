@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者造成的伤害提高24%/28%/32%/36%/40%",
    "attributes": {
     "DMG_BONUS_ALL": 24.0
-   }
+   },
+   "values": [
+    24,
+    28,
+    32,
+    36,
+    40
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者每次施放攻击后，速度提高4.8%/5.6%/6.4%/7.2%/8.0%，最多叠加3层",
+   "attributes": {},
+   "values": [
+    4.8,
+    5.6,
+    6.4,
+    7.2,
+    8.0
+   ],
+   "condition_code": "event_attack_spdstacks"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "击中目标施加【游丝】(视为触电, 每回合开始受60%/70%/80%/90%/100%攻击力雷持续伤害, 持续1回合)",
+   "attributes": {},
+   "values": [
+    60,
+    70,
+    80,
+    90,
+    100
+   ],
+   "condition_code": "event_yousi_dot_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

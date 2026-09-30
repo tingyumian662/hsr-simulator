@@ -13,7 +13,14 @@
    "condition": "",
    "attributes": {
     "SPD_percent": 12.0
-   }
+   },
+   "values": [
+    6,
+    7.5,
+    9,
+    10.5,
+    12
+   ]
   },
   {
    "type": "conditional_buff",
@@ -22,7 +29,15 @@
     "DMG_BONUS_ALL": 16.0
    },
    "condition_code": "event_skill_after",
-   "target": "all_allies"
+   "target": "all_allies",
+   "values": [
+    8,
+    10,
+    12,
+    14,
+    16
+   ]
   }
- ]
+ ],
+ "_source": "项目主核实五档(2026-10-01); 保留原接线结构补values"
 }

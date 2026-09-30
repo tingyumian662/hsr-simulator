@@ -14,7 +14,7 @@ from engine.characters import (  # M3/M4: 角色包行迹/星魂处理器（按�
     trailblazer_remembrance, acheron, anaxa, bronya, busitu, cerydra, cipher, dan_heng_permansor_terrae,
     feixiao, fu_xuan, fugue, hysilens, mydei, phainon, qianye, robin,
     ruan_mei, seele, sparkle, sunday, the_dahlia, tribbie, welt,
-    xiadie, xilian, yaoguang, yinlang,
+    xiadie, xilian, yaoguang, yinlang, zhenzhu,
 )
 from engine.runtime import _hook_owner  # M3: 自本文件迁出（角色包共用）
 from engine.models.character import Character
@@ -204,6 +204,19 @@ TRACE_REGISTRY: dict[str, dict] = {
     "aventurine_waveflair_storm": {
         # 行迹3·纵享惊涛 双分支 — 角色模块 INIT + on_attack_action
         "trigger": None, "action": None, "source_name": "行迹·纵享惊涛",
+    },
+    # 真珠（v7.26.0）
+    "zhenzhu_art_barrier": {
+        # 行迹1·艺术壁垒 — 角色模块 after_ult 观察相位
+        "trigger": None, "action": None, "source_name": "行迹·艺术壁垒",
+    },
+    "zhenzhu_perception_tolerance": {
+        # 行迹2·感知容差 — 角色模块 ally_turn_start 观察相位 + 池同步开关 + JSON cleanse
+        "trigger": None, "action": None, "source_name": "行迹·感知容差",
+    },
+    "zhenzhu_insight_all": {
+        # 行迹3·洞察万物 — 角色模块 eff_stats_zz 相位
+        "trigger": None, "action": None, "source_name": "行迹·洞察万物",
     },
     # 开拓者·欢愉
     "trailblazer_atk_to_elation": {
@@ -907,6 +920,13 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "aventurine_waveflair_e4": {"trigger": None, "action": None, "source_name": "砂金E4"},
     "aventurine_waveflair_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "砂金E5"},
     "aventurine_waveflair_e6": {"trigger": None, "action": None, "source_name": "砂金E6"},
+    # 真珠（v7.26.0; E1/E2/E4/E6 模块 INIT + fatal链 + rider/arm 处理）
+    "zhenzhu_e1": {"trigger": None, "action": None, "source_name": "真珠E1"},
+    "zhenzhu_e2": {"trigger": None, "action": None, "source_name": "真珠E2"},
+    "zhenzhu_e3": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "真珠E3"},
+    "zhenzhu_e4": {"trigger": None, "action": None, "source_name": "真珠E4"},
+    "zhenzhu_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "真珠E5"},
+    "zhenzhu_e6": {"trigger": None, "action": None, "source_name": "真珠E6"},
     # 银狼
     "yinlang_e1": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e1, "source_name": "银狼E1"},
     "yinlang_e2": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e2, "source_name": "银狼E2"},

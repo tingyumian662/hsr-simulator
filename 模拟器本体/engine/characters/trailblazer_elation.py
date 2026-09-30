@@ -6,6 +6,7 @@ from engine.runtime import AV_PER_TURN, TimedBuff, _enemy_for_damage, _set_av
 from engine.core.combat_engine import _build_effective_stats, _commit_enemy_damage, _gain_energy, _gain_skill_points, _skill_level_factor, _use_skill
 from engine.core.damage import calculate_damage
 from engine.models.enemy import EnemyStatus
+from engine.systems.elation import gain_laugh
 
 
 def _tb_skill_aftermath(state, u, skill_key):
@@ -148,17 +149,15 @@ def _tb_ai(u, state, *, elation, **__):
 
 
 def _laugh_gen(u, state, skill_key):
-    """笑点生成（通用形态: 3 + 角色加成 + 好活加成）"""
+    """天赋·英雄一笑: 施放攻击后固定恢复10点能量并获得3个笑点。
+    v7.26.5 裁决11: 平值3(原文"固定获得3个笑点"), 删除无源的基础3+好活加成3叠加
+    (v7.7.0 迁移带入的通用形态误多算成 6/9)。"""
     is_tb_elation = (u.char.id == 'trailblazer_elation' and skill_key == 'elation_skill')
     if u.char.path != "欢愉" or (skill_key not in ("basic_attack", "skill") and not is_tb_elation):
         return
-    bonus = {"yaoguang": 3, "trailblazer_elation": 3}.get(u.char.id, 0)
-    if bonus and u.char.id == "trailblazer_elation":
+    if u.char.id == 'trailblazer_elation':
         _gain_energy(u, 10.0, state=state)  # v5.7: 统一入口
-    if state.elation_state.get_good_show_total(u.char.id) > 0:
-        bonus += 3
-    laugh = 3 + bonus
-    state.laugh_points += laugh
+        gain_laugh(state, 3)
 
 
 CHAR_ID = "trailblazer_elation"

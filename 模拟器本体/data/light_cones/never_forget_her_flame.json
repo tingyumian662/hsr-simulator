@@ -10,11 +10,40 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的击破特攻提高60%/75%/90%/105%/120%",
    "attributes": {
     "BREAK_EFFECT": 60.0
-   }
+   },
+   "values": [
+    60,
+    75,
+    90,
+    105,
+    120
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗时，使装备者和另一位开战的队友造成的击破伤害提高32%/42%/52%/62%/72%，若不存在开战的队友则对装备者和击破特攻最高的队友生效，同类效果无法叠加",
+   "attributes": {},
+   "values": [
+    32,
+    42,
+    52,
+    62,
+    72
+   ],
+   "condition_code": "event_battle_start_break_team_unwired"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者为敌方目标添加弱点时，恢复1个战技点，该效果最多触发1次，施放终结技时重置可触发次数",
+   "attributes": {},
+   "values": [
+    0
+   ],
+   "condition_code": "event_implant_sp_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

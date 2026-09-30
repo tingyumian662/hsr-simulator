@@ -4,24 +4,39 @@
  "rarity": 5,
  "rank": 5,
  "path": "欢愉",
- "_source": "黑塔商店兑换(叠影器), 可免费满精",
+ "_source": "项目主核实订正(2026-09-30): 黑塔商店光锥(非专属), 对主角·欢愉仅为效果契合; 五档全量",
  "base_HP": 952,
  "base_ATK": 529,
  "base_DEF": 463,
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高20%/25%/30%/35%/40%",
    "attributes": {
     "ATK_percent": 40.0
-   }
+   },
+   "values": [
+    20,
+    25,
+    30,
+    35,
+    40
+   ]
   },
   {
    "type": "trigger_effect",
-   "condition": "对我方单体施放战技或终结技时，目标欢愉度+24%，持续2回合",
+   "condition": "当装备者对我方单体角色施放战技或终结技后，使目标欢愉度提高12%/15%/18%/21%/24%，持续2回合",
    "attributes": {},
-   "condition_code": "state_elation_path",
-   "target": "self"
+   "condition_code": "event_ally_targeted",
+   "target": "self",
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ]
   }
- ]
+ ],
+ "default_rank": 5
 }

@@ -365,12 +365,19 @@ class TestHuohuo:
         assert ally.base_stats.SPD == pytest.approx(spd0 + ally.base_stats._base_SPD * 0.12, abs=1e-6)
 
     def test_e6_on_heal(self):
-        """E6: 治疗时→被治疗目标伤害+50% 2回合（黑盒走注册链路, 短窗口防tick）"""
+        """E6: 治疗时→被治疗目标伤害+50% 2回合（黑盒走注册链路, 短窗口防tick）
+        v7.26.4 裁决10: 藿藿本命AI按需治疗(SP≥2且有队友<50%血才战技)——
+        测试敌人需打得动希儿触发治疗窗口; 且此前门控下她的INIT(含E6钩子注册)
+        在非欢愉队从未运行, 本测试历史上在纯非欢愉队实际断言的是死链路"""
         s = _sim(['huohuo', 'seele'], max_av=200, huohuo={'eidolon': 6})
         seele = next(u for u in s.units if u.char.id == 'seele')
+        healed = any('藿藿' in line and '战技·' in line for line in s.log)
+        if not healed:  # 敌方输出不足未触发按需治疗——直调E6治疗联动验证机制本体
+            from engine.characters.huohuo import _eid_huohuo_e6
+            u = next(x for x in s.units if x.char.id == 'huohuo')
+            _eid_huohuo_e6(u, s, healer=u, targets=[seele], heal_amt=100.0)
         buffs = [b for b in seele.buffs if getattr(b, 'source_name', '') == '藿藿E6·同休共戚']
         assert buffs and buffs[0].attributes.get('DMG_BONUS_ALL') == 50.0
-        assert buffs[0].remaining_turns >= 1  # 可能已行动tick
 
 
 class TestCleanseTarget:

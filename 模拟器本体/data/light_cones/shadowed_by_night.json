@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的击破特攻提高28%/35%/42%/49%/56%",
    "attributes": {
     "BREAK_EFFECT": 28.0
-   }
+   },
+   "values": [
+    28,
+    35,
+    42,
+    49,
+    56
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "进入战斗时或造成击破伤害后，速度提高8%/9%/10%/11%/12%，持续2回合，该效果每回合只可触发1次",
+   "attributes": {},
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "condition_code": "event_battle_start_spd_on_break"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

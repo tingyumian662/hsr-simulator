@@ -10,11 +10,44 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的生命上限提高30%/37%/45%/52%/60%",
    "attributes": {
     "HP_percent": 30.0
-   }
+   },
+   "values": [
+    30,
+    37,
+    45,
+    52,
+    60
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者或忆灵在自身回合内损失生命值时获得【冥花】，无视目标30%/35%/40%/45%/50%防御力，持续2回合",
+   "attributes": {},
+   "values": [
+    30,
+    35,
+    40,
+    45,
+    50
+   ],
+   "condition_code": "event_hploss_minghua_unwired"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者的忆灵消失时，使装备者行动提前12%/15%/18%/21%/24%(每场1次，终结技重置)",
+   "attributes": {},
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ],
+   "condition_code": "event_ms_despawn_advance_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

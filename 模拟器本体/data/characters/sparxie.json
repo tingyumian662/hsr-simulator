@@ -53,14 +53,14 @@
       "multipliers": [
         {
           "stat": "ATK",
-          "scale": 50.0,
+          "scale": 100.0,
           "damageType": "direct",
           "element": "火",
           "target": "single_enemy"
         },
         {
           "stat": "ATK",
-          "scale": 25.0,
+          "scale": 50.0,
           "damageType": "direct",
           "element": "火",
           "target": "adjacent"
@@ -175,8 +175,8 @@
         },
         {
           "type": "toughness_reduction",
-          "target": "single_enemy",
-          "value": 20.0
+          "target": "bounce",
+          "value": 33.2
         }
       ],
       "_mechanism": "参演编号144: 50%全体+20次×25%随机单体欢愉伤害+2爆点; E6每笑点额外+1次伤害(上限40)(引擎handler)"

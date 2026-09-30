@@ -1,0 +1,40 @@
+{
+ "id": "take_a_short_break",
+ "name": "放个短假",
+ "rarity": 4,
+ "rank": 5,
+ "path": "欢愉",
+ "base_HP": 952,
+ "base_ATK": 423,
+ "base_DEF": 396,
+ "effects": [
+  {
+   "type": "permanent_buff",
+   "condition": "使装备者的欢愉度提高20%/25%/30%/35%/40%",
+   "attributes": {
+    "ELATION_LEVEL": 20.0
+   },
+   "values": [
+    20,
+    25,
+    30,
+    35,
+    40
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放欢愉技期间无视目标8%/10%/12%/14%/16%的防御力",
+   "attributes": {},
+   "values": [
+    8,
+    10,
+    12,
+    14,
+    16
+   ],
+   "condition_code": "event_elation_skill_break_defpen"
+  }
+ ],
+ "_source": "项目主补录(2026-10-01): 新增四星欢愉光锥"
+}

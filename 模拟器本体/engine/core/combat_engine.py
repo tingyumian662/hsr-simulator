@@ -463,7 +463,8 @@ BUFF_REGISTRY = {
     # 阿格莱雅
     "aglaea_sovereign": {"_sovereign": 1},
     # 藿藿
-    "huohuo_ult_atk": {"ATK_PERCENT": 40.0},  # 终结技队友ATK(行迹控抗精通: ≥160能量队友64%)
+    # v7.26.4: huohuo_ult_atk 注册项移除——ATK buff 由模块 post_effects 单源结算
+    # (含行迹控抗精通≥160能量队友64%档; 此前 S8 注册表40% 与模块叠加=80/104% 双算)
     # v5.3 开拓者·同谐
     "tbh_band_dance": {"BREAK_EFFECT": 30.0, "_tbh_super_break": 1},  # 伴舞: 击破特攻+30%+超击破源
     # v5.3 忘归人
@@ -491,6 +492,9 @@ HEAL_REGISTRY = {
     "lingsha_skill_heal":  {"stat": "ATK", "hp_pct": 14.0, "flat": 420.0},
     "lingsha_ult_heal":    {"stat": "ATK", "hp_pct": 12.0, "flat": 360.0},
     "lingsha_fuyuan_heal": {"stat": "ATK", "hp_pct": 12.0, "flat": 360.0},
+    # v7.26.0 真珠（DEF 基数治疗, 满级档; "最低生命百分比目标"的额外治疗在角色模块）
+    "zhenzhu_skill_heal":  {"stat": "DEF", "hp_pct": 12.0, "flat": 240.0},
+    "zhenzhu_enh_heal":    {"stat": "DEF", "hp_pct": 8.0, "flat": 160.0},
 }
 
 DEBUFF_REGISTRY = {
@@ -556,7 +560,8 @@ def _marker_heal_allies(state, healer, heal_id):
     if not named:
         return 0.0
     stats = _build_effective_stats(healer, state)
-    heal_base = stats.ATK if named.get("stat") == "ATK" else stats.HP
+    heal_base = {"ATK": stats.ATK, "DEF": stats.DEF}.get(
+        named.get("stat"), stats.HP)  # v7.26.0: 真珠 DEF 基数治疗
     amt = (heal_base * named["hp_pct"] / 100 + named["flat"]) * (1.0 + stats.HEAL_BONUS)
     tgt_list = [x for x in state.units if x.is_alive] + \
                [ms for ms in state.memsprites if ms.is_alive]
@@ -568,6 +573,7 @@ def _marker_heal_allies(state, healer, heal_id):
     _fengjin_talent_heal_buff(state, healer)
     # 行动条标记治疗与角色技能治疗使用同一光锥事件管线。
     state.extra['lc_last_heal_amt'] = amt
+    state.extra['lc_last_heal_targets'] = tgt_list
     _process_lc_effects(healer, state, "on_heal")
     state.log.append(f'  治疗: {amt:.0f}×{len(tgt_list)}人')
     return amt
@@ -662,6 +668,8 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
         u.extra['lc_last_skill_target'] = single_ally_target
         state.hooks.trigger_all("on_ally_skill_targeted", u=u, state=state,
                                 target=single_ally_target, skill_key=skill_key)
+        # v8.0.0 光锥单体技能事件桥（欢愉满溢祝福消费, 目标经 lc_last_skill_target）
+        _process_lc_effects(u, state, "on_ally_skill_targeted")
 
     for eff in skill.effects:
         etype = eff.type if hasattr(eff, 'type') else eff.get('type', '')
@@ -799,6 +807,9 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
                     t.buffs.append(TimedBuff(source_id='隐士4pc', attributes={'CRIT_DMG': 15.0},
                                              remaining_turns=2, source_name='隐士4pc'))
                     state.log.append(f'  隐士4pc: {t.char.name} CD+15%(持盾)')
+            # v8.3.0 光锥护盾事件（命运从未公平: 装备者提供护盾时; 施放者侧每次挂盾派发一次）
+            if targets:
+                _process_lc_effects(u, state, "on_shield")
             continue
         # v5.0 P4: 净化效果（解除目标 1 个控制/减益状态, 负属性 buff 兜底）
         if etype == 'cleanse':
@@ -832,7 +843,8 @@ def _apply_skill_effects(u: SimUnit, state: SimState, skill, skill_key: str):
         param_id = eff.param_id if hasattr(eff, 'param_id') else eff.get('paramId', '')
         if param_id == 'laugh_gain_5':
             amount = eff.value if hasattr(eff, 'value') else eff.get('value', 0.0)
-            state.laugh_points += amount
+            from engine.systems.elation import gain_laugh  # v7.26.0 裁决3: 统一入口(防环函数级导入)
+            gain_laugh(state, amount)
             state.log.append(f'  笑点+{amount:.0f}')
             continue
         if param_id == 'cd_buff':
@@ -965,7 +977,60 @@ LC_EVENT_CODES = {
     "event_hp_loss": "on_hp_loss",
     "event_memsprite_attack": "on_memsprite_attack",
     "event_memsprite_despawn": "on_memsprite_despawn",
+    "event_ally_targeted": "on_ally_skill_targeted",  # v8.0.0 欢愉满溢祝福
+    # v8.2.0 乙组59把自定义码登记
+    "event_ult_after_healbuff": "on_ult",
+    "event_basic_after_heal": "on_basic_attack",
+    "event_skill_after_teamenergy": "on_skill",
+    "event_skill_after_healbuff": "on_skill",
+    "event_cast_team_heal": "on_skill",  # 近似: 仅战技路径( heal 走普攻的场景少)
+    "event_attack_broken_energy": "on_self_attack",
+    "event_battle_start_res_heal": "on_battle_start",
+    "event_battle_start_healthy_dmg": "on_battle_start",
+    "event_ult_after_dmgbuff": "on_ult",
+    "event_skill_after_atkstack": "on_skill",
+    "event_battle_start_samepath_cd": "on_battle_start",
+    "event_attack_once_energy": "on_self_attack",
+    "event_battle_start_shieldcount_dmg": "on_battle_start",
+    "event_battle_start_def_to_dmg": "on_battle_start",
+    "event_followup_cdstacks": "on_followup",
+    "event_battle_start_fewcr": "on_battle_start",
+    "event_battle_start_spd_on_break": "on_battle_start",  # 近似: 仅入场段
+    "event_kill_cr": "on_kill",
+    "event_hp_loss_cd": "on_hp_loss",
+    "event_kill_heal": "on_kill",
+    "event_ult_after_cr": "on_ult",
+    "event_self_attack_vuln": "on_self_attack",
+    "event_attack_defdown_energy": "on_self_attack",
+    "event_battle_start_ms_dmg": "on_battle_start",
+    "event_ult_after_basicdmg": "on_ult",
+    "event_battle_start_tbrem_dmg": "on_battle_start",
+    "event_attack_weakness_cd": "on_self_attack",
+    "event_ult_after_wangyou_vuln": "on_ult",
+    "event_attack_targets_energy": "on_self_attack",
+    "event_ult_after_team_spd": "on_ult",
+    "event_followup_vuln": "on_followup",
+    "event_attack_spdstacks": "on_self_attack",
+    "event_attack_mangran_defdown": "on_self_attack",
+    "event_break_fenshao_vuln": "on_weakness_break",
+    "event_cast_ether_vuln": "on_self_attack",
+    # v8.2.2 丙组可接线码
+    "event_ult_after_team_advance": "on_ult",  # 舞！舞！舞！
+    "event_skill_after_team_dmg": "on_skill",  # 记忆永不落幕
+    "event_elation_skill_vuln": "on_elation_skill",  # 邂逅于下一个花季
+    "event_elation_skill_elation_vuln": "on_elation_skill",  # 菇菇嘎嘎历险记
+    "event_battle_start_energy_to_dmg": "on_battle_start",  # 今日亦是和平的一日
+    "event_battle_start_energy_ultdmg": "on_battle_start",  # 别让世界静下来
+    "event_elation_skill_luck_elation": "on_elation_skill",  # 今日好手气
+    "event_elation_skill_break_defpen": "on_elation_skill",  # 放个短假
+    "event_ult_after_team_elation": "on_ult",  # 未来，有我们一起
     "event_elation_skill": "on_elation_skill",  # v7.25.0 向浪花掷下盛夏
+    # v8.3.0 _unwired 第一批接线（引擎直接消费原码串; 数据侧 *_unwired 后缀保留为历史id）
+    "event_shield_cd_unwired": "on_shield",  # 命运从未公平
+    "event_ally_ult_heal_lowest_unwired": "on_ally_ult",  # 惊魂夜行1
+    "event_heal_atkstacks_unwired": "on_heal",  # 惊魂夜行2
+    "event_battle_start_break_team_unwired": "on_battle_start",  # 勿忘她的火焰行1
+    "event_ult_after_weishu_unwired": "on_ult",  # 纵然山河万程
 }
 
 def _lc_rank_value(u, default, code=None):
@@ -986,6 +1051,80 @@ def _rise_and_sing_entry(state, u):
     """M4批2b delegator: 晴歌光锥【于夜色中】入场效果在角色包。"""
     from engine.characters.robin_summeretto import _rise_and_sing_entry as _entry
     return _entry(state, u)
+
+
+# ---- v8.2.0 乙组59把通用接线（项目主核实 2026-09-30）----
+# 通用工厂: self_buff / team_buff / vuln_status / flat_energy 均按叠影档取值
+
+def _lc_sb(lc_id, code, attr, turns, default):
+    """装备者限时增益(同源刷新)。"""
+    def fn(s, u):
+        lc = getattr(u, 'lightcone', None)
+        if not lc or lc.id != lc_id or lc.path != u.char.path:
+            return
+        val = _lc_rank_value(u, default, code=code)
+        pid = f'lcx_{lc_id[:12]}'
+        u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != pid]
+        u.buffs.append(TimedBuff(source_id=lc_id, attributes={attr: val},
+                                 remaining_turns=turns, param_id=pid,
+                                 source_name=lc.name))
+        s.log.append(f'  光锥[{lc.name}] {attr}+{val:g}% ({turns}回合)')
+    return fn
+
+
+def _lc_sb_stacks(lc_id, code, attr, turns, max_stacks, default):
+    """装备者叠层增益(独立层, 上限N)。"""
+    def fn(s, u):
+        lc = getattr(u, 'lightcone', None)
+        if not lc or lc.id != lc_id or lc.path != u.char.path:
+            return
+        pid = f'lcx_{lc_id[:12]}'
+        cur = [b for b in u.buffs if getattr(b, 'param_id', '') == pid]
+        if len(cur) >= max_stacks:
+            return
+        val = _lc_rank_value(u, default, code=code)
+        u.buffs.append(TimedBuff(source_id=lc_id, attributes={attr: val},
+                                 remaining_turns=turns, param_id=pid,
+                                 source_name=f'{lc.name}#{len(cur) + 1}'))
+    return fn
+
+
+def _lc_vuln(lc_id, code, turns, default):
+    """受击目标易伤状态(2回合, 同id刷新)。"""
+    def fn(s, u):
+        lc = getattr(u, 'lightcone', None)
+        if not lc or lc.id != lc_id or lc.path != u.char.path:
+            return
+        val = _lc_rank_value(u, default, code=code) / 100.0
+        for t in (s.extra.get('last_attack_targets') or []):
+            if getattr(t, 'HP', 0) <= 0:
+                continue
+            t.add_status(EnemyStatus(id=f'lcv_{lc_id[:12]}', name='易伤',
+                                     category='debuff', source=lc_id,
+                                     remaining_turns=turns,
+                                     attributes={'vulnerability': val}))
+        s.log.append(f'  光锥[{lc.name}] 受击目标易伤+{val * 100:g}% ({turns}回合)')
+    return fn
+
+
+def _lc_energy(lc_id, code, default):
+    def fn(s, u):
+        lc = getattr(u, 'lightcone', None)
+        if not lc or lc.id != lc_id or lc.path != u.char.path:
+            return
+        _gain_energy(u, float(_lc_rank_value(u, default, code=code)),
+                     state=s, apply_regen=False)
+    return fn
+
+
+def _lc_permanent(lc_id, code, apply_fn):
+    """入场一次性: apply_fn(s, u, lc, value) 自行结算。"""
+    def fn(s, u):
+        lc = getattr(u, 'lightcone', None)
+        if not lc or lc.id != lc_id or lc.path != u.char.path:
+            return
+        apply_fn(s, u, lc, _lc_rank_value(u, 0.0, code=code))
+    return fn
 
 
 LC_EVENT_ACTIONS = {
@@ -1054,6 +1193,9 @@ LC_EVENT_ACTIONS = {
         lambda s, u: _lc_cast_summer_elation(s, u),
     ("cast_summer_into_waves", "on_wave_start"):
         lambda s, u: _lc_cast_summer_wave(s, u),
+    # 献给明日的色彩: 对我方全体施放欢愉技→全敌受伤%3回合+固定回能10+全队DEF%治疗 (v7.26.0)
+    ("hues_devoted_to_tomorrow", "on_elation_skill"):
+        lambda s, u: _lc_hues_devoted_elation(s, u),
     # 如泥酣眠: 普攻/战技未造成暴击时CR+36% 1回合（期望模式: 按未暴击概率1-CR触发, 3回合CD）
     ("sleep_like_the_dead", "on_self_attack"):
         lambda s, u: _lc_sleep_like_dead_miss_crit(s, u),
@@ -1069,6 +1211,123 @@ LC_EVENT_ACTIONS = {
     # 朗道的选择: 受击概率提高200%（×3, 用户确认）
     ("landaus_choice", "on_battle_start"):
         lambda s, u: _lc_set_taunt_mult(s, u, 3.0),
+    # v8.0.0 项目主核实订正三把:
+    # 欢迎来到银河城: 对自身施放终结技→+N笑点(1次, 3次普攻后重置; 裁决15: 笑点经
+    # 实时叠加等价银狼隐藏分) / 普攻计数重臂
+    ("welcome_to_galaxy_city", "on_ult"):
+        lambda s, u: _lc_galaxy_ult_laugh(s, u),
+    ("welcome_to_galaxy_city", "on_basic_attack"):
+        lambda s, u: _lc_galaxy_count_basic(s, u),
+    # 欢愉满溢祝福: 对我方单体施放战技/终结技→目标欢愉度+N% 2回合(叠影档)
+    ("elation_overflow_blessing", "on_ally_skill_targeted"):
+        lambda s, u: _lc_elation_overflow_buff(s, u),
+    # v8.2.0 乙组59把接线（工厂+专用; *_unwired 行为数据待后续引擎通道）
+    ("post_op_conversation", "on_ult"):
+        _lc_sb('post_op_conversation', 'event_ult_after_healbuff', 'HEAL_BONUS', 1, 12.0),
+    ("what_is_real", "on_basic_attack"): lambda s, u: _lc4_selfheal_pct_flat(s, u, 'what_is_real', 'event_basic_after_heal', 800.0),
+    ("shared_feeling", "on_skill"): lambda s, u: _lc4_team_energy(s, u, 'shared_feeling', 'event_skill_after_teamenergy'),
+    ("hey_over_here", "on_skill"):
+        _lc_sb('hey_over_here', 'event_skill_after_healbuff', 'HEAL_BONUS', 2, 16.0),
+    ("warmth_shortens_cold_nights", "on_skill"): lambda s, u: _lc4_team_heal_pct(s, u, 'warmth_shortens_cold_nights', 'event_cast_team_heal'),
+    ("dream_s_montage", "on_self_attack"): lambda s, u: _lc4_energy_vs_broken(s, u),
+    ("perfect_timing", "on_battle_start"): lambda s, u: _lc4_res_to_heal(s, u),
+    ("unto_tomorrow_s_morrow", "on_battle_start"): lambda s, u: _lc4_healthy_team_dmg(s, u),
+    ("for_tomorrow_s_journey", "on_ult"):
+        _lc_sb('for_tomorrow_s_journey', 'event_ult_after_dmgbuff', 'DMG_BONUS_ALL', 1, 18.0),
+    ("the_forever_victual", "on_skill"):
+        _lc_sb_stacks('the_forever_victual', 'event_skill_after_atkstack', 'ATK_percent', -1, 3, 8.0),
+    ("poised_to_bloom", "on_battle_start"): lambda s, u: _lc4_samepath_cd(s, u),
+    ("memories_of_the_past", "on_self_attack"):
+        _lc_energy('memories_of_the_past', 'event_attack_once_energy', 4.0),
+    ("concert_for_two", "on_battle_start"): lambda s, u: _lc4_shieldcount_dmg(s, u),
+    ("destiny_s_threads_forewoven", "on_battle_start"): lambda s, u: _lc4_def_to_dmg(s, u),
+    ("race_to_the_horizon", "on_followup"):
+        _lc_sb_stacks('race_to_the_horizon', 'event_followup_cdstacks', 'CRIT_DMG', 2, 10, 3.0),
+    ("only_silence_remains", "on_battle_start"): lambda s, u: _lc4_few_enemies_cr(s, u),
+    ("shadowed_by_night", "on_battle_start"):
+        _lc_sb('shadowed_by_night', 'event_battle_start_spd_on_break', 'SPD_percent', 2, 8.0),
+    ("under_the_blue_sky", "on_kill"):
+        _lc_sb('under_the_blue_sky', 'event_kill_cr', 'CRIT_RATE', 3, 12.0),
+    ("ninja_record_sound_hunt", "on_hp_loss"):
+        _lc_sb('ninja_record_sound_hunt', 'event_hp_loss_cd', 'CRIT_DMG', 2, 18.0),
+    ("nowhere_to_run", "on_kill"): lambda s, u: _lc4_kill_heal_atk(s, u),
+    ("indelible_promise", "on_ult"):
+        _lc_sb('indelible_promise', 'event_ult_after_cr', 'CRIT_RATE', 2, 15.0),
+    ("holiday_thermae_escapade", "on_self_attack"):
+        _lc_vuln('holiday_thermae_escapade', 'event_self_attack_vuln', 2, 10.0),
+    ("before_the_tutorial_mission_starts", "on_self_attack"): lambda s, u: _lc4_energy_vs_defdown(s, u),
+    ("sweat_now_cry_less", "on_battle_start"): lambda s, u: _lc4_ms_present_dmg(s, u),
+    ("geniuses_greetings", "on_ult"):
+        _lc_sb('geniuses_greetings', 'event_ult_after_basicdmg', 'DMG_BONUS_BASIC', 3, 20.0),
+    ("fly_into_a_pink_tomorrow", "on_battle_start"): lambda s, u: _lc4_tbrem_team_dmg(s, u),
+    ("the_day_the_cosmos_fell", "on_self_attack"): lambda s, u: _lc4_weakness_cd(s, u),
+    ("scent_alone_stays_true", "on_ult"): lambda s, u: _lc5_wangyou_vuln(s, u),
+    ("echoes_of_the_coffin", "on_self_attack"): lambda s, u: _lc5_targets_energy(s, u),
+    ("echoes_of_the_coffin", "on_ult"): lambda s, u: _lc5_team_spd_flat(s, u),
+    ("inherently_unjust_destiny", "on_followup"):
+        _lc_vuln('inherently_unjust_destiny', 'event_followup_vuln', 2, 10.0),
+    ("patience_is_all_you_need", "on_self_attack"):
+        _lc_sb_stacks('patience_is_all_you_need', 'event_attack_spdstacks', 'SPD_percent', -1, 3, 4.8),
+    ("lies_dance_on_the_breeze", "on_self_attack"): lambda s, u: _lc5_mangran_defdown(s, u),
+    ("long_road_leads_home", "on_weakness_break"):
+        _lc_vuln('long_road_leads_home', 'event_break_fenshao_vuln', 2, 18.0),
+    ("incessant_rain", "on_self_attack"):
+        _lc_vuln('incessant_rain', 'event_cast_ether_vuln', 1, 12.0),
+    # v8.2.2 丙组+欢愉新三把接线
+    ("dance_dance_dance", "on_ult"): lambda s, u: _lc4_team_advance(s, u),
+    ("a_memorial_that_never_ends", "on_skill"):
+        _lc_sb('a_memorial_that_never_ends', 'event_skill_after_team_dmg', 'DMG_BONUS_ALL', 3, 8.0),
+    ("encounter_next_bloom", "on_elation_skill"): lambda s, u: _lc5_elation_vuln(s, u),
+    ("gugu_gaga_adventure", "on_elation_skill"): lambda s, u: _lc4_gugu_elation_vuln(s, u),
+    ("make_the_world_clamor", "on_battle_start"): lambda s, u: _lc4_entry_energy_ultdmg(s, u),
+    ("today_lucky_hand", "on_elation_skill"): lambda s, u: _lc4_lucky_elation_stacks(s, u),
+    ("take_a_short_break", "on_elation_skill"): lambda s, u: _lc4_break_defpen_window(s, u),
+    ("future_with_us_together", "on_ult"): lambda s, u: _lc4_future_team_elation(s, u),
+    # v8.1.0 智识十把(项目主核实 2026-09-30):
+    # 天才们的休憩: 击杀→CD+N% 3回合
+    ("geniuses_repose", "on_kill"):
+        lambda s, u: _lc_geniuses_repose_kill(s, u),
+    # 宇宙大生意: 每个不同属性弱点+N%易伤(cap7, 入场/波次刷新)
+    ("the_great_cosmic_enterprise", "on_battle_start"):
+        lambda s, u: _lc_cosmic_enterprise(s, u),
+    ("the_great_cosmic_enterprise", "on_wave_start"):
+        lambda s, u: _lc_cosmic_enterprise(s, u),
+    # 早餐的仪式感: 击杀→ATK+N%×3层(永久)
+    ("the_seriousness_of_breakfast", "on_kill"):
+        lambda s, u: _lc_breakfast_kill(s, u),
+    # 氤氲麦香的梦: 追击增伤段(终结技段走 attrs)
+    ("a_dream_scented_in_wheat", "on_battle_start"):
+        lambda s, u: _lc_dream_wheat_fua(s, u),
+    # 谐乐静默之后: 终结技→SPD+N% 2回合
+    ("after_the_charmony_fall", "on_ult"):
+        lambda s, u: _lc_charmony_spd(s, u),
+    # 向着不可追问处: 终结技→战技/终结技+N% 3回合; 能量上限≥140 再+1SP
+    ("into_the_unreachable_veil", "on_ult"):
+        lambda s, u: _lc_veil_ult(s, u),
+    # 忍法帖: 入场回N能量; 终结技臂【雷遁】→2次普攻拉条N%并移除
+    ("ninjutsu_inscription_dazzling_evilbreaker", "on_battle_start"):
+        lambda s, u: _lc_ninjutsu_entry(s, u),
+    ("ninjutsu_inscription_dazzling_evilbreaker", "on_ult"):
+        lambda s, u: _lc_ninjutsu_raiton_arm(s, u),
+    ("ninjutsu_inscription_dazzling_evilbreaker", "on_basic_attack"):
+        lambda s, u: _lc_ninjutsu_raiton_count(s, u),
+    # 拂晓之前: 战技/终结技后臂【梦身】→首次追击消耗+FUA+N%
+    ("before_dawn", "on_skill"):
+        lambda s, u: _lc_before_dawn_dream_arm(s, u, 'skill'),
+    ("before_dawn", "on_ultimate"):
+        lambda s, u: _lc_before_dawn_dream_arm(s, u, 'ultimate'),
+    ("before_dawn", "on_followup"):
+        lambda s, u: _lc_before_dawn_dream_consume(s, u),
+    # 片刻，留在眼底: 能量上限→终结技增伤(入场一次, min(上限,180)×N%/点)
+    ("an_instant_before_a_gaze", "on_battle_start"):
+        lambda s, u: _lc_instant_gaze_energy(s, u),
+    # 偏偏希望无价: 暴伤>120每20%→FUA+N%(cap4层, 动态); 普攻→终技/追击无视防N% 2回合
+    ("yet_hope_is_priceless", "on_battle_start"):
+        lambda s, u: _lc_yet_hope_refresh(s, u, battle_start=True),
+    ("yet_hope_is_priceless", "on_basic_attack"):
+        lambda s, u: _lc_yet_hope_defpen(s, u),
+    ("yet_hope_is_priceless", "on_after_skill"):
+        lambda s, u: _lc_yet_hope_refresh(s, u, battle_start=False),
     # 后会有期: 普攻/战技后对随机受击目标造成48%ATK附加伤害（v5.7: 按叠影档 values 取, /100 转小数）
     ("we_will_meet_again", "on_basic_attack"):
         lambda s, u: _lc_extra_flat_damage(s, u, _lc_rank_value(u, 48.0) / 100),
@@ -1101,6 +1360,15 @@ LC_EVENT_ACTIONS = {
     # 你将起身歌唱: 进战行动提前(叠影档) + 【新声】2回合全队速度提高(叠影档)
     ("rise_and_sing", "on_battle_start"):
         lambda s, u: _rise_and_sing_entry(s, u),  # M4批2b: 委托角色包（下方 delegator）
+    # v8.3.0 _unwired 第一批（⑤类事件行; ②类逐目标行在 _lc_target_correct 内联消费）
+    ("inherently_unjust_destiny", "on_shield"):
+        _lc_sb('inherently_unjust_destiny', 'event_shield_cd_unwired',
+               'CRIT_DMG', 2, 40.0),
+    ("night_of_fright", "on_ally_ult"): lambda s, u: _lc5_nof_ally_ult_heal(s, u),
+    ("night_of_fright", "on_heal"): lambda s, u: _lc5_nof_heal_atkstacks(s, u),
+    ("never_forget_her_flame", "on_battle_start"):
+        lambda s, u: _lc5_flame_break_team(s, u),
+    ("though_worlds_apart", "on_ult"): lambda s, u: _lc5_worlds_apart_ult(s, u),
 }
 
 
@@ -1129,12 +1397,14 @@ def _lc_apply_event_effect(state, u, event):
     lc = getattr(u, 'lightcone', None)
     if not lc:
         return
-    code = next((k for k, v in LC_EVENT_CODES.items() if v == event), None)
-    if not code:
+    # v8.2.0: 同一事件可有多条码(如 on_ult 有 event_ult_after/event_ult_after_cr/...),
+    # 全码集匹配(原 next() 反查只命中首个码, 自定义码全部漏配)
+    codes = {k for k, v in LC_EVENT_CODES.items() if v == event}
+    if not codes:
         return
     import re
     matched = [eff for eff in lc.effects
-               if getattr(eff, 'condition_code', '') == code]
+               if getattr(eff, 'condition_code', '') in codes]
     action = LC_EVENT_ACTIONS.get((lc.id, event))
     if action and any(not (eff.attributes or {}) for eff in matched):
         action(state, u)
@@ -1377,7 +1647,10 @@ def _lc_target_correct(stats, u, state, target):
                    for c in LC_TARGET_CODES)
                and (e.attributes or {}) for e in lc.effects)
     # v5.4 生命当付之一炬/论剑: 目标相关消费（不受 need 门控, 数值由引擎内联）
-    inline_target = lc.id in ('life_should_be_cast_to_flames', 'swordplay')
+    # v8.3.0 _unwired②类: 逐目标条件行同走内联（见 _lc_unwired_target_correct）
+    inline_target = lc.id in ('life_should_be_cast_to_flames', 'swordplay',
+                              'a_secret_vow', 'boundless_choreo', 'fermata',
+                              'woof_walk_time', 'incessant_rain')
     if not need and not inline_target:
         return stats
     s = copy.deepcopy(stats)
@@ -1392,7 +1665,58 @@ def _lc_target_correct(stats, u, state, target):
     # v5.4 论剑: 目标与叠层记录一致 → 伤害×(1+每层%×层)（v5.7: 每层%按叠影档, 最多5层）
     if lc.id == 'swordplay' and u.extra.get('swordplay_tid') == target.id:
         s.DMG_BONUS_ALL += (_lc_rank_value(u, 16.0) / 100) * u.extra.get('swordplay_layers', 0)
+    # v8.3.0 _unwired②类: 逐目标条件增伤/暴伤/暴率
+    _lc_unwired_target_correct(s, u, target)
     return s
+
+
+# ---- v8.3.0 _unwired②类: 逐目标条件（值按光锥 values 叠影档, 条件按目标实时状态）----
+
+# 延长记号/汪！散步时间！共用 event_vs_dot_unwired 码, DOT 集合按光锥区分
+LC_DOT_COND_SETS = {
+    'fermata': ('触电', '风化'),
+    'woof_walk_time': ('灼烧', '裂伤'),
+}
+
+
+def _enemy_has_dot_named(t, names):
+    """敌方是否处于指定名称的持续伤害状态（灼烧/触电/裂伤/风化, 不论来源）。"""
+    return any(getattr(st, 'category', '') == 'dot' and st.name in names
+               for st in getattr(t, 'statuses', []))
+
+
+def _enemy_has_speeddown(t):
+    return t.status_attribute('spd_down') > 0
+
+
+def _lc_unwired_target_correct(s, u, target):
+    """伤害循环内逐目标求值的 *_unwired 条件行（v8.3.0 第一批, 5行）。
+
+    - 秘密誓心: 目标当前HP% ≥ 装备者当前HP% → 伤害提高
+    - 无边曼舞: 目标防御降低或减速 → 暴击伤害提高
+    - 延长记号/汪！散步时间！: 目标处于指定DOT → 伤害提高（DOT跳伤同享, 见 _tick_break_dot）
+    - 雨一直下: 目标负面状态数≥3 → 暴击率提高
+    """
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.path != u.char.path or target is None:
+        return
+    if lc.id == 'a_secret_vow':
+        if target.HP > 0 and (target.HP / max(target.max_hp, 1.0)
+                              >= u.current_hp / max(u.max_hp, 1.0)):
+            s.DMG_BONUS_ALL += _lc_rank_value(
+                u, 20.0, code='event_vs_higher_hp_unwired') / 100
+    elif lc.id == 'boundless_choreo':
+        if _enemy_has_defdown(target) or _enemy_has_speeddown(target):
+            s.CRIT_DMG += _lc_rank_value(
+                u, 24.0, code='event_vs_defdown_unwired') / 100
+    elif lc.id in LC_DOT_COND_SETS:
+        if _enemy_has_dot_named(target, LC_DOT_COND_SETS[lc.id]):
+            s.DMG_BONUS_ALL += _lc_rank_value(
+                u, 16.0, code='event_vs_dot_unwired') / 100
+    elif lc.id == 'incessant_rain':
+        if target.debuff_count() >= 3:
+            s.CRIT_RATE += _lc_rank_value(
+                u, 12.0, code='event_vs3debuffs_cr_unwired') / 100
 
 
 def _lc_maybe_gain_stack(state, unit, eff, event_type, target_count=0):
@@ -1547,8 +1871,9 @@ def _lc_grounded_ascent_counter(s, u):
 
 
 def _lc_energy_cap_dmg_bonus(s, u):
-    """今日亦是和平的一日: 增伤 = min(能量上限,160)×0.4%"""
-    dmg = min(u.char.max_energy or 0, 160) * 0.4
+    """今日亦是和平的一日: 增伤 = min(能量上限,160)×N%(v8.2.2 改吃 values 五档)"""
+    per = _lc_rank_value(u, 0.40)
+    dmg = min(u.char.max_energy or 0, 160) * per
     u.buffs.append(TimedBuff(source_id='today_is_another_peaceful_day',
                              attributes={'DMG_BONUS_ALL': dmg},
                              remaining_turns=-1,
@@ -1669,6 +1994,742 @@ def _lc_cast_summer_wave(s, u):
     u.extra['lc_csw_casts'] = 0
     _gain_skill_points(s, 1, actor=u)
     s.log.append('  光锥[cast_summer_into_waves] 波次开始→回1战技点')
+
+
+# ---- v8.1.0 智识十把 handlers（项目主核实 2026-09-30）----
+
+def _lc_geniuses_repose_kill(s, u):
+    """天才们的休憩: 击杀→暴伤+N%(叠影档) 3回合(同源刷新)。"""
+    val = _lc_rank_value(u, 24.0, code='event_kill')
+    u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != 'lc_gr_cd']
+    u.buffs.append(TimedBuff(source_id='geniuses_repose',
+                             attributes={'CRIT_DMG': val},
+                             remaining_turns=3, param_id='lc_gr_cd',
+                             source_name='天才们的休憩'))
+    s.log.append(f'  光锥[天才们的休憩] 击杀→暴伤+{val:g}% (3回合)')
+
+
+def _lc_cosmic_enterprise(s, u):
+    """宇宙大生意: 每个不同属性弱点→对该敌+N%易伤(cap7; 入场/波次刷新)。"""
+    pct = _lc_rank_value(u, 4.0, code='event_battle_start')
+    for e in s.enemies:
+        if getattr(e, 'HP', 0) <= 0:
+            continue
+        n = min(len(set(getattr(e, 'weakness', []) or [])), 7)
+        if n <= 0:
+            e.extra.pop('lc_enterprise_vuln', None)
+            continue
+        e.extra['lc_enterprise_vuln'] = n * pct / 100.0
+    s.log.append(f'  光锥[宇宙大生意] 弱点数易伤已刷新(每点+{pct:g}%, cap7)')
+
+
+def _lc_breakfast_kill(s, u):
+    """早餐的仪式感: 每次击杀→ATK+N%(叠影档, 以白值计)×3层永久。"""
+    cur = u.extra.get('lc_breakfast_stacks', 0)
+    if cur >= 3:
+        return
+    pct = _lc_rank_value(u, 4.0, code='event_kill')
+    u.base_stats.ATK += u.base_stats._base_ATK * pct / 100.0
+    u.extra['lc_breakfast_stacks'] = cur + 1
+    s.log.append(f'  光锥[早餐的仪式感] 击杀→ATK+{pct:g}% ({cur + 1}/3层)')
+
+
+def _lc_dream_wheat_fua(s, u):
+    """氤氲麦香的梦: 追击增伤段(终结技段走 attrs 行)。"""
+    pct = _lc_rank_value(u, 24.0, code='event_battle_start')
+    u.base_stats.DMG_BONUS_BY_ATTACK_TYPE['follow_up'] = \
+        u.base_stats.DMG_BONUS_BY_ATTACK_TYPE.get('follow_up', 0.0) + pct / 100.0
+    s.log.append(f'  光锥[氤氲麦香的梦] 追击伤害+{pct:g}%')
+
+
+def _lc_charmony_spd(s, u):
+    """谐乐静默之后: 终结技→SPD+N% 2回合。"""
+    pct = _lc_rank_value(u, 8.0, code='event_ult_after')
+    u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != 'lc_charmony_spd']
+    u.buffs.append(TimedBuff(source_id='after_the_charmony_fall',
+                             attributes={'SPD_PERCENT': pct},
+                             remaining_turns=2, param_id='lc_charmony_spd',
+                             source_name='谐乐静默之后'))
+    s.log.append(f'  光锥[谐乐静默之后] 终结技→SPD+{pct:g}% (2回合)')
+
+
+def _lc_veil_ult(s, u):
+    """向着不可追问处: 终结技→战技/终结技伤害+N% 3回合; 能量上限≥140 再+1SP。"""
+    val = _lc_rank_value(u, 60.0, code='event_ult_after')
+    u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != 'lc_veil_dmg']
+    u.buffs.append(TimedBuff(source_id='into_the_unreachable_veil',
+                             attributes={'DMG_BONUS_SKILL': val,
+                                         'DMG_BONUS_ULTIMATE': val},
+                             remaining_turns=3, param_id='lc_veil_dmg',
+                             source_name='向着不可追问处'))
+    s.log.append(f'  光锥[向着不可追问处] 终结技→战技/终结技伤害+{val:g}% (3回合)')
+    if (u.char.max_energy or 0) >= 140:
+        _gain_skill_points(s, 1, actor=u)
+        s.log.append('  光锥[向着不可追问处] 能量上限≥140→回1战技点')
+
+
+def _lc_ninjutsu_entry(s, u):
+    """忍法帖: 入场固定位回N能量(叠影档, 32.5 等半档)。"""
+    n = _lc_rank_value(u, 30.0, code='event_battle_start')
+    _gain_energy(u, float(n), state=s, apply_regen=False)
+    s.log.append(f'  光锥[忍法帖] 入场回{n:g}能量')
+
+
+def _lc_ninjutsu_raiton_arm(s, u):
+    """忍法帖: 终结技→获得/重置【雷遁】。"""
+    u.extra['lc_ninjutsu_raiton'] = True
+    u.extra['lc_ninjutsu_basics'] = 0
+    s.log.append('  光锥[忍法帖] 终结技→获得【雷遁】')
+
+
+def _lc_ninjutsu_raiton_count(s, u):
+    """忍法帖: 持雷遁期间每2次普攻→行动提前N%并移除。"""
+    if not u.extra.get('lc_ninjutsu_raiton'):
+        return
+    n = u.extra.get('lc_ninjutsu_basics', 0) + 1
+    if n < 2:
+        u.extra['lc_ninjutsu_basics'] = n
+        return
+    u.extra.pop('lc_ninjutsu_raiton', None)
+    u.extra.pop('lc_ninjutsu_basics', None)
+    ratio = _lc_rank_value(u, 50.0, code='event_ult_after') / 100.0
+    navs = s.extra.get('navs', {})
+    idx = next((i for i, x in enumerate(s.units) if x is u), None)
+    if idx is not None and idx in navs:
+        advanced = max(s.current_av,
+                       navs[idx] - (AV_PER_TURN / max(_effective_spd(u, s), 1.0)) * ratio)
+        _set_av(s, navs, idx, advanced)
+        s.log.append(f'  光锥[忍法帖] 雷遁2普攻→行动提前{ratio * 100:g}%并移除')
+
+
+def _lc_before_dawn_dream_arm(s, u, skill_type):
+    """拂晓之前: 战技/终结技后→臂【梦身】(FUA 增伤段随消耗结算; 重新臂上前收回
+    上一段未清增益, 近似"仅该次追击生效")。"""
+    _lc_before_dawn_dream_disarm(s, u)
+    u.extra['lc_before_dawn_dream'] = True
+
+
+def _lc_before_dawn_dream_consume(s, u):
+    """拂晓之前: 触发追击→消耗【梦身】→FUA+N%(至下次重新臂上时收回)。"""
+    if not u.extra.pop('lc_before_dawn_dream', None):
+        return
+    pct = _lc_rank_value(u, 48.0, code='event_skill_after')
+    u.base_stats.DMG_BONUS_BY_ATTACK_TYPE['follow_up'] = \
+        u.base_stats.DMG_BONUS_BY_ATTACK_TYPE.get('follow_up', 0.0) + pct / 100.0
+    u.extra['lc_before_dawn_active'] = True
+    s.log.append(f'  光锥[拂晓之前] 消耗【梦身】→追击伤害+{pct:g}%')
+
+
+def _lc_before_dawn_dream_disarm(s, u):
+    if u.extra.pop('lc_before_dawn_active', None):
+        pct = _lc_rank_value(u, 48.0, code='event_skill_after')
+        u.base_stats.DMG_BONUS_BY_ATTACK_TYPE['follow_up'] = \
+            u.base_stats.DMG_BONUS_BY_ATTACK_TYPE.get('follow_up', 0.0) - pct / 100.0
+
+
+def _lc_instant_gaze_energy(s, u):
+    """片刻，留在眼底: min(能量上限,180)×N%/点 → 终结技增伤(入场一次)。"""
+    per = _lc_rank_value(u, 0.36, code='event_battle_start')
+    pts = min(float(u.char.max_energy or 0), 180.0)
+    u.base_stats.DMG_BONUS_BY_SKILL_TYPE['ultimate'] = \
+        u.base_stats.DMG_BONUS_BY_SKILL_TYPE.get('ultimate', 0.0) + pts * per / 100.0
+    s.log.append(f'  光锥[片刻，留在眼底] 能量上限{pts:g}点→终结技伤害'
+                 f'+{pts * per:.1f}%')
+
+
+def _lc_yet_hope_refresh(s, u, battle_start=False):
+    """偏偏希望无价: 暴伤>120% 每超20%→FUA+N%(cap4层, 随面板动态重算);
+    同时在战技/终结技(重新臂来源)时收回上一段梦身式增益由拂晓自理——本光锥只管
+    自身两段: 暴伤层重算 + 无视防窗口的非普攻动作计数衰减。"""
+    stats = _build_effective_stats(u, s)
+    cd_pct = stats.CRIT_DMG * 100.0
+    stacks = min(4, max(0, int((cd_pct - 120.0) // 20.0 + (1 if cd_pct > 120 else 0))))
+    pct = _lc_rank_value(u, 12.0, code='event_battle_start')
+    old = u.extra.get('lc_yethope_fua', 0)
+    u.base_stats.DMG_BONUS_BY_ATTACK_TYPE['follow_up'] = \
+        u.base_stats.DMG_BONUS_BY_ATTACK_TYPE.get('follow_up', 0.0) \
+        - old * pct / 100.0 + stacks * pct / 100.0
+    u.extra['lc_yethope_fua'] = stacks
+    if not battle_start:
+        s.log.append(f'  光锥[偏偏希望无价] 暴伤{cd_pct:.0f}%→追击+{stacks}层'
+                     f'({stacks * pct:g}%)')
+    # 无视防窗口: 非普攻动作计数, ≥2 次未重臂即过期
+    if u.extra.get('lc_yethope_defpen_on'):
+        misses = u.extra.get('lc_yethope_misses', 0) + 1
+        if misses >= 2:
+            _lc_yet_hope_defpen_off(s, u)
+        else:
+            u.extra['lc_yethope_misses'] = misses
+
+
+def _lc_yet_hope_defpen(s, u):
+    """偏偏希望无价: 普攻→终技/追击无视防N%(2回合; 以非普攻动作计数近似过期)。"""
+    pen = _lc_rank_value(u, 20.0, code='event_basic_after') / 100.0
+    if not u.extra.get('lc_yethope_defpen_on'):
+        u.base_stats.DEF_PEN_BY_TYPE['ultimate'] = \
+            u.base_stats.DEF_PEN_BY_TYPE.get('ultimate', 0.0) + pen
+        u.base_stats.DEF_PEN_BY_TYPE['follow_up'] = \
+            u.base_stats.DEF_PEN_BY_TYPE.get('follow_up', 0.0) + pen
+        u.extra['lc_yethope_defpen_on'] = True
+        s.log.append(f'  光锥[偏偏希望无价] 普攻→终结技/追击无视{pen * 100:g}%防御 (2回合)')
+    u.extra['lc_yethope_misses'] = 0
+
+
+def _lc_yet_hope_defpen_off(s, u):
+    pen = _lc_rank_value(u, 20.0, code='event_basic_after') / 100.0
+    u.base_stats.DEF_PEN_BY_TYPE['ultimate'] = \
+        u.base_stats.DEF_PEN_BY_TYPE.get('ultimate', 0.0) - pen
+    u.base_stats.DEF_PEN_BY_TYPE['follow_up'] = \
+        u.base_stats.DEF_PEN_BY_TYPE.get('follow_up', 0.0) - pen
+    u.extra['lc_yethope_defpen_on'] = False
+    u.extra.pop('lc_yethope_misses', None)
+    s.log.append('  光锥[偏偏希望无价] 无视防窗口过期')
+
+
+# ---- v8.2.0 乙组专用 handler（条件型; 工厂见上）----
+
+def _lc_wearer(s, u, lc_id):
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != lc_id or lc.path != u.char.path:
+        return None
+    return lc
+
+
+def _lc4_selfheal_pct_flat(s, u, lc_id, code, flat):
+    lc = _lc_wearer(s, u, lc_id)
+    if lc is None:
+        return
+    pct = _lc_rank_value(u, 2.0, code=code)
+    amt = u.max_hp * pct / 100.0 + flat
+    u.current_hp = min(u.max_hp, u.current_hp + amt)
+
+
+def _lc4_team_energy(s, u, lc_id, code):
+    lc = _lc_wearer(s, u, lc_id)
+    if lc is None:
+        return
+    n = _lc_rank_value(u, 2.0, code=code)
+    for eu in s.units:
+        if eu.is_alive:
+            _gain_energy(eu, float(n), state=s, apply_regen=False)
+
+
+def _lc4_team_heal_pct(s, u, lc_id, code):
+    lc = _lc_wearer(s, u, lc_id)
+    if lc is None:
+        return
+    pct = _lc_rank_value(u, 2.0, code=code)
+    for eu in s.units:
+        if eu.is_alive:
+            eu.current_hp = min(eu.max_hp, eu.current_hp + eu.max_hp * pct / 100.0)
+
+
+def _lc4_energy_vs_broken(s, u):
+    lc = _lc_wearer(s, u, 'dream_s_montage')
+    if lc is None:
+        return
+    hits = s.extra.get('last_attack_targets') or []
+    if not any(getattr(t, 'is_broken', False) for t in hits):
+        return
+    n = u.extra.get('lcm_broken_energy', 0) + 1
+    if n > 2:
+        return  # 每回合最多2次(以触发计数近似)
+    u.extra['lcm_broken_energy'] = n
+    _gain_energy(u, float(_lc_rank_value(u, 3.0, code='event_attack_broken_energy')),
+                 state=s, apply_regen=False)
+
+
+def _lc4_res_to_heal(s, u):
+    lc = _lc_wearer(s, u, 'perfect_timing')
+    if lc is None:
+        return
+    ratio = _lc_rank_value(u, 33.0, code='event_battle_start_res_heal') / 100.0
+    cap = {1: 15.0, 2: 18.0, 3: 21.0, 4: 24.0, 5: 27.0}[getattr(lc, 'rank', 1)]
+    u.base_stats.HEAL_BONUS += min(u.base_stats.EFFECT_RES * ratio * 100.0, cap) / 100.0
+
+
+def _lc4_healthy_team_dmg(s, u):
+    lc = _lc_wearer(s, u, "unto_tomorrow_s_morrow")
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 12.0, code='event_battle_start_healthy_dmg')
+    for eu in s.units:  # 入场快照近似(≥50%血时增伤)
+        if eu.is_alive and eu.current_hp / eu.max_hp >= 0.5:
+            eu.buffs.append(TimedBuff(source_id=lc.id,
+                                      attributes={'DMG_BONUS_ALL': val},
+                                      remaining_turns=-1,
+                                      param_id='lcx_healthy_dmg',
+                                      source_name='直到明天的明天'))
+
+
+def _lc4_samepath_cd(s, u):
+    lc = _lc_wearer(s, u, 'poised_to_bloom')
+    if lc is None:
+        return
+    from collections import Counter
+    paths = Counter(x.char.path for x in s.units if x.is_alive)
+    if not any(c >= 2 for c in paths.values()):
+        return
+    val = _lc_rank_value(u, 16.0, code='event_battle_start_samepath_cd')
+    for x in s.units:
+        if x.is_alive and paths[x.char.path] >= 2:
+            x.base_stats.CRIT_DMG += val / 100.0
+
+
+def _lc4_shieldcount_dmg(s, u):
+    lc = _lc_wearer(s, u, 'concert_for_two')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 4.0, code='event_battle_start_shieldcount_dmg')
+    n = sum(1 for x in s.units if x.is_alive and getattr(x, 'shield', 0.0) > 0)
+    if n > 0:
+        u.base_stats.DMG_BONUS_ALL += n * val / 100.0
+
+
+def _lc4_def_to_dmg(s, u):
+    lc = _lc_wearer(s, u, 'destiny_s_threads_forewoven')
+    if lc is None:
+        return
+    per = _lc_rank_value(u, 0.8, code='event_battle_start_def_to_dmg')
+    cap = {1: 32.0, 2: 36.0, 3: 40.0, 4: 44.0, 5: 48.0}[getattr(lc, 'rank', 1)]
+    u.base_stats.DMG_BONUS_ALL += min(u.base_stats.DEF / 100.0 * per, cap) / 100.0
+
+
+def _lc4_few_enemies_cr(s, u):
+    lc = _lc_wearer(s, u, 'only_silence_remains')
+    if lc is None:
+        return
+    if len(s.enemies) <= 2:
+        u.base_stats.CRIT_RATE = min(
+            1.0, u.base_stats.CRIT_RATE
+            + _lc_rank_value(u, 12.0, code='event_battle_start_fewcr') / 100.0)
+
+
+def _lc4_kill_heal_atk(s, u):
+    lc = _lc_wearer(s, u, 'nowhere_to_run')
+    if lc is None:
+        return
+    pct = _lc_rank_value(u, 12.0, code='event_kill_heal')
+    u.current_hp = min(u.max_hp,
+                       u.current_hp + _build_effective_stats(u, s).ATK * pct / 100.0)
+
+
+def _lc4_energy_vs_defdown(s, u):
+    lc = _lc_wearer(s, u, 'before_the_tutorial_mission_starts')
+    if lc is None:
+        return
+    hits = s.extra.get('last_attack_targets') or []
+    if not any(_enemy_has_defdown(t) for t in hits):
+        return
+    _gain_energy(u, float(_lc_rank_value(u, 4.0, code='event_attack_defdown_energy')),
+                 state=s, apply_regen=False)
+
+
+def _enemy_has_defdown(t):
+    for st in getattr(t, 'statuses', []):
+        if 'def_reduction' in (getattr(st, 'attributes', {}) or {}):
+            return True
+    return bool(getattr(t, 'extra', {}).get('sparkle_huanxiang_def'))
+
+
+def _lc4_ms_present_dmg(s, u):
+    lc = _lc_wearer(s, u, 'sweat_now_cry_less')
+    if lc is None:
+        return
+    if u.memsprite_unit is not None and u.memsprite_unit.is_alive:
+        u.base_stats.DMG_BONUS_ALL += \
+            _lc_rank_value(u, 24.0, code='event_battle_start_ms_dmg') / 100.0
+
+
+def _lc4_tbrem_team_dmg(s, u):
+    lc = _lc_wearer(s, u, 'fly_into_a_pink_tomorrow')
+    if lc is None:
+        return
+    if u.char.id != 'trailblazer_remembrance':
+        return
+    val = _lc_rank_value(u, 8.0, code='event_battle_start_tbrem_dmg')
+    for eu in s.units:
+        if eu.is_alive:
+            eu.buffs.append(TimedBuff(source_id=lc.id,
+                                      attributes={'DMG_BONUS_ALL': val},
+                                      remaining_turns=-1,
+                                      param_id='lcx_tbrem_dmg',
+                                      source_name='飞向粉色的明天'))
+
+
+def _lc4_weakness_cd(s, u):
+    lc = _lc_wearer(s, u, 'the_day_the_cosmos_fell')
+    if lc is None:
+        return
+    hits = [t for t in (s.extra.get('last_attack_targets') or [])
+            if u.char.element in (getattr(t, 'weakness', []) or [])]
+    if len(hits) < 2:
+        return
+    val = _lc_rank_value(u, 20.0, code='event_attack_weakness_cd')
+    u.buffs = [b for b in u.buffs if getattr(b, 'param_id', '') != 'lcx_gf_cd']
+    u.buffs.append(TimedBuff(source_id=lc.id, attributes={'CRIT_DMG': val},
+                             remaining_turns=2, param_id='lcx_gf_cd',
+                             source_name='银河沦陷日'))
+
+
+# ---- v8.3.0 _unwired⑤类专用 handler ----
+
+def _lc5_nof_ally_ult_heal(s, u):
+    """惊魂夜行1: 我方目标施放终结技时, 为当前HP%最低我方回复其上限10-14%生命值。
+    口径(计划获批): 含装备者自身终结技; 该回复视作装备者提供的治疗（联动行2叠层）。"""
+    lc = _lc_wearer(s, u, 'night_of_fright')
+    if lc is None:
+        return
+    tgt = min((x for x in s.units if x.is_alive),
+              key=lambda x: x.current_hp / max(x.max_hp, 1.0), default=None)
+    if tgt is None:
+        return
+    pct = _lc_rank_value(u, 10.0, code='event_ally_ult_heal_lowest_unwired')
+    amt = tgt.max_hp * pct / 100.0 * (1.0 + _build_effective_stats(u, s).HEAL_BONUS)
+    tgt.current_hp = min(tgt.max_hp, tgt.current_hp + amt)
+    s.log.append(f'  光锥[{lc.name}] 终结技治疗: {tgt.char.name}+{amt:.0f}HP')
+    # 视作装备者执行的治疗: 走 on_heal 管线（钩子 + 光锥事件, 联动行2叠层/治疗记录族）
+    s.hooks.trigger_all("on_heal", u=u, state=s, healer=u,
+                        targets=[tgt], heal_amt=amt)
+    s.extra['lc_last_heal_amt'] = amt
+    s.extra['lc_last_heal_targets'] = [tgt]
+    _process_lc_effects(u, s, "on_heal")
+
+
+def _lc5_nof_heal_atkstacks(s, u):
+    """惊魂夜行2: 装备者提供治疗时, 受疗目标ATK+2.4-4.0%（最多5层, 每层2回合）。"""
+    lc = _lc_wearer(s, u, 'night_of_fright')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 2.4, code='event_heal_atkstacks_unwired')
+    for t in (s.extra.get('lc_last_heal_targets') or []):
+        if not getattr(t, 'is_alive', True) or not hasattr(t, 'buffs'):
+            continue
+        pid = 'lcx_nof_atk'
+        cur = [b for b in t.buffs if getattr(b, 'param_id', '') == pid]
+        if len(cur) >= 5:
+            continue
+        t.buffs.append(TimedBuff(source_id=lc.id, attributes={'ATK_percent': val},
+                                 remaining_turns=2, param_id=pid,
+                                 source_name=f'{lc.name}#{len(cur) + 1}'))
+        s.log.append(f'  光锥[{lc.name}] {t.char.name} ATK+{val:g}% (第{len(cur) + 1}层/≤5)')
+
+
+def _lc5_flame_break_team(s, u):
+    """勿忘她的火焰行1: 入场时装备者与一名队友击破伤害+32-72%（同类效果无法叠加）。
+    口径(计划获批): 模拟器全员同刻入场→队友取站位顺位下一名; 单人成队仅装备者。
+    消费点: _apply_toughness_damage 的 break_mult 乘区（击破+超击破）。"""
+    lc = _lc_wearer(s, u, 'never_forget_her_flame')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 32.0, code='event_battle_start_break_team_unwired')
+    mates = [x for x in s.units if x.is_alive and x is not u]
+    chosen = [u] + mates[:1]
+    for x in chosen:
+        if x.extra.get('lcf_break_dmg') is None:  # 同类效果无法叠加
+            x.extra['lcf_break_dmg'] = val
+    s.log.append(f'  光锥[{lc.name}] 击破伤害+{val:g}% → '
+                 f'{"、".join(x.char.name for x in chosen)}')
+
+
+def _lc5_worlds_apart_ult(s, u):
+    """纵然山河万程: 终结技时全队回复装备者ATK 10-20%、当前HP绝对值最低者额外同量;
+    全队【卫戍】伤害+24-48%（任一我方有忆灵/召唤物+12-24%）3回合。
+    卫戍双档数值文案内嵌、未单列 values 行, 此处按档硬编码（项目主核实文案 2026-09-30）。"""
+    lc = _lc_wearer(s, u, 'though_worlds_apart')
+    if lc is None:
+        return
+    rank = max(1, min(5, getattr(lc, 'rank', 1)))
+    pct = _lc_rank_value(u, 10.0, code='event_ult_after_weishu_unwired')
+    stats = _build_effective_stats(u, s)
+    amt = stats.ATK * pct / 100.0 * (1.0 + stats.HEAL_BONUS)
+    alive = [x for x in s.units if x.is_alive]
+    lowest = min(alive, key=lambda x: x.current_hp, default=None)
+    tgt_list = list(alive)
+    for t in alive:
+        t.current_hp = min(t.max_hp, t.current_hp + amt)
+    if lowest is not None:
+        lowest.current_hp = min(lowest.max_hp, lowest.current_hp + amt)
+        tgt_list.append(lowest)
+    s.log.append(f'  光锥[{lc.name}] 终结技治疗: {amt:.0f}×{len(alive)}人'
+                 f'（{lowest.char.name if lowest else "-"} 额外+{amt:.0f}）')
+    # 治疗走 on_heal 管线（钩子 + 光锥事件, 治疗记录族可见）
+    s.hooks.trigger_all("on_heal", u=u, state=s, healer=u,
+                        targets=tgt_list, heal_amt=amt)
+    s.extra['lc_last_heal_amt'] = amt
+    s.extra['lc_last_heal_targets'] = tgt_list
+    _process_lc_effects(u, s, "on_heal")
+    # 卫戍 3回合（同源刷新; 有召唤物取更高合计档）
+    has_summon = (any(ms.is_alive for ms in s.memsprites)
+                  or any(getattr(x, 'marker', None) and x.marker.is_alive
+                         for x in s.units))
+    base = {1: 24.0, 2: 30.0, 3: 36.0, 4: 42.0, 5: 48.0}[rank]
+    extra = ({1: 12.0, 2: 15.0, 3: 18.0, 4: 21.0, 5: 24.0}[rank]
+             if has_summon else 0.0)
+    for t in alive:
+        pid = 'lcx_twa_weishu'
+        t.buffs = [b for b in t.buffs if getattr(b, 'param_id', '') != pid]
+        t.buffs.append(TimedBuff(source_id=lc.id,
+                                 attributes={'DMG_BONUS_ALL': base + extra},
+                                 remaining_turns=3, param_id=pid,
+                                 source_name='卫戍'))
+    s.log.append(f'  光锥[{lc.name}] 卫戍: 全队伤害+{base + extra:g}% (3回合)')
+
+
+def _lc5_wangyou_vuln(s, u):
+    lc = _lc_wearer(s, u, 'scent_alone_stays_true')
+    if lc is None:
+        return
+    base = _lc_rank_value(u, 10.0, code='event_ult_after_wangyou_vuln')
+    extra = {1: 8.0, 2: 10.0, 3: 12.0, 4: 14.0, 5: 16.0}[getattr(lc, 'rank', 1)]
+    stats = _build_effective_stats(u, s)
+    val = (base + (extra if stats.BREAK_EFFECT >= 1.5 else 0.0)) / 100.0
+    for t in (s.extra.get('last_attack_targets') or
+              [e for e in s.enemies if e.HP > 0]):
+        if getattr(t, 'HP', 0) > 0:
+            t.add_status(EnemyStatus(id='lcv_wangyou', name='忘忧',
+                                     category='debuff', source=lc.id,
+                                     remaining_turns=2,
+                                     attributes={'vulnerability': val}))
+
+
+def _lc5_targets_energy(s, u):
+    lc = _lc_wearer(s, u, 'echoes_of_the_coffin')
+    if lc is None:
+        return
+    n = min(3, len({id(t) for t in (s.extra.get('last_attack_targets') or [])}))
+    if n > 0:
+        _gain_energy(u, float(_lc_rank_value(u, 3.0,
+                       code='event_attack_targets_energy')) * n,
+                     state=s, apply_regen=False)
+
+
+def _lc5_team_spd_flat(s, u):
+    lc = _lc_wearer(s, u, 'echoes_of_the_coffin')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 12.0, code='event_ult_after_team_spd')
+    for eu in s.units:
+        if eu.is_alive:
+            eu.buffs = [b for b in eu.buffs
+                        if getattr(b, 'param_id', '') != 'lcx_coffin_spd']
+            eu.buffs.append(TimedBuff(source_id=lc.id,
+                                      attributes={'SPD_percent': val},
+                                      remaining_turns=1, param_id='lcx_coffin_spd',
+                                      source_name='棺的回响'))
+
+
+def _lc5_mangran_defdown(s, u):
+    lc = _lc_wearer(s, u, 'lies_dance_on_the_breeze')
+    if lc is None:
+        return
+    spd = _effective_spd(u, s)
+    base = _lc_rank_value(u, 16.0, code='event_attack_mangran_defdown')
+    extra = {1: 8.0, 2: 9.0, 3: 10.0, 4: 11.0, 5: 12.0}[getattr(lc, 'rank', 1)]
+    total = base + (extra if spd >= 170.0 else 0.0)
+    for t in (s.extra.get('last_attack_targets') or []):
+        if getattr(t, 'HP', 0) <= 0:
+            continue
+        t.add_status(EnemyStatus(id='lcv_mangran', name='茫然',
+                                 category='debuff', source=lc.id,
+                                 remaining_turns=2,
+                                 attributes={'def_reduction': total / 100.0}))
+    s.log.append(f'  光锥[谎言在风中飘扬] 受击目标防御-{base:g}%'
+                 f'{"+" + format(extra, "g") + "%(失窃)" if spd >= 170.0 else ""} 2回合')
+
+
+# ---- v8.2.2 丙组/欢愉新三把专用 ----
+
+def _lc4_team_advance(s, u):
+    """舞！舞！舞！: 终结技→我方全体行动提前N%。"""
+    lc = _lc_wearer(s, u, 'dance_dance_dance')
+    if lc is None:
+        return
+    ratio = _lc_rank_value(u, 16.0, code='event_ult_after_team_advance') / 100.0
+    _lc_team_advance(s, ratio, actor=u)
+    s.log.append(f'  光锥[舞！舞！舞！] 全体行动提前{ratio * 100:g}%')
+
+
+def _lc5_elation_vuln(s, u):
+    """邂逅于下一个花季: 欢愉技→敌方全体受伤+N% 2回合。"""
+    lc = _lc_wearer(s, u, 'encounter_next_bloom')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 15.0, code='event_elation_skill_vuln') / 100.0
+    for e in s.enemies:
+        if getattr(e, 'HP', 0) <= 0:
+            continue
+        e.add_status(EnemyStatus(id='lcv_encounter_vuln', name='受伤提高',
+                                 category='debuff', source=lc.id,
+                                 remaining_turns=2,
+                                 attributes={'vulnerability': val}))
+    s.log.append(f'  光锥[邂逅于下一个花季] 敌方全体受伤+{val * 100:g}% (2回合)')
+
+
+def _lc4_gugu_elation_vuln(s, u):
+    """菇菇嘎嘎历险记: 欢愉技→敌方全体受欢愉伤害+N% 2回合(近似通用易伤)。"""
+    lc = _lc_wearer(s, u, 'gugu_gaga_adventure')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 6.0, code='event_elation_skill_elation_vuln') / 100.0
+    for e in s.enemies:
+        if getattr(e, 'HP', 0) <= 0:
+            continue
+        e.add_status(EnemyStatus(id='lcv_gugu_vuln', name='受欢愉伤提高',
+                                 category='debuff', source=lc.id,
+                                 remaining_turns=2,
+                                 attributes={'vulnerability': val}))
+    s.log.append(f'  光锥[菇菇嘎嘎历险记] 敌方受欢愉伤害+{val * 100:g}% (2回合)')
+
+
+def _lc4_energy_to_dmg(s, u):
+    """今日亦是和平的一日: 能量上限→伤害(每点0.2-0.4%, cap160)。"""
+    lc = _lc_wearer(s, u, 'today_is_another_peaceful_day')
+    if lc is None:
+        return
+    per = _lc_rank_value(u, 0.20, code='event_battle_start_energy_to_dmg')
+    pts = min(float(u.char.max_energy or 0), 160.0)
+    u.base_stats.DMG_BONUS_ALL += pts * per / 100.0
+    s.log.append(f'  光锥[今日亦是和平的一日] 能量{pts:g}→伤害+{pts * per:.1f}%')
+
+
+def _lc4_entry_energy_ultdmg(s, u):
+    """别让世界静下来: 入场回N能量 + 终结技伤害+N%。"""
+    lc = _lc_wearer(s, u, 'make_the_world_clamor')
+    if lc is None:
+        return
+    n = _lc_rank_value(u, 20.0, code='event_battle_start_energy_ultdmg')
+    val = {1: 32.0, 2: 40.0, 3: 48.0, 4: 56.0, 5: 64.0}[getattr(lc, 'rank', 1)]
+    _gain_energy(u, float(n), state=s, apply_regen=False)
+    u.base_stats.DMG_BONUS_BY_SKILL_TYPE['ultimate'] =         u.base_stats.DMG_BONUS_BY_SKILL_TYPE.get('ultimate', 0.0) + val / 100.0
+    s.log.append(f'  光锥[别让世界静下来] 入场回{n:g}能量, 终结技伤害+{val:g}%')
+
+
+def _lc4_lucky_elation_stacks(s, u):
+    """今日好手气: 施放欢愉技→欢愉度+N%(叠2次, 独立层近似)。"""
+    lc = _lc_wearer(s, u, 'today_lucky_hand')
+    if lc is None:
+        return
+    cur = [b for b in u.buffs if getattr(b, 'param_id', '') == 'lcx_lucky_elation']
+    if len(cur) >= 2:
+        return
+    val = _lc_rank_value(u, 12.0, code='event_elation_skill_luck_elation')
+    u.buffs.append(TimedBuff(source_id=lc.id, attributes={'ELATION_LEVEL': val},
+                             remaining_turns=-1, param_id='lcx_lucky_elation',
+                             source_name=f'今日好手气#{len(cur) + 1}'))
+
+
+def _lc4_break_defpen_window(s, u):
+    """放个短假: 施放欢愉技期间无视N%防(近似=欢愉伤害无视防常驻, elation专属)。"""
+    lc = _lc_wearer(s, u, 'take_a_short_break')
+    if lc is None:
+        return
+    if u.extra.get('lcb_defpen_on'):
+        return
+    pen = _lc_rank_value(u, 8.0, code='event_elation_skill_break_defpen') / 100.0
+    u.base_stats.DEF_PEN_BY_TYPE['elation'] =         u.base_stats.DEF_PEN_BY_TYPE.get('elation', 0.0) + pen
+    u.extra['lcb_defpen_on'] = True
+    s.log.append(f'  光锥[放个短假] 欢愉伤害无视{pen * 100:g}%防御')
+
+
+def _lc4_future_team_elation(s, u):
+    """未来，有我们一起: 终结技→全队欢愉度+N% 1回合。"""
+    lc = _lc_wearer(s, u, 'future_with_us_together')
+    if lc is None:
+        return
+    val = _lc_rank_value(u, 8.0, code='event_ult_after_team_elation')
+    for eu in s.units:
+        if eu.is_alive:
+            eu.buffs = [b for b in eu.buffs
+                        if getattr(b, 'param_id', '') != 'lcx_future_elation']
+            eu.buffs.append(TimedBuff(source_id=lc.id,
+                                      attributes={'ELATION_LEVEL': val},
+                                      remaining_turns=1,
+                                      param_id='lcx_future_elation',
+                                      source_name='未来，有我们一起'))
+    s.log.append(f'  光锥[未来，有我们一起] 全队欢愉度+{val:g}% (1回合)')
+
+
+def _lc_galaxy_ult_laugh(s, u):
+    """欢迎来到银河城(v8.0.0 项目主核实): 对自身施放终结技→+N笑点(叠影档),
+    最多1次, 施放3次普攻后重置。裁决15: 笑点经实时叠加等价银狼隐藏分(+N HS),
+    连同特殊行迹+20, 银狼终结技净扣 60-20-20=20。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'welcome_to_galaxy_city' or lc.path != u.char.path:
+        return
+    if not u.extra.get('galaxy_laugh_armed', True):
+        return
+    ult = u.char.skills.get('ultimate')
+    if ult is not None and getattr(ult, 'target', 'self') not in ('self', ''):
+        return  # 仅"对自身施放"的终结技触发
+    from engine.systems.elation import gain_laugh
+    u.extra['galaxy_laugh_armed'] = False
+    u.extra['galaxy_basics_since'] = 0
+    n = _lc_rank_value(u, 20.0, code='event_ult_after')
+    gain_laugh(s, n)
+    s.log.append(f'  光锥[欢迎来到银河城] 对自身施放终结技→+{n:g}笑点'
+                 f'(1次, 3次普攻后重置)')
+
+
+def _lc_galaxy_count_basic(s, u):
+    """欢迎来到银河城: 施放3次普攻后重臂终结技回笑(强化普攻由银狼模块直调计数)。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'welcome_to_galaxy_city' or lc.path != u.char.path:
+        return
+    if u.extra.get('galaxy_laugh_armed', True):
+        return
+    n = u.extra.get('galaxy_basics_since', 0) + 1
+    if n >= 3:
+        u.extra['galaxy_laugh_armed'] = True
+        u.extra['galaxy_basics_since'] = 0
+        s.log.append('  光锥[欢迎来到银河城] 3次普攻→终结技回笑重臂')
+    else:
+        u.extra['galaxy_basics_since'] = n
+
+
+def _lc_elation_overflow_buff(s, u):
+    """欢愉满溢祝福(v8.0.0 项目主核实, 此前 state 门控行未接线): 装备者对我方单体
+    施放战技/终结技后→目标欢愉度+N%(叠影档) 2回合。目标取 lc_last_skill_target。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'elation_overflow_blessing' or lc.path != u.char.path:
+        return
+    t = u.extra.get('lc_last_skill_target')
+    if t is None or not getattr(t, 'is_alive', False):
+        return
+    val = _lc_rank_value(u, 12.0, code='event_ally_targeted')
+    t.buffs = [b for b in t.buffs if getattr(b, 'param_id', '') != 'lc_eob_elation']
+    t.buffs.append(TimedBuff(source_id=lc.id, attributes={'ELATION_LEVEL': val},
+                             remaining_turns=2, param_id='lc_eob_elation',
+                             source_name='欢愉满溢祝福'))
+    s.log.append(f'  光锥[欢愉满溢祝福] {t.char.name}欢愉度+{val:g}% (2回合)')
+
+
+def _lc_hues_devoted_elation(s, u):
+    """献给明日的色彩(v7.26.0): 装备者对我方全体施放欢愉技时——敌方全体受伤提高%
+    (叠影档, 3回合) + 装备者固定位回能10 + 全队回复装备者防御力%(叠影档)生命值。"""
+    lc = getattr(u, 'lightcone', None)
+    if not lc or lc.id != 'hues_devoted_to_tomorrow' or lc.path != u.char.path:
+        return
+    es = u.char.skills.get('elation_skill')
+    if es is None or es.target != 'all_allies':
+        return  # 仅"对我方全体施放的欢愉技"触发
+    vuln_pct = _lc_rank_value(u, 22.0, code='event_elation_skill')
+    for e in s.enemies:
+        if getattr(e, 'HP', 0) <= 0:
+            continue
+        e.add_status(EnemyStatus(id='lc_hues_vuln', name='受伤提高',
+                                 category='debuff', source=lc.id,
+                                 remaining_turns=3,
+                                 attributes={'vulnerability': vuln_pct / 100.0}))
+    _gain_energy(u, 10.0, state=s, apply_regen=False)
+    heal_pct = _lc_rank_value(u, 10.0, code='event_elation_skill_hues_heal')
+    stats = _build_effective_stats(u, s)
+    amt = stats.DEF * heal_pct / 100.0 * (1.0 + stats.HEAL_BONUS)
+    for ally in s.units:
+        if ally.is_alive:
+            ally.current_hp = min(ally.max_hp, ally.current_hp + amt)
+    s.log.append(f'  光锥[献给明日的色彩] 全敌受伤+{vuln_pct:g}%(3回合) + '
+                 f'固定回能10 + 全队回复{amt:.0f}(DEF{heal_pct:g}%)')
 
 
 def _lc_heal_record_extra_damage(s, u):
@@ -1989,6 +3050,9 @@ def _apply_toughness_damage(state, u, t, base_toughness, break_element, skill_ke
     # v5.4 梦应归于何处: 目标【溃败】状态下装备者对其击破伤害+24%
     if t.has_status(status_id='kubai') and getattr(u.lightcone, 'id', '') == 'whereabouts_should_dreams_rest':
         break_mult *= 1.24
+    # v8.3.0 勿忘她的火焰: 入场标记的击破伤害加成（同类不叠加, 见 _lc5_flame_break_team）
+    if u.extra.get('lcf_break_dmg'):
+        break_mult *= 1 + u.extra['lcf_break_dmg'] / 100
     # 同谐行迹1: 伴舞触发的超击破伤害按敌人数+20%~60%
     tbh_mult = 1.0
     if any(getattr(b, 'attributes', {}).get('_tbh_super_break') for b in u.buffs):
@@ -2325,9 +3389,10 @@ def _us_pay_costs(u: SimUnit, state: SimState, skill, skill_key: str,
     if not _deduct_skill_point_cost(state, u, sp_cost):
         return None
     spent_skill_points = int(state.extra.pop('_last_sp_spent', 0))
-    if skill_key in ("basic_attack", "basic_attack_enhanced"):
+    if skill_key in ("basic_attack", "basic_attack_enhanced", "zz_basic_dream"):
         # v5.3: 强化普攻也恢复1战技点（实机普攻类统一恢复; 忘归人冉冉方炽等）
         # v5.7: 数据驱动例外——阿格莱雅孤锋千吻/昔涟向着爱与明天"无法恢复战技点"(_sp_recover: 0)
+        # v7.26.0: 真珠幻造星月(zz_basic_dream)同普攻口径恢复1SP
         if skill.cost.get("_sp_recover", 1):
             _gain_skill_points(state, actor=u)
     # 终结技消耗全部能量；其他技能回复能量
@@ -2544,13 +3609,19 @@ def _us_damage_loop(u: SimUnit, state: SimState, skill, skill_key: str,
 
         action_targets = []  # v6.3.0b P1-10: 本次攻击实际命中目标（银狼天赋/E1/E4 消费）
         for mult in skill.multipliers:
-            sc = stats.ATK if mult.stat == "ATK" else (stats.HP if mult.stat == "HP" else 0)
+            sc = stats.ATK if mult.stat == "ATK" else (
+                stats.HP if mult.stat == "HP" else (
+                    stats.DEF if mult.stat == "DEF" else 0))  # v7.26.0: 真珠 DEF 缩放
             is_crit = stats.CRIT_RATE >= 0.5
             laugh_n = (
                 (laugh_n_override if laugh_n_override is not None
-                 else state.elation_state.get_good_show_total(u.char.id))
+                 else (state.extra.get('aha_laugh_n', state.laugh_points)
+                       if state.extra.get('aha_running')
+                       else state.elation_state.get_good_show_total(u.char.id)))
                 if mult.damage_type == 'elation' else 0.0
             )
+            # v7.26.1 项目主裁决6: 阿哈时刻内各欢愉技 N=本次窗口全局笑点快照
+            # (aha_laugh_n; 额外阿哈=固定值); 正常状态欢愉伤害 N=施放者自身好活层数
             # v5.3: 逐倍率目标（忘归人强化普攻: 主目标/相邻目标分倍率）
             mt = mult.target or skill.target
             targets = _select_targets(alive, mt)
@@ -2754,7 +3825,8 @@ def _us_heal_effects(u: SimUnit, state: SimState, skill, skill_key: str,
             heal_flat = float(parts[1]) if len(parts) > 1 else 0
             heal_stat = "HP"
         healing_stats = _build_effective_stats(u, state)
-        heal_base = healing_stats.ATK if heal_stat == "ATK" else healing_stats.HP
+        heal_base = {"ATK": healing_stats.ATK, "DEF": healing_stats.DEF}.get(
+            heal_stat, healing_stats.HP)  # v7.26.0: 真珠 DEF 基数治疗
         # v5.3: 治疗量加成消费（灵砂行迹2 治疗量提高 = BE×10% 上限20%）
         heal_bonus = healing_stats.HEAL_BONUS
         heal_amt = ((heal_base * (heal_pct / 100) + heal_flat)
@@ -2824,8 +3896,9 @@ def _us_heal_effects(u: SimUnit, state: SimState, skill, skill_key: str,
                                  healer=u, targets=tgt_list, heal_amt=heal_amt)
         from engine.characters.fengjin import _fengjin_talent_heal_buff
         _fengjin_talent_heal_buff(state, u)
-        # v5.4 光锥治疗事件（时节不居: 记录治疗量）
+        # v5.4 光锥治疗事件（时节不居: 记录治疗量; v8.3.0 惊魂夜行2: 记录受疗目标）
         state.extra['lc_last_heal_amt'] = heal_amt
+        state.extra['lc_last_heal_targets'] = tgt_list
         _process_lc_effects(u, state, "on_heal")
 
 
@@ -3243,6 +4316,9 @@ def _respawn_wave(state):
         # 重置敌方行动条 AV（含 stamp）
         _set_av(state, navs, ('e', i), state.current_av + AV_PER_TURN / max(e.SPD, 1.0))
     _acheron_apply_entry_effects(state)
+    # v7.26.5 裁决13: 银狼奖励关全灭暂停——新敌入场获得额外回合基于剩余段数再施放
+    from engine.characters.yinlang import _yl_reward_resume
+    _yl_reward_resume(state)
     # v6.10.3 P1-2: 赛飞儿行迹3 新波敌人重建易伤（对称维护）
     cipher = next((x for x in state.units if x.char.id == 'cipher' and x.is_alive), None)
     if cipher and any(getattr(t, 'hook_name', '') == 'cipher_trace3'
@@ -3841,7 +4917,12 @@ def _apply_hit(state, target, amount, enemy):
 
 
 def _distribute_damage(state, target, amount, enemy):
-    """符玄天赋: 穷观阵激活时全队减伤18% + 承伤65%分配（一次应用防递归; 两次独立结算天然无递归）"""
+    """符玄天赋: 穷观阵激活时全队减伤18% + 承伤65%分配（一次应用防递归; 两次独立结算天然无递归）
+    v7.26.0 真珠天赋: 好活当赏抵御值吸收（先半血DR30%, 再耗好活挡60%）——
+    函数级延迟导入角色检查函数（防环规则, 万敌/符玄/藿藿同型）"""
+    from engine.characters.zhenzhu import _zz_absorb_check
+    if isinstance(target, SimUnit):
+        amount = _zz_absorb_check(state, target, amount)
     fuxuan = next((u for u in state.units if u.char.id == 'fu_xuan' and u.is_alive), None)
     field = fuxuan is not None and state.extra.get('fuxuan_field_turns', 0) > 0
     if field:
@@ -3901,6 +4982,10 @@ def _check_fatal(state, target):
     # ③ 藿藿E2·镇尾锁灵（2次+全队回50%）
     from engine.characters.huohuo import _huohuo_e2_fatal_check
     if _huohuo_e2_fatal_check(state):
+        return
+    # ④ 真珠E1·珍珠，藏在海的留白处（2次, 目标保留50%生命, v7.26.0）
+    from engine.characters.zhenzhu import _zz_e1_fatal_check
+    if _zz_e1_fatal_check(state, target):
         return
     # 真正死亡
     target.is_alive = False
@@ -3972,14 +5057,23 @@ def _check_fatal(state, target):
 
 
 def _tick_break_dot(state, enemy, status):
-    """击破 DOT 跳伤（敌方回合结算, 快照面板）: 不吃双暴/元素增伤, 吃DOT增伤+全增伤"""
+    """击破 DOT 跳伤（敌方回合结算, 快照面板）: 不吃双暴/元素增伤, 吃DOT增伤+全增伤
+    v8.3.0: 延长记号/汪！散步时间！「对持续伤害也生效」——按归属者光锥逐目标条件加成"""
     snap = status.attributes.get('dot_snapshot')
     if not snap:
         return 0.0
-    d = calculate_damage(snap, enemy, snap.ATK, status.attributes.get('dot_multiplier', 100.0),
-                         "dot", status.attributes.get('dot_element', '物理'), 80)
     source = next((u for u in state.units
                    if u.char.id == getattr(status, 'source', '')), None)
+    if source is not None and source.is_alive:
+        lc = getattr(source, 'lightcone', None)
+        if (lc is not None and lc.path == source.char.path
+                and lc.id in LC_DOT_COND_SETS
+                and _enemy_has_dot_named(enemy, LC_DOT_COND_SETS[lc.id])):
+            snap = copy.deepcopy(snap)
+            snap.DMG_BONUS_ALL += _lc_rank_value(
+                source, 16.0, code='event_vs_dot_unwired') / 100
+    d = calculate_damage(snap, enemy, snap.ATK, status.attributes.get('dot_multiplier', 100.0),
+                         "dot", status.attributes.get('dot_element', '物理'), 80)
     _commit_enemy_damage(state, source, enemy, d.final_damage)
     state.log.append(f'  {status.name}: {d.final_damage:.0f} → {enemy.name or enemy.id}')
     return d.final_damage
@@ -4250,6 +5344,9 @@ def _exec_extra_turn(state, unit, kind):
             state.log.append('  再现结束: 增幅解除')
         _reset_qianye_e6_charge_gate(state)
         return
+    # v7.26.0 观察相位 extra_turn_start: 额外回合开始（真珠【美学底本】临时好活/笑点给予;
+    # 冻结跳过分支已提前 return, 不派发——被跳过的额外回合无给予亦无收回）
+    _obs_phase(state, 'extra_turn_start', unit, kind=kind)
     # 希儿增幅: 击杀瞬间获得的 pending 状态, 在 X 轴首个希儿行动(终结技或再现)时激活
     # (增幅覆盖 X 轴上到增幅回合结束的一切行动; 回到 Y 轴常规回合时已撤销)
     if (isinstance(unit, SimUnit) and unit.char.id == 'seele'
@@ -4285,6 +5382,8 @@ def _exec_extra_turn(state, unit, kind):
             unit.buffs = [b for b in unit.buffs
                           if getattr(b, 'source_name', '') != '再现增幅']
             state.log.append('  再现结束: 增幅解除')
+    # v7.26.0 观察相位 extra_turn_end: 额外回合结束（真珠临时好活/笑点即时收回）
+    _obs_phase(state, 'extra_turn_end', unit, kind=kind)
     _reset_qianye_e6_charge_gate(state)
 
 
@@ -4523,6 +5622,14 @@ def _ai_regular_action(state, u):
 
 def _ult_post(state, unit):
     """终结技执行后的附加动作（风堇雨过天晴等）"""
+    # v7.26.0 观察相位 after_ult: 终结技执行后广播（真珠行迹1·底本开大回能）
+    _obs_phase(state, 'after_ult', unit)
+    # v8.3.0 光锥队友终结技广播（惊魂夜行1: 我方目标施放终结技时; 含施放者自身的光锥,
+    # 照 on_attack 全队广播先例; 施放者经 lc_ult_caster 传递, handler 自行过滤）
+    state.extra['lc_ult_caster'] = unit
+    for eu in state.units:
+        if eu.is_alive and getattr(eu, 'lightcone', None):
+            _process_lc_effects(eu, state, "on_ally_ult")
     if hasattr(unit, 'char') and unit.char.id == 'fengjin':
         # 雨过天晴: 3回合，不叠加
         if not unit.extra.get('clear_sky_turns'):

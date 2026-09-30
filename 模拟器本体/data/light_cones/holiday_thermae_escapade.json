@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者造成的伤害提高16%/20%/24%/28%/32%",
    "attributes": {
     "DMG_BONUS_ALL": 16.0
-   }
+   },
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者攻击后，有100%基础概率使受到攻击的目标陷入易伤状态，受到的伤害提高10%/11%/13%/14%/16%，持续2回合。同类效果无法叠加",
+   "attributes": {},
+   "values": [
+    10,
+    11,
+    13,
+    14,
+    16
+   ],
+   "condition_code": "event_self_attack_vuln"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

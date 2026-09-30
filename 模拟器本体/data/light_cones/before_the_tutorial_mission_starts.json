@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果命中提高20%/25%/30%/35%/40%",
    "attributes": {
     "EFFECT_HIT_RATE": 20.0
-   }
+   },
+   "values": [
+    20,
+    25,
+    30,
+    35,
+    40
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者攻击防御力被降低的敌方目标后，恢复4/5/6/7/8点能量",
+   "attributes": {},
+   "values": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "condition_code": "event_attack_defdown_energy"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

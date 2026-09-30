@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击伤害提高36%/42%/48%/54%/60%",
    "attributes": {
     "CRIT_DMG": 36.0
-   }
+   },
+   "values": [
+    36,
+    42,
+    48,
+    54,
+    60
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "当装备者施放终结技时，根据装备者的能量上限，提高装备者终结技造成的伤害：每点能量提高0.36%/0.42%/0.48%/0.54%/0.60%，最多计入180点",
+   "attributes": {},
+   "values": [
+    0.36,
+    0.42,
+    0.48,
+    0.54,
+    0.6
+   ],
+   "condition_code": "event_battle_start"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量; 能量上限转终结技增伤(入场一次性结算, min(上限,180))"
 }

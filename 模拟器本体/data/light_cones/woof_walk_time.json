@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的攻击力提高10%/12%/15/17%/20%",
    "attributes": {
     "ATK_percent": 10.0
-   }
+   },
+   "values": [
+    10,
+    12,
+    15,
+    17,
+    20
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "对处于灼烧或裂伤状态的敌方目标造成的伤害提高16%/20%/24%/28%/32%，该效果对持续伤害也会生效",
+   "attributes": {},
+   "values": [
+    16,
+    20,
+    24,
+    28,
+    32
+   ],
+   "condition_code": "event_vs_dot_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

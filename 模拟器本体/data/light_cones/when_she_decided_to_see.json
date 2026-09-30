@@ -13,7 +13,14 @@
    "condition": "",
    "attributes": {
     "SPD_percent": 18.0
-   }
+   },
+   "values": [
+    18.0,
+    21.0,
+    24.0,
+    27.0,
+    30.0
+   ]
   },
   {
    "type": "trigger_effect",
@@ -30,7 +37,14 @@
     "CRIT_DMG": 30.0
    },
    "condition_code": "stack:shangshangqian:1",
-   "target": "all_allies"
+   "target": "all_allies",
+   "values": [
+    10.0,
+    11.0,
+    12.0,
+    13.0,
+    14.0
+   ]
   },
   {
    "type": "conditional_buff",
@@ -39,7 +53,14 @@
     "ENERGY_REGEN": 12.0
    },
    "condition_code": "stack:shangshangqian:1",
-   "target": "self"
+   "target": "self",
+   "values": [
+    12.0,
+    14.0,
+    16.0,
+    18.0,
+    20.0
+   ]
   },
   {
    "type": "trigger_effect",
@@ -49,5 +70,6 @@
    "target": "self"
   }
  ],
- "_note": "爻光专属光锥, S1值: SPD+18%, 上上签(全体CR+10%+CD+30%), ER+12%, 回能15"
+ "_note": "爻光专属光锥, S1值: SPD+18%, 上上签(全体CR+10%+CD+30%), ER+12%, 回能15",
+ "_source": "项目主核实五档(2026-10-01); 保留原接线结构, S1对齐法补values"
 }

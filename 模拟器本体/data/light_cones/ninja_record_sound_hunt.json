@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的生命上限提高12%/15%/18%/21%/24%",
    "attributes": {
     "HP_percent": 12.0
-   }
+   },
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "损失或回复自身生命值后，暴击伤害提高18%/22%/27%/31%/36%，持续2回合，该效果每回合只可触发1次",
+   "attributes": {},
+   "values": [
+    18,
+    22,
+    27,
+    31,
+    36
+   ],
+   "condition_code": "event_hp_loss_cd"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

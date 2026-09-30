@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的速度提高8%/9%/10%/11%/12%",
    "attributes": {
     "SPD_percent": 8.0
-   }
+   },
+   "values": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "攻击处于弱点击破状态下的敌方目标后，恢复3.0/3.5/4.0/4.5/5.0点能量，该效果每回合最多触发2次",
+   "attributes": {},
+   "values": [
+    3,
+    3.5,
+    4,
+    4.5,
+    5
+   ],
+   "condition_code": "event_attack_broken_energy"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

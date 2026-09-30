@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的效果命中提高60%/70%/80%/90%/100%",
    "attributes": {
     "EFFECT_HIT_RATE": 60.0
-   }
+   },
+   "values": [
+    60,
+    70,
+    80,
+    90,
+    100
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "攻击后60%概率施加【卸甲】(受伤+10%-18%, 2回合)；目标带装备者DOT时升级为【穷寇】(额外+14%-22%)",
+   "attributes": {},
+   "values": [
+    10,
+    12,
+    14,
+    16,
+    18
+   ],
+   "condition_code": "event_xiejia_machine_unwired"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量"
 }

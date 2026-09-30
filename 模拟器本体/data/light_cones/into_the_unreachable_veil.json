@@ -10,11 +10,37 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者的暴击率提高12%/14%/16%/18%/20%",
    "attributes": {
     "CRIT_RATE": 12.0
-   }
+   },
+   "values": [
+    12,
+    14,
+    16,
+    18,
+    20
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放终结技时，使装备者造成的战技和终结技伤害提高60%/70%/80%/90%/100%，持续3回合",
+   "attributes": {},
+   "values": [
+    60,
+    70,
+    80,
+    90,
+    100
+   ],
+   "condition_code": "event_ult_after"
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "装备者施放终结技后，若本次终结技消耗的能量大于等于140点，恢复1个战技点",
+   "attributes": {},
+   "condition_code": "event_ult_after_sp"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量; SP行经 handler 条件判定(能量上限≥140), 不吃values缩放"
 }

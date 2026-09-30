@@ -1,0 +1,21 @@
+{
+  "name": "贪噬禁果的异端",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "暴击伤害提高16%。",
+      "attributes": {
+        "CRIT_DMG": 16.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "使装备者普攻造成的伤害提高36%。当装备者施放普攻时，使装备者的攻击力提高20%，持续2回合。",
+      "attributes": {
+        "DMG_BONUS_BASIC": 36.0
+      },
+      "condition": "on_basic_attack_atk_buff"
+    }
+  ]
+}

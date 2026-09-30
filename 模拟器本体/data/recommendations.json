@@ -1054,5 +1054,14 @@
     "feet": ["SPD_PERCENT"],
     "sphere": ["DEF_percent", "HP_percent"],
     "rope": ["ENERGY_REGEN"]
+  },
+  "zhenzhu": {
+    "light_cone": "hues_devoted_to_tomorrow",
+    "set4": ["戏梦点星的伶人"],
+    "set2": ["生命的翁瓦克"],
+    "body": ["HEAL_BONUS", "DEF_percent"],
+    "feet": ["SPD_PERCENT"],
+    "sphere": ["DEF_percent"],
+    "rope": ["ENERGY_REGEN", "DEF_percent"]
   }
 }

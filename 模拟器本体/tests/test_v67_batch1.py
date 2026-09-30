@@ -133,16 +133,24 @@ class TestSparxie:
         assert u.total_damage_dealt > 0
 
     def test_trap_settle_gift(self):
-        """陷阱结算: 消耗1次+礼物笑点"""
+        """陷阱结算: 消耗1次+礼物笑点
+        v7.26.5 裁决14: 连发结算移至 _sparxie_trap_chain_adjust(skill_adjust_post),
+        礼物在连发中逐次结算; 倍率提升(主+20%/发)同段返回"""
         u = _unit('sparxie')
         state = SimState(enemies=[_enemy()], units=[u])
         _elation_state(state)
         u.extra['sparxie_trap_uses'] = 1
+        state.skill_points = 5
+        state.max_sp = 20
         laugh0 = state.laugh_points
-        _sparxie_enhanced_settle(state, u)
+        from engine.characters.sparxie import _sparxie_trap_chain_adjust
+        from engine.models.character import load_character
+        skill = load_character('sparxie').skills['basic_attack_enhanced']
+        new = _sparxie_trap_chain_adjust(u, state, skill=skill,
+                                         skill_key='basic_attack_enhanced')
         assert u.extra['sparxie_trap_uses'] == 0
         assert state.laugh_points - laugh0 in (1, 2)  # 礼物
-        assert u.total_damage_dealt > 0
+        assert new is not None and new.multipliers[0].scale == 120.0  # 100+20
 
     def test_burst_deduction(self):
         """爆点优先抵扣战技点（消耗爆点视为消耗战技点）"""

@@ -167,10 +167,14 @@ class TestEidolonsAndUlt:
         assert st.units[0].base_stats.LAUGH_BOOST == pytest.approx(0.25)
 
     def test_ult_grants_spd_buff(self):
-        st = _sim(eidolon=0, lc=False, max_av=500)
-        me = st.units[0]
-        buffs = [b for b in me.buffs if getattr(b, "param_id", "") == "avw_ult_spd"]
+        # v7.26.2: 欢愉技回能5通用后终结技提前(≈259AV), 500AV窗内4回合buff自然到期
+        # ——窗口假设过时, 改为相位直测（挂载内容与时长确定性断言）
+        u = _unit("aventurine_waveflair")
+        st = _state(u)
+        avw._avw_post_effects(u, st, skill_key="ultimate")
+        buffs = [b for b in u.buffs if getattr(b, "param_id", "") == "avw_ult_spd"]
         assert buffs and buffs[0].attributes["SPD_PERCENT"] == 30.0
+        assert buffs[0].remaining_turns == 4
 
     def test_e4_team_defpen_on_skill(self):
         st = _sim(eidolon=4, lc=False, max_av=300)

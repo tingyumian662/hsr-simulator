@@ -1,0 +1,19 @@
+{
+  "name": "戏梦点星的伶人",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "速度提高6%。",
+      "attributes": {
+        "SPD_PERCENT": 6.0
+      },
+      "condition": ""
+    },
+    {
+      "pieces_required": 4,
+      "description": "当装备者对我方其他单体目标施放战技或终结技时，使技能目标的欢愉度提高16%，持续3回合，若装备者持有的好活当赏大于等于10点，则额外使我方全体目标的暴击伤害提高12%，持续3回合。",
+      "attributes": {},
+      "condition": "on_ally_skill_targeted_elation"
+    }
+  ]
+}

@@ -10,11 +10,31 @@
  "effects": [
   {
    "type": "permanent_buff",
-   "condition": "",
+   "condition": "使装备者造成伤害提高12%/15%/18%/21%/24%",
    "attributes": {
     "DMG_BONUS_ALL": 12.0
-   }
+   },
+   "values": [
+    12,
+    15,
+    18,
+    21,
+    24
+   ]
+  },
+  {
+   "type": "trigger_effect",
+   "condition": "每消灭1个敌方目标，装备者的攻击力提高4%/5%/6%/7%/8%，该效果最多叠加3层",
+   "attributes": {},
+   "values": [
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "condition_code": "event_kill"
   }
  ],
- "_source": "fribbels/hsr-optimizer"
+ "_source": "项目主核实(2026-09-30): 五档全量; 击杀叠层走 base_stats 累加"
 }

@@ -5,6 +5,7 @@ import random
 from engine.runtime import TimedBuff, _enemy_for_damage
 from engine.core.combat_engine import _build_effective_stats, _commit_enemy_damage, _deduct_skill_point_cost, _gain_energy, _gain_skill_points, _use_skill
 from engine.core.damage import calculate_damage
+from engine.systems.elation import gain_laugh
 
 
 def _sparxie_ult_elation_extra(state, u):
@@ -26,11 +27,45 @@ def _sparxie_ult_elation_extra(state, u):
     state.log.append(f'  火花持好活: 终结技追加48%欢愉伤害 {total:.0f}')
 
 
+def _sparxie_trap_chain_adjust(u, state, skill=None, skill_key=None, **kw):
+    """PHASE skill_adjust_post: 强化普攻结算直播连线——裁决14 连发互动陷阱。
+    原文语义: 陷阱不造成独立伤害, 而是提高【百花齐放】倍率(每发 主+20%/相邻+10%),
+    并随机获得礼物; 本次技能内可重复发动(次数上限20, 每次1SP/爆点, SP 不足即止)。
+    注: 本相位先于普攻类 +1SP 结算(引擎 S1→S2 顺序), 本次施放的 +1SP 不为本轮陷阱供点。"""
+    if skill_key != 'basic_attack_enhanced' or skill is None \
+            or u.char.id != 'sparxie':
+        return None
+    fired = 0
+    while u.extra.get('sparxie_trap_uses', 0) > 0 \
+            and _deduct_skill_point_cost(state, u, 1):
+        u.extra['sparxie_trap_uses'] -= 1
+        fired += 1
+        if random.random() < 0.5:
+            gain_laugh(state, 2)
+            _gain_skill_points(state, 2)
+            state.log.append('  互动陷阱: 红红火火(+2笑点+2战技点)')
+        else:
+            gain_laugh(state, 1)
+            state.log.append('  互动陷阱: 恍恍惚惚(+1笑点)')
+    if fired <= 0:
+        u.extra['sparxie_traps_fired'] = 0
+        return None
+    u.extra['sparxie_traps_fired'] = fired
+    new = copy.deepcopy(skill)
+    for m in new.multipliers:
+        if m.target in ('single_enemy', None, ''):
+            m.scale += 20.0 * fired   # 每发: 主目标倍率+20%(满级)
+        elif m.target == 'adjacent':
+            m.scale += 10.0 * fired   # 每发: 相邻倍率+10%(满级)
+    state.log.append(f'  直播连线: 连发{fired}次互动陷阱 → '
+                     f'主目标倍率+{20 * fired:g}%/相邻+{10 * fired:g}%')
+    return new
+
+
 def _sparxie_enhanced_settle(state, u):
-    """火花强化普攻追加结算:
+    """火花强化普攻追加结算(裁决14 后仅保留追伤段):
     - 持好活: 天赋 40%主目标+20%相邻 欢愉伤害
-    - 互动陷阱(消耗1次): 20%主目标+10%相邻 + 随机礼物
-      (红红火火=2笑点2SP / 恍恍惚惚=1笑点) + 天赋每陷阱1次10%欢愉弹射"""
+    - 持好活: 每次发动的互动陷阱→1次20%欢愉弹射(满级档, v7.26.5 修)"""
     stats = _build_effective_stats(u, state)
     alive = state.alive_enemies()
     if not alive:
@@ -42,45 +77,27 @@ def _sparxie_enhanced_settle(state, u):
     # 持好活: 天赋 40%主+20%相邻
     if laugh_n > 0:
         for t, scale in [(main, 40.0)] + [(t, 20.0) for t in adj]:
-            before = t.HP
             d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, scale,
                                  'elation', '火', 80, stats.CRIT_RATE >= 0.5,
                                  laugh_n=laugh_n, skill_type='basic',
                                  crit_mode='expected')
             _commit_enemy_damage(state, u, t, d.final_damage)
             total += d.final_damage
-    # 互动陷阱（txt: 消耗战技点1; v6.7b: 补扣费, SP 不足则本次不发动、次数保留）
-    traps = u.extra.get('sparxie_trap_uses', 0)
-    if traps > 0 and _deduct_skill_point_cost(state, u, 1):
-        u.extra['sparxie_trap_uses'] = traps - 1
-        for t, scale in [(main, 20.0)] + [(t, 10.0) for t in adj]:
-            before = t.HP
-            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, scale,
-                                 'direct', '火', 80, stats.CRIT_RATE >= 0.5,
-                                 crit_mode='expected')
-            _commit_enemy_damage(state, u, t, d.final_damage)
-            total += d.final_damage
-        # 随机礼物
-        if random.random() < 0.5:
-            state.laugh_points += 2
-            _gain_skill_points(state, 2)
-            state.log.append('  互动陷阱: 红红火火(+2笑点+2战技点)')
-        else:
-            state.laugh_points += 1
-            state.log.append('  互动陷阱: 恍恍惚惚(+1笑点)')
-        # 天赋: 每发动1次陷阱→强化普攻额外1次10%欢愉弹射
-        if laugh_n > 0:
-            alive_now = [e for e in alive if e.HP > 0]
+        # 天赋: 每发动1次陷阱→额外1次20%欢愉弹射(满级档)
+        fired = u.extra.pop('sparxie_traps_fired', 0)
+        for _ in range(fired):
+            alive_now = [e for e in state.alive_enemies()]
             if not alive_now:
-                alive_now = alive
+                break
             t = random.choice(alive_now)
-            before = t.HP
-            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 10.0,
+            d = calculate_damage(stats, _enemy_for_damage(t), stats.ATK, 20.0,
                                  'elation', '火', 80, stats.CRIT_RATE >= 0.5,
                                  laugh_n=laugh_n, skill_type='basic',
                                  crit_mode='expected')
             _commit_enemy_damage(state, u, t, d.final_damage)
             total += d.final_damage
+    else:
+        u.extra.pop('sparxie_traps_fired', None)
     if total > 0:
         u.total_damage_dealt += total
         state.log.append(f'  火花强化普攻追加: {total:.0f}')
@@ -119,7 +136,7 @@ def _laugh_gen(u, state, skill_key):
     if state.elation_state.get_good_show_total(u.char.id) > 0:
         bonus += 3
     laugh = 3 + bonus
-    state.laugh_points += laugh
+    gain_laugh(state, laugh)  # v7.26.0 裁决3: 统一入口(实时同步银狼隐藏分)
 
 
 def _sparxie_skill_live(u, state, skill_key):
@@ -141,7 +158,8 @@ def _sparxie_elation_burst(u, state, skill_key):
 
 CHAR_ID = "sparxie"
 ELATION_GATED = True  # AI/SKILL_HOOKS 仅欢愉队激活（M3 语义保持）
-SKILL_HOOKS = [_laugh_gen, _sparxie_skill_live, _sparxie_elation_burst]
+# v7.26.5 裁决11: _laugh_gen 移除——火花原文无"攻击获得笑点"行(v7.7.0 迁移带入的无源基础3)
+SKILL_HOOKS = [_sparxie_skill_live, _sparxie_elation_burst]
 AI = _spx_ai
 
 
@@ -161,7 +179,7 @@ def _sparxie_ult_skill_scale(u, state, skill):
     """PHASE ult_skill_scale: 终结技倍率=(0.6×欢愉度+50%)ATK + 2笑点 + 行迹1 + E4（→新skill）。"""
     # v6.7b: E4 先结算再取面板——"施放终结技时"欢愉度+36%应计入本次倍率
     if u.eidolon_rank >= 4:
-        state.laugh_points += 5
+        gain_laugh(state, 5)  # v7.26.0 裁决3: 统一入口
         u.buffs.append(TimedBuff(source_id='sparxie', attributes={'ELATION_LEVEL': 36.0},
                                  remaining_turns=3, param_id='sparxie_e4_elation',
                                  source_name='火花E4·表情管理'))
@@ -173,10 +191,11 @@ def _sparxie_ult_skill_scale(u, state, skill):
     bonus = spx_stats.ELATION_LEVEL * 60.0  # 0.6×欢愉度(面板小数)×100
     main.scale = main.scale + bonus
     state.log.append(f'  火花终结技: 欢愉度{spx_stats.ELATION_LEVEL*100:.0f}%→倍率+{bonus:.1f}%')
-    state.laugh_points += 2
+    gain_laugh(state, 2)
     n_elation = sum(1 for x in state.units if x.char.path == "欢愉")
     extra_laugh, extra_burst = {1: (2, 1), 2: (4, 1), 3: (8, 4)}.get(n_elation, (0, 0))
-    state.laugh_points += extra_laugh
+    if extra_laugh:
+        gain_laugh(state, extra_laugh)
     state.extra['sparxie_burst_points'] = \
         state.extra.get('sparxie_burst_points', 0.0) + extra_burst
     state.log.append(f'  火花终结技: +2笑点, 行迹1(欢愉{n_elation})额外+{extra_laugh}笑点+{extra_burst}爆点')
@@ -196,7 +215,8 @@ def _sparxie_energy_gain_override(u, state, skill_key):
 
 PHASE_HOOKS = {'key_rewrite': _sparxie_key_rewrite,
                'ult_skill_scale': _sparxie_ult_skill_scale,
-               'energy_gain_override': _sparxie_energy_gain_override}
+               'energy_gain_override': _sparxie_energy_gain_override,
+               'skill_adjust_post': _sparxie_trap_chain_adjust}
 
 
 # ---- M5a 批4: 伤害循环/攻击后结算相位处理器（原 _use_skill 内联, verbatim 迁入）----
@@ -244,7 +264,7 @@ def _spx_aha_settle(_u, state, n):
     spx = next((x for x in state.units if x.char.id == 'sparxie' and x.is_alive), None)
     if spx:
         if spx.eidolon_rank >= 1:
-            state.laugh_points += 5
+            gain_laugh(state, 5)  # v7.26.0 裁决3: 统一入口
             state.log.append('  火花E1: 阿哈时刻结束+5笑点')
         if spx.eidolon_rank >= 2:
             state.extra.setdefault('extra_turns', []).append((spx, 'sparxie_e2'))

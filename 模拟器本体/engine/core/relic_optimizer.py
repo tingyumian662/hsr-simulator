@@ -538,6 +538,7 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
             stat_weight[m.stat] += getattr(m, 'scale', 0.0)
     if role == "healer":
         # v5.5: 治疗基数判断（命名 paramId 查 HEAL_REGISTRY 的 stat; 数字编码默认 HP）
+        # v7.26.0: stat 字段泛化（ATK=灵砂 / DEF=真珠）
         primary = "HP"
         try:
             from engine.core.combat_engine import HEAL_REGISTRY
@@ -549,10 +550,10 @@ def _analyze_character(char: Character, lc=None, pieces=None, relic_sets=None) -
                     if e.type == "heal" and e.target not in ("memsprite", "self"):
                         pid = getattr(e, 'param_id', '') or ''
                         named = HEAL_REGISTRY.get(pid)
-                        if named and named.get("stat") == "ATK":
-                            primary = "ATK"  # 灵砂: ATK 基数治疗
+                        if named and named.get("stat") in ("ATK", "DEF"):
+                            primary = named["stat"]  # 灵砂 ATK / 真珠 DEF 基数治疗
                         break
-                if primary == "ATK":
+                if primary != "HP":
                     break
         except ImportError:
             pass

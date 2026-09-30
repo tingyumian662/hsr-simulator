@@ -3,8 +3,10 @@
 import copy
 import random
 from engine.runtime import _enemy_for_damage
+from engine.models.enemy import EnemyStatus
 from engine.core.combat_engine import _build_effective_stats, _commit_enemy_damage, _gain_energy, _skill_level_factor, _use_skill
 from engine.core.damage import calculate_damage
+from engine.systems.elation import gain_laugh
 
 
 def _yaoguang_open_field(state, yao, *, source='skill'):
@@ -96,23 +98,21 @@ def _eid_yaoguang_e6(u, state, **kw):
 def _yg_ai(u, state, *, elation, **__):
     if u.current_energy >= u.char.max_energy:
         _use_skill(u, state, "ultimate")
-        # v6.10.3 P1-3 E0/E1分离: 阿哈额外回合固定计入笑点 E0=20 / E1=40;
-        # 保存全局笑点→临时替换→主循环处理阿哈→恢复全局笑点（不消耗原笑点）
+        # v7.26.0 项目主裁决: 终结技=直接叫来一个额外的阿哈时刻(非拉条)——
+        # 不动正常跑条的阿哈行动轴, 不动原笑点池; 固定笑点 E0=20/E1=40 只用于
+        # 本次欢愉技释放与转好活; 期间欢愉技触发的笑点增益照常另算入池
         fixed = 40 if u.eidolon_rank >= 1 else 20
-        saved_laugh = state.laugh_points
-        state.laugh_points = fixed
-        state.aha_next_av = state.current_av  # 强制阿哈立即行动
         # 全队全抗穿24% (3回合); E1 额外欢愉伤害无视防御20%（面板消费）
         for eu in state.units:
             if eu.is_alive:
                 eu.yao_res_pen_turns = 3
         if u.eidolon_rank >= 4:
             state.extra['yao_e4_aha'] = True  # E4: 本次阿哈回合全体欢愉技伤害×1.5
-        state.log.append(f'  爻光终结技: 阿哈额外回合固定{fixed}笑点, 全队全抗穿24%(3回合)' +
-                         (' +E1无视防御20%' if u.eidolon_rank >= 1 else '') +
-                         (' +E4欢愉技×1.5' if u.eidolon_rank >= 4 else ''))
-        # 标记：阿哈处理后恢复全局笑点
-        state.extra['yao_pending_laugh'] = saved_laugh
+        state.log.append(f'  爻光终结技: 叫来额外阿哈时刻(固定{fixed}笑点, 不动跑条阿哈/笑点池), '
+                         f'全队全抗穿24%(3回合)'
+                         + (' +E1无视防御20%' if u.eidolon_rank >= 1 else '')
+                         + (' +E4欢愉技×1.5' if u.eidolon_rank >= 4 else ''))
+        elation.execute_extra_aha(state, fixed)
     elif state.skill_points > 0 and not state.yao_field_active:
         _use_skill(u, state, "skill")
     else:
@@ -125,7 +125,7 @@ def _laugh_gen(u, state, skill_key):
     if u.char.path != "欢愉" or (skill_key not in ("basic_attack", "skill") and not is_tb_elation):
         return
     if u.char.id == 'yaoguang':
-        state.laugh_points += 3
+        gain_laugh(state, 3)  # v7.26.0 裁决3: 统一入口
         return
 
 
@@ -158,7 +158,22 @@ def _yaoguang_skill_adjust_post(u, state, skill, skill_key):
     return None
 
 
-PHASE_HOOKS = {'skill_adjust_post': _yaoguang_skill_adjust_post}
+def _yaoguang_elation_pre_cast(u, state, skill=None, skill_key=None, **kw):
+    """PHASE effects_pre_cast: 欢愉技【赠君一卦，火树银花】——原稿语序为先使敌方
+    全体陷入【凶星低语】(受伤+16% 3回合)再结算伤害, 本次伤害自身吃易伤
+    (v7.26.3 依项目主补录原稿修正; 削韧行走伤害循环管线, 不在此处理)。"""
+    if skill_key != 'elation_skill' or u.char.id != CHAR_ID:
+        return None
+    for e in state.alive_enemies():
+        e.add_status(EnemyStatus(id='凶星低语', name='凶星低语', category='debuff',
+                                 source=CHAR_ID, remaining_turns=3,
+                                 attributes={'vulnerability': 0.16}))
+    state.log.append('  赠君一卦: 敌方全体陷入【凶星低语】(受伤+16%, 3回合, 先于伤害)')
+    return True
+
+
+PHASE_HOOKS = {'skill_adjust_post': _yaoguang_skill_adjust_post,
+               'effects_pre_cast': _yaoguang_elation_pre_cast}
 
 
 OBSERVER_HOOKS = {}
@@ -172,7 +187,7 @@ def _yao_tech_init(_u, state):
     yao = next((u for u in state.units if u.char.id == "yaoguang"), None)
     if yao:
         _yaoguang_open_field(state, yao, source='technique')
-        state.laugh_points += 3
+        gain_laugh(state, 3)  # v7.26.0 裁决3: 统一入口
         _gain_energy(yao, 30.0, state=state)
         state.log.append('[Init] 爻光秘技: 免SP自动战技, +3笑点, +30能量')
     return None
