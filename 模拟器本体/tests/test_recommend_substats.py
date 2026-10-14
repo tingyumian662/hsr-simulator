@@ -126,7 +126,7 @@ class TestRecommendSubstats:
         assert sum(r.values()) == 50  # v7.3.1: 总词条固定 50
         # v7.3: 希儿无速度信号（三语义裁决: 无信号→权重0）→ 速度不进有效分配,
         # 仅剩均摊份额; 断点前瞻行为由 test_v73_substats 的阿格莱雅/符玄用例覆盖
-        assert r["CRIT_RATE"] + r["CRIT_DMG"] >= 20
+        assert r["CRIT_RATE"] + r["CRIT_DMG"] >= 18  # v8.5.0 实机表: 13+5（每roll变大条数减）
         assert r["SPD_PERCENT"] <= 5
 
     def test_xiadie_hp_over_atk(self):
@@ -139,18 +139,20 @@ class TestRecommendSubstats:
     def test_xilian_spd_180(self):
         r = recommend_substats(_load("xilian"), effective_rolls=30)
         assert sum(r.values()) == 50
-        # base 101 + 鞋25 = 126, 需 (180-126)/3 = 18条（约束硬优先）;
-        # v7.3 a方案: 断点前瞻使速度跨档收益全程可见 + "每超1点→冰抗穿2%"连续加成
-        # → 有效预算速度全取; 双暴在更大有效预算下回填
-        assert r["SPD_PERCENT"] >= 18
+        # v8.6.3 项目主裁定: 速度对齐游戏实战面板(159)——词条封顶8条(基135+8×2.86≈158),
+        # 180门槛(全队+20%伤)按实际面板速度结算不再强配; 省下词条回填双暴/生命
+        assert r["SPD_PERCENT"] == 8
+        assert r["CRIT_RATE"] > 0
         r50 = recommend_substats(_load("xilian"), effective_rolls=50)
+        assert r50["SPD_PERCENT"] == 8  # 高预算也不突破封顶
         assert r50["CRIT_RATE"] > 0
 
     def test_fengjin_spd_200(self):
         r = recommend_substats(_load("fengjin"), effective_rolls=50)
         assert sum(r.values()) == 50
-        # base 110 + 鞋25 = 135, 需 (200-135)/3 = 22条; v7.3: 速度 cap(30) 后剩余回填 HP
-        assert r["SPD_PERCENT"] >= 15
+        # v8.6.3 项目主裁定: 对齐游戏实战(战斗199)——词条封顶6条(基149×1.12+6×3.20≈186,
+        # 含甘霖+6%≈199); 剩余回填生命
+        assert r["SPD_PERCENT"] == 6
         assert r["HP_percent"] > 0
 
     def test_huohuo_no_crit_stack(self):

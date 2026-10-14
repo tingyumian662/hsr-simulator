@@ -174,7 +174,8 @@ class TestLeftoverEvenSplit:
     def test_default_effective30_total50(self):
         r = recommend_substats(_load("seele"))  # 默认有效 30
         assert sum(r.values()) == 50
-        assert r["CRIT_RATE"] + r["CRIT_DMG"] == 30  # 有效恰为 30
+        # v8.5.0 实机表: 有效30 = CR13+CD5+ATK12（每roll变大→暴击条数减少, ATK入池）
+        assert r["CRIT_RATE"] + r["CRIT_DMG"] + r["ATK_percent"] == 30
         assert r["SPD_PERCENT"] <= 5  # 无信号速度仅均摊
 
     def test_huohuo_even_spread(self):

@@ -6,7 +6,7 @@
 3. 欢迎来到银河城(银狼): SPD18-30 + 欢愉伤害无视防20-36(elation专属) +
    对自身终结技→+20-40笑点(1次, 3普攻重置; 裁决15: 笑点=银狼隐藏分等价,
    净扣 60-20行迹-20光锥=20)
-连带修复: 银狼 silver_ult 直调路径此前不发光锥 on_ult 事件(终结技光锥对其失效)。
+连带修复: 银狼Lv.999 yl_ult(原silver_ult) 直调路径此前不发光锥 on_ult 事件(终结技光锥对其失效)。
 """
 import random
 import sys
@@ -82,11 +82,11 @@ class TestGalaxyCity:
 
     def test_ult_net_cost_20(self):
         """银狼开大净扣20: 60 - 行迹20 - 光锥20(经笑点实时同步回隐藏分)。"""
-        from engine.characters.yinlang import silver_ult
+        from engine.characters.yinlang import yl_ult
         u = _unit('yinlang', lc_id=GALAXY)
         st = _state(u)
         u.hidden_score = 120.0
-        silver_ult(u, st)
+        yl_ult(u, st)
         assert u.hidden_score == pytest.approx(120.0 - 60.0 + 20.0 + 20.0)
         assert st.laugh_points == pytest.approx(20.0)  # 全队池+20
 

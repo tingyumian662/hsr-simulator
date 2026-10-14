@@ -16,7 +16,7 @@ from engine.characters.hysilens import _hysilens_field
 from engine.characters.qianye import _qianye_enter_wrath, _qianye_e6_gain_charge, _qianye_exit_wrath
 from engine.characters.sunday import _sunday_apply_mentor, _sunday_apply_cr_buff, _sunday_skill, _sunday_tick
 from engine.characters import register_all_elation_skill_hooks as _register_elation_skill_hooks
-from engine.characters.yinlang import _silver_wolf_apply_entry_effects
+from engine.characters.yinlang import _yl_apply_entry_effects
 from engine.runtime import SimState, SimUnit, TimedBuff, _enemy_for_damage
 from engine.core.damage import calculate_damage
 from engine.models.character import load_character
@@ -329,8 +329,8 @@ def test_silver_wolf_speed_trace_and_enhanced_basic_deal_damage():
     stats = state.extra["_elation"].eff_stats(silver, state, base_stats=silver.base_stats)
     hp_before = enemy.HP
 
-    from engine.characters.yinlang import silver_enhanced_basic
-    silver_enhanced_basic(silver, state)
+    from engine.characters.yinlang import yl_enhanced_basic
+    yl_enhanced_basic(silver, state)
 
     assert stats.ELATION_LEVEL > silver.base_stats.ELATION_LEVEL
     assert enemy.HP < hp_before
@@ -341,7 +341,7 @@ def test_silver_wolf_entry_effects_and_hidden_score_thresholds():
     enemy = _enemy(res=0.20)
     state = _state(silver, enemy=enemy)
 
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
 
     assert "yinlang_e1_vuln" not in enemy.extra
     assert enemy.get_res("物理") == pytest.approx(0.0)
@@ -443,8 +443,8 @@ def test_silver_wolf_enhanced_damage_matches_hp_loss_and_blindbox_decay(monkeypa
     monkeypatch.setattr(elation_module.random, "choice", lambda values: values[0])
     hp_before = enemy.HP
 
-    from engine.characters.yinlang import silver_enhanced_basic
-    silver_enhanced_basic(silver, state)
+    from engine.characters.yinlang import yl_enhanced_basic
+    yl_enhanced_basic(silver, state)
 
     assert hp_before - enemy.HP == pytest.approx(silver.total_damage_dealt)
     assert silver.extra["yinlang_blindbox_prob"] == pytest.approx(0.20)
@@ -511,15 +511,15 @@ def test_silver_wolf_e1_vulnerability_is_scoped_to_invincible_field():
     enemy = _enemy()
     state = _state(silver, enemy=enemy)
 
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     assert "yinlang_e1_vuln" not in enemy.extra
 
     silver.invincible_active = True
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     assert enemy.extra["yinlang_e1_vuln"] == pytest.approx(0.20)
 
     silver.invincible_active = False
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     assert "yinlang_e1_vuln" not in enemy.extra
 
 
@@ -528,7 +528,7 @@ def test_silver_wolf_death_clears_e1_field():
     enemy = _enemy()
     state = _state(silver, enemy=enemy)
     silver.invincible_active = True
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     silver.current_hp = 0
 
     _check_fatal(state, silver)
@@ -577,8 +577,8 @@ def test_silver_wolf_technique_triggers_each_wave_with_fixed_laugh_count(monkeyp
 
     next_enemy = _enemy(hp=1_000_000.0)
     state.enemies = [next_enemy]
-    from engine.characters.yinlang import silver_technique_wave
-    silver_technique_wave(silver, state)
+    from engine.characters.yinlang import yl_technique_wave
+    yl_technique_wave(silver, state)
     assert next_enemy.HP < 1_000_000.0
 
 
@@ -631,7 +631,7 @@ def test_silver_wolf_e4_does_not_boost_ordinary_blindbox(monkeypatch):
         state.elation_state.grant_good_show("yinlang", 1.0)
         state.extra['_elation'] = ElationSystem()
         monkeypatch.setattr(elation_module.random, "random", lambda: 0.5)
-        from engine.characters.yinlang import silver_blindbox
-        return silver_blindbox(silver, state)
+        from engine.characters.yinlang import yl_blindbox
+        return yl_blindbox(silver, state)
 
     assert blindbox_damage(4) == pytest.approx(blindbox_damage(3))

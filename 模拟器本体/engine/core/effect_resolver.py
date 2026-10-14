@@ -927,13 +927,13 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "zhenzhu_e4": {"trigger": None, "action": None, "source_name": "真珠E4"},
     "zhenzhu_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "真珠E5"},
     "zhenzhu_e6": {"trigger": None, "action": None, "source_name": "真珠E6"},
-    # 银狼
-    "yinlang_e1": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e1, "source_name": "银狼E1"},
-    "yinlang_e2": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e2, "source_name": "银狼E2"},
-    "yinlang_e3": {"trigger": "on_enter_battle",  "action": _eid_skill_levels, "source_name": "银狼E3"},
-    "yinlang_e4": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e4, "source_name": "银狼E4"},
-    "yinlang_e5": {"trigger": "on_enter_battle",  "action": _eid_skill_levels, "source_name": "银狼E5"},
-    "yinlang_e6": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e6, "source_name": "银狼E6"},
+    # 银狼Lv.999（狼尊, yinlang·欢愉）——与 silver_wolf(银狼·虚无) 的"银狼E*"日志从此可分辨
+    "yinlang_e1": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e1, "source_name": "银狼Lv.999 E1"},
+    "yinlang_e2": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e2, "source_name": "银狼Lv.999 E2"},
+    "yinlang_e3": {"trigger": "on_enter_battle",  "action": _eid_skill_levels, "source_name": "银狼Lv.999 E3"},
+    "yinlang_e4": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e4, "source_name": "银狼Lv.999 E4"},
+    "yinlang_e5": {"trigger": "on_enter_battle",  "action": _eid_skill_levels, "source_name": "银狼Lv.999 E5"},
+    "yinlang_e6": {"trigger": "on_enter_battle",  "action": yinlang._eid_yinlang_e6, "source_name": "银狼Lv.999 E6"},
     # 海瑟音星魂效果由 combat_engine 的DOT/结界生命周期统一消费，注册表保留
     # 明确入口，避免 JSON hook 名称落空或被重复触发。
     "hysilens_e1": {"trigger": None, "action": None, "source_name": "海瑟音E1（DOT倍率，内联）"},

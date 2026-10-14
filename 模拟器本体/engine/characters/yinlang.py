@@ -1,4 +1,8 @@
-"""银狼·欢愉（试点 M3 自 combat_engine/elation/techniques/effect_resolver 迁入）"""
+"""银狼Lv.999（狼尊）·欢愉（试点 M3 自 combat_engine/elation/techniques/effect_resolver 迁入）
+
+角色身份: id=yinlang | name=银狼Lv.999(别名狼尊, 出自强化普攻"狼尊时刻") | 命途=欢愉 |
+元素=虚数 | 特殊能量=隐藏分(参演编号999, 无常规能量) —— 与 silver_wolf(银狼, 虚无) 不是
+同一角色; 两狼判据按 id（裁决16, 见 欢愉机制口径.md 零、术语）。"""
 
 import copy
 import random
@@ -8,7 +12,7 @@ from engine.core.damage import calculate_damage
 from engine.systems.elation import gain_laugh
 
 
-def _silver_wolf_apply_entry_effects(state):
+def _yl_apply_entry_effects(state):
     """银狼E1/E6：对当前波敌人施加入场领域效果。"""
     sw = next((x for x in state.units if x.char.id == 'yinlang'
                and x.is_alive), None)
@@ -39,7 +43,7 @@ def _silver_wolf_apply_entry_effects(state):
 
 def _eid_yinlang_e1(u, state, **kw):
     """银狼E1: 结界内敌方受伤+20% + 退出无敌保留20%隐藏分"""
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     state.log.append('  银狼E1: 敌方受伤+20%, 退出无敌保留20%隐藏分')
 
 
@@ -50,12 +54,12 @@ def _eid_yinlang_e2(u, state, **kw):
 
 def _eid_yinlang_e4(u, state, **kw):
     """银狼E4: 崩坏级欢愉伤害×5笑点"""
-    pass  # 在 _silver_invincible_elation（崩坏级伤害演示）中处理
+    pass  # 在 _yl_invincible_elation（崩坏级伤害演示）中处理
 
 
 def _eid_yinlang_e6(u, state, **kw):
     """银狼E6: 强化普攻欢愉增笑50% + 禁限弱点"""
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     state.log.append('  银狼E6: 欢愉增笑+50%, 禁限弱点植入(全属性弱点+抗性归零/-20%)')
 
 
@@ -63,10 +67,10 @@ def _yl_ai(u, state, *, elation, max_av=None, navs=None, uidx=None, **__):
     # 裁决13: 奖励关暂停后的再施放额外回合(优先于常规分支)
     if 'yinlang_reward_state' in u.extra:
         seg, bb = u.extra.pop('yinlang_reward_state')
-        silver_enhanced_basic(u, state, seg_left=seg, bb_left=bb)
+        yl_enhanced_basic(u, state, seg_left=seg, bb_left=bb)
         return
     if u.invincible_active:
-        silver_enhanced_basic(u, state)
+        yl_enhanced_basic(u, state)
     elif u.hidden_score >= HS_ULT_COST:
         # 动态开大阈值: 开大后剩余HS需≥120才能吃满30%独立乘区
         # 开大消耗60, 行迹返还20 → 基础阈值160; 戴银河城且回笑已臂时再降N(叠影档)
@@ -81,7 +85,7 @@ def _yl_ai(u, state, *, elation, max_av=None, navs=None, uidx=None, **__):
         # 近结束时允许提前开大(不掉轴)
         can_early = remaining < 350 and u.hidden_score >= HS_ULT_COST + HS_TALENT_GAIN
         if u.hidden_score >= hs_threshold or can_early:
-            silver_ult(u, state)
+            yl_ult(u, state)
             navs[uidx] = state.current_av
         elif state.skill_points > 0:
             _use_skill(u, state, "skill")
@@ -98,7 +102,7 @@ def _tech_yinlang(state, u, is_opener):
     if not is_opener:
         return
     state.extra['yinlang_tech_active'] = True
-    silver_technique_wave(u, state)  # 银狼在场即欢愉队, 系统实例由函数内兜底
+    yl_technique_wave(u, state)  # 银狼在场即欢愉队, 系统实例由函数内兜底
     state.log.append('[秘技] 朋友，这才是T0级秘技: 本波次盲盒已触发(固定99好活)')
 
 
@@ -115,7 +119,7 @@ def _laugh_gen(u, state, skill_key):
         gain_laugh(state, laugh)
 
 
-def _silver_invincible_elation(u, state, skill_key):
+def _yl_invincible_elation(u, state, skill_key):
     """银狼无敌玩家欢愉技：6×90%弹射"""
     if u.char.id == "yinlang" and u.invincible_active and skill_key == "elation_skill":
         total = 0.0
@@ -144,7 +148,7 @@ def _silver_invincible_elation(u, state, skill_key):
 
 CHAR_ID = "yinlang"
 ELATION_GATED = True  # AI/SKILL_HOOKS 仅欢愉队激活（M3 语义保持）
-SKILL_HOOKS = [_silver_invincible_elation, _laugh_gen]
+SKILL_HOOKS = [_yl_invincible_elation, _laugh_gen]
 AI = _yl_ai
 TECHNIQUE = _tech_yinlang
 
@@ -210,7 +214,7 @@ def _elation_sys(state):
     return state.extra.get('_elation') or ElationSystem()
 
 
-def silver_ult(u, state):
+def yl_ult(u, state):
     elation = _elation_sys(state)
     hs = u.hidden_score
     if hs < HS_ULT_COST:
@@ -226,7 +230,7 @@ def silver_ult(u, state):
     u.invincible_active = True
     u.invincible_basics_done = 0
     u.extra['yinlang_blindbox_prob'] = 1.0
-    _silver_wolf_apply_entry_effects(state)
+    _yl_apply_entry_effects(state)
     # v8.0.0: 直调路径补光锥 on_ult 派发(欢迎来到银河城等终结技光锥此前对银狼永不触发)
     from engine.core.combat_engine import _process_lc_effects
     _process_lc_effects(u, state, "on_ult")
@@ -246,7 +250,7 @@ def silver_ult(u, state):
         f'CD+{elation._hidden_score_cd(ha,u.base_stats.CRIT_RATE)*100:.1f}%')
 
 
-def silver_blindbox(u, state, *, force=False, laugh_n_override=None):
+def yl_blindbox(u, state, *, force=False, laugh_n_override=None):
     """Trigger Silver Wolf's good-show blindbox when a skill point is spent."""
     from engine.core.combat_engine import _gain_skill_points
     elation = _elation_sys(state)
@@ -301,14 +305,14 @@ def silver_blindbox(u, state, *, force=False, laugh_n_override=None):
     return total
 
 
-def silver_technique_wave(u, state):
+def yl_technique_wave(u, state):
     """秘技召唤物：每个波次开始固定触发一次盲盒，欢愉计数固定为99。"""
     if not u.is_alive:
         return 0.0
-    return silver_blindbox(u, state, force=True, laugh_n_override=99.0)
+    return yl_blindbox(u, state, force=True, laugh_n_override=99.0)
 
 
-def silver_enhanced_basic(u, state, seg_left=None, bb_left=None):
+def yl_enhanced_basic(u, state, seg_left=None, bb_left=None):
     """奖励关（强化普攻）。v7.26.5 裁决12/13 重构:
     - 盲盒交错: 每33段弹射暂停触发1次(共3次; 暂停点=剩余67/34/1段), 非集中末尾
     - 全灭暂停: 记录剩余段数/盲盒次数结束本次技能, 新敌入场后经 _yl_reward_resume
@@ -434,7 +438,7 @@ def silver_enhanced_basic(u, state, seg_left=None, bb_left=None):
         u.hidden_score = retained
         u.extra['yinlang_blindbox_prob'] = 1.0
         u.extra.pop('yinlang_e2_next_threshold', None)
-        _silver_wolf_apply_entry_effects(state)
+        _yl_apply_entry_effects(state)
         state.log.append(f'  退出无敌玩家，隐藏分保留{retained:.0f}，LC重置')
 
 

@@ -140,9 +140,11 @@ def test_keel_constraint_panel():
     assert "效果抵抗≥30" in cons
     c = cons["效果抵抗≥30"]
     assert c["met"] is False  # 希儿行迹抵抗 10% < 30 → 未达标
-    # 建议条数 = ceil((30 - 当前抵抗%) / 2.5)
+    # 建议条数 = ceil((30 - 当前抵抗%) / 中档抵抗值)（v8.5.0 实机表: 4.32×1.1）
     import math
-    expected = math.ceil((30 - c["current"]) / 2.5)
+    from engine.constants import SUB_STAT_VALUES, SUBSTAT_ROLL_FACTOR
+    mid_er = SUB_STAT_VALUES[StatType.EFFECT_RES][1] * SUBSTAT_ROLL_FACTOR
+    expected = math.ceil((30 - c["current"]) / mid_er)
     assert c["suggest_rolls"] == expected
 
 

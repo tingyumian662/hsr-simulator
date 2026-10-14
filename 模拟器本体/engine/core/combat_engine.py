@@ -3163,9 +3163,9 @@ def _deduct_skill_point_cost(state, u, sp_cost) -> bool:
                            if ally.char.id == 'yinlang' and ally.is_alive
                            and ally.invincible_active), None)
             if silver:
-                from engine.characters.yinlang import silver_blindbox
+                from engine.characters.yinlang import yl_blindbox
                 for _ in range(spent_points):
-                    silver_blindbox(silver, state)
+                    yl_blindbox(silver, state)
             return True
     if state.skill_points < sp_cost:
         state.log.append(f'  [WARN] {u.char.name} 战技点不足({state.skill_points}<{sp_cost}), 无法使用技能')
@@ -3212,9 +3212,9 @@ def _deduct_skill_point_cost(state, u, sp_cost) -> bool:
                    if ally.char.id == 'yinlang' and ally.is_alive
                    and ally.invincible_active), None)
     if silver:
-        from engine.characters.yinlang import silver_blindbox
+        from engine.characters.yinlang import yl_blindbox
         for _ in range(spent_points):
-            silver_blindbox(silver, state)
+            yl_blindbox(silver, state)
     return True
 
 
@@ -3845,6 +3845,9 @@ def _us_heal_effects(u: SimUnit, state: SimState, skill, skill_key: str,
                         * skill_level_factor)
             ms.current_hp = min(ms.max_hp, ms.current_hp + heal_val)
             state.log.append(f'  治疗忆灵: {ms.data.name}+{heal_val:.0f}HP')
+            # v8.7.0 项目主裁定: 对忆灵的治疗量同样计入新蕊（12%/人/动 逐目标独立计帽）
+            from engine.characters.xiadie import _xiadie_heal_to_xinrui
+            _xiadie_heal_to_xinrui(state, [ms], heal_val)
             continue
         if eff.target in ('all_allies', 'all_allies_but_memsprite'):
             # 全队治疗: 角色 + 忆灵（忆灵治疗也计入→收容的暗潮转化）
@@ -4388,14 +4391,14 @@ def _respawn_wave(state):
     if sw_e2:
         for e in state.enemies:
             e.vulnerability = getattr(e, 'vulnerability', 0.0) + 0.20
-    from engine.characters.yinlang import _silver_wolf_apply_entry_effects
-    _silver_wolf_apply_entry_effects(state)
+    from engine.characters.yinlang import _yl_apply_entry_effects
+    _yl_apply_entry_effects(state)
     if state.extra.get('yinlang_tech_active'):
         yinlang = next((x for x in state.units
                         if x.char.id == 'yinlang' and x.is_alive), None)
         if yinlang:
-            from engine.characters.yinlang import silver_technique_wave
-            silver_technique_wave(yinlang, state)
+            from engine.characters.yinlang import yl_technique_wave
+            yl_technique_wave(yinlang, state)
     # v6.7b: 大丽花E2「敌方目标入场时陷败谢+全抗-20%」对新波敌人同样生效
     dl_e2 = next((x for x in state.units if x.char.id == 'the_dahlia'
                   and x.is_alive and x.eidolon_rank >= 2), None)
@@ -5551,10 +5554,10 @@ def _begin_regular_turn(state, u):
     from engine.characters.huohuo import _huohuo_ruming_heal_all
     _huohuo_ruming_heal_all(state, u)
 
-    # 遐蝶行迹3: 任意单位行动后重置治疗转化计数
-    state.extra['xiadie_heal_conv'] = 0.0
+    # 遐蝶"收容的暗潮": 任意单位行动后重置逐人转化预算（v8.7.0: 12%/人/动 逐目标独立）
+    state.extra['xiadie_heal_conv'] = {}
     # M5a: late 区 tick（昔涟未来消耗→追忆/万敌致命检查与E2重置/阿格莱雅E2无视防御
-    # 层清除; 顺序锁死于 characters.TURN_TICK_ZONE_ORDER['late']）
+    # 层清除; 顺序锁死于 characters.TURN_TICK_ZONE_ORDER['late'）
     _turn_ticks(state, 'late', u)
 
     # phase-1: 终结技优先决策（规则3: 常规回合释放终结技→自己回合挤到X轴）

@@ -248,19 +248,21 @@ RELIC_ENHANCE_LEVELS = [3, 6, 9, 12, 15]
 
 # 副词条数值档位 (低/中/高档) × 5次全拉满理论最大值
 # 格式: (低档, 中档, 高档, 5次高档最大值)
+# v8.5.0（项目主裁决）: 整表换实机口径——原表百分比类偏低~42%/生命固定偏高5倍
+# （暴击类原本基本吻合）。数值为游戏内 5★ 单roll值（以项目主游戏内核对为准）。
 SUB_STAT_VALUES = {
-    StatType.HP_FLAT:       (234.0, 270.0, 306.0, 1530.0),
-    StatType.ATK_FLAT:      (16.0,  19.0,  23.0,  115.0),
-    StatType.DEF_FLAT:      (16.0,  19.0,  23.0,  115.0),
-    StatType.SPD_PERCENT:   (2.0,   3.0,   4.0,   20.0),
-    StatType.HP_PERCENT:    (2.1,   2.5,   2.9,   14.5),
-    StatType.ATK_PERCENT:   (2.1,   2.5,   2.9,   14.5),
-    StatType.DEF_PERCENT:   (2.6,   3.1,   3.6,   18.0),
-    StatType.CRIT_RATE:     (2.5,   3.0,   3.5,   17.5),
-    StatType.CRIT_DMG:      (5.1,   5.8,   6.5,   32.5),
-    StatType.BREAK_EFFECT:  (4.1,   4.8,   5.5,   27.5),
-    StatType.EFFECT_HIT_RATE: (2.1, 2.5,   2.9,   14.5),
-    StatType.EFFECT_RES:    (2.1,   2.5,   2.9,   14.5),
+    StatType.HP_FLAT:       (42.8,  53.4,  64.1,  320.5),
+    StatType.ATK_FLAT:      (14.3,  17.8,  22.4,  112.0),
+    StatType.DEF_FLAT:      (14.3,  17.8,  22.4,  112.0),
+    StatType.SPD_PERCENT:   (2.0,   2.6,   3.0,   15.0),
+    StatType.HP_PERCENT:    (3.46,  4.32,  5.18,  25.9),
+    StatType.ATK_PERCENT:   (3.46,  4.32,  5.18,  25.9),
+    StatType.DEF_PERCENT:   (4.32,  5.40,  6.48,  32.4),
+    StatType.CRIT_RATE:     (2.59,  3.24,  3.89,  19.45),
+    StatType.CRIT_DMG:      (5.18,  6.48,  7.78,  38.9),
+    StatType.BREAK_EFFECT:  (5.18,  6.48,  7.78,  38.9),
+    StatType.EFFECT_HIT_RATE: (3.46, 4.32,  5.18,  25.9),
+    StatType.EFFECT_RES:    (3.46,  4.32,  5.18,  25.9),
 }
 
 # v7.5.0（项目主指示）: 词条数值整体上调 ×1.1（≈中高档之间的小毕业平均档;

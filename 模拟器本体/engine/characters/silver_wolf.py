@@ -1,4 +1,7 @@
-"""银狼·虚无（M4 批1 迁入；注意与欢愉银狼 yinlang 区分）"""
+"""银狼·虚无（M4 批1 迁入）
+
+角色身份: id=silver_wolf | name=银狼 | 命途=虚无 | 元素=量子 | 能量=常规110 —— 与
+yinlang(银狼Lv.999/狼尊, 欢愉) 不是同一角色; 两狼判据按 id（裁决16）。"""
 
 import copy
 import random

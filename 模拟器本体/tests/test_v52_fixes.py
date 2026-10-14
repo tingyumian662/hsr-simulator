@@ -296,10 +296,10 @@ class TestExpectedCrit:
             (1.0 + 0.51 * 1.50) / (1.0 + 0.49 * 1.50), rel=1e-9,
         )
 
-    def test_silver_enhanced_basic_uses_expected_crit(self):
-        """银狼强化普攻所有伤害段均按期望暴击连续变化。"""
+    def test_yl_enhanced_basic_uses_expected_crit(self):
+        """银狼Lv.999强化普攻所有伤害段均按期望暴击连续变化。"""
         from engine.systems.elation import ElationSystem
-        from engine.characters.yinlang import silver_enhanced_basic
+        from engine.characters.yinlang import yl_enhanced_basic
 
         def enhanced_basic_damage(crit_rate):
             unit = _unit('yinlang')
@@ -311,7 +311,7 @@ class TestExpectedCrit:
             rng_state = random.getstate()
             random.seed(7)
             try:
-                silver_enhanced_basic(unit, state)
+                yl_enhanced_basic(unit, state)
             finally:
                 random.setstate(rng_state)
             return unit.total_damage_dealt

@@ -66,7 +66,7 @@ class TestZeroCharLiterals:
         expect = {  # (函数, 期望条数)——合计 _use_skill 系 17, 其余两函数 3/1
             '_use_skill': 0, '_us_resolve_skill': 0, '_us_pay_costs': 2,
             '_us_hp_costs': 3, '_us_skill_hooks': 0, '_us_damage_loop': 8,
-            '_us_heal_effects': 1, '_us_effects_and_tail': 3,
+            '_us_heal_effects': 2, '_us_effects_and_tail': 3,  # v8.7.0: +1(治疗忆灵→遐蝶充能)
             '_begin_regular_turn': 3, '_apply_skill_effects': 1,
         }
         for fname, want in expect.items():

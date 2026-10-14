@@ -74,22 +74,22 @@ class TestRollFactor:
     """v7.5: 词条数值 ×1.1（推荐器与预览/模拟同口径）"""
 
     def test_mid_value_scaled(self):
-        assert _mid("CRIT_RATE") == pytest.approx(3.0 * 1.1)
-        assert _mid("SPD_percent") == pytest.approx(3.0 * 1.1)
+        assert _mid("CRIT_RATE") == pytest.approx(3.24 * 1.1)  # v8.5.0 实机表中档
+        assert _mid("SPD_percent") == pytest.approx(2.6 * 1.1)  # v8.5.0 实机表中档
 
     def test_factor_value(self):
         assert SUBSTAT_ROLL_FACTOR == pytest.approx(1.1)
 
     def test_preview_uses_same_factor(self):
-        # 预览/模拟路径: 10 条命中 → +10×2.5×1.1 = 27.5%（黑天鹅行迹 10 + 27.5 = 37.5）
+        # 预览/模拟路径: 10 条命中 → +10×4.32×1.1 = 47.5%（黑天鹅行迹 10 + 47.5 = 57.5）（v8.5.0 实机表）
         from engine.models.equipment import RelicPiece
         ch = _load("black_swan")
-        sub = {'EFFECT_HIT_RATE': 10 * 2.5 * SUBSTAT_ROLL_FACTOR / 6.0}
+        sub = {'EFFECT_HIT_RATE': 10 * 4.32 * SUBSTAT_ROLL_FACTOR / 6.0}
         pieces = [RelicPiece(slot=s, set_name='', main_stat_type='', main_stat_value=0,
                              sub_stats=sub)
                   for s in ['head', 'hands', 'body', 'feet', 'planar_sphere', 'link_rope']]
         stats = compute_combat_stats(ch, None, pieces, {})
-        assert stats.EFFECT_HIT_RATE == pytest.approx(0.10 + 10 * 2.5 * 1.1 / 100.0)
+        assert stats.EFFECT_HIT_RATE == pytest.approx(0.10 + 10 * 4.32 * 1.1 / 100.0)  # v8.5.0 实机表
 
 
 class TestRealisticShapes:
@@ -97,7 +97,7 @@ class TestRealisticShapes:
 
     def test_seele_crit_mix(self):
         r = recommend_substats(_load("seele"))
-        assert r["CRIT_RATE"] == 18 and r["CRIT_DMG"] == 12  # 单属性 cap 后 1:2 自然混合
+        assert r["CRIT_RATE"] == 13 and r["CRIT_DMG"] == 5  # v8.5.0 实机表重平衡: 每roll变大→条数减少, ATK(12)进入有效分配
 
     def test_boothill_spd_be_mix(self):
         r = recommend_substats(_load("boothill"))
@@ -131,7 +131,7 @@ class TestManualInputUncapped:
         import engine.constants as C
         from engine.models.character import load_character
         base_spd = load_character("seele", "data/characters").base_SPD
-        expected = base_spd + 40 * 3.0 * C.SUBSTAT_ROLL_FACTOR  # 速度无上限, 40 条全额生效
+        expected = base_spd + 40 * 2.6 * C.SUBSTAT_ROLL_FACTOR  # 速度无上限, 40 条全额生效（v8.5.0 实机表中档2.6）
         assert pv["SPD"] == pytest.approx(expected, abs=0.2)
 
     def test_frontend_input_max_50(self):

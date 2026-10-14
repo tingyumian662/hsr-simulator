@@ -81,10 +81,13 @@ def _trace_fengjin_t3(u, state, **kw):
 
 
 def _eid_fengjin_e1(u, state, **kw):
-    """风堇E1: 攻击后回8%HP"""
+    """风堇E1: 攻击后回8%HP（v8.6.1: 名义治疗量含溢出→直调遐蝶充能;
+    不广播 on_heal 防波及其他消费者——修复范围按裁定限定在遐蝶充能）"""
     heal = u.max_hp * 0.08
     u.current_hp = min(u.max_hp, u.current_hp + heal)
     state.log.append(f'  风堇E1: 攻击后回8%HP +{heal:.0f}')
+    from engine.characters.xiadie import _xiadie_heal_to_xinrui
+    _xiadie_heal_to_xinrui(state, [u], heal)
 
 
 def _eid_fengjin_e2(u, state, total_lost=0, affected=None, **kw):
@@ -142,6 +145,9 @@ def _tech_fengjin(state, u, is_opener):
             eu.current_hp = min(eu.max_hp, eu.current_hp)
     u.extra['tech_maxhp_turns'] = 2
     state.log.append(f'[秘技] 天气正好: 全队回复{heal:.0f}HP + 生命上限+20% 2回合')
+    # v8.6.1: 治疗量(含溢出)直调遐蝶充能——作用域限定, 不广播 on_heal
+    from engine.characters.xiadie import _xiadie_heal_to_xinrui
+    _xiadie_heal_to_xinrui(state, [eu for eu in state.units if eu.is_alive], heal)
 
 
 CHAR_ID = "fengjin"

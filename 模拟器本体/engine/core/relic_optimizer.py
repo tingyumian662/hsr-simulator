@@ -97,6 +97,17 @@ class CharProfile:
 #   其余击破角色 134 = 星铁 150 行动值回合 2 动阈值 floor(150×134/10000)=2）
 # exclude_atk: 放弃攻击词条（流萤, 用户确认）
 
+# v8.6.3（项目主裁定 2026-10-01）: 速度词条封顶——昔涟/风堇速度超配
+# （模拟器 245/297 vs 游戏实战面板 159/199）, 奖励驱动的阈值分配(昔涟≥180全队+20%伤/
+# 风堇>200 HP上限)按游戏实战配装封顶: 词条数到上限即停, 剩余回流输出/生存;
+# 行迹奖励门槛按实际面板速度结算(与游戏一致——昔涟 158 不触发 180 门槛)。
+# 词条数按各人推荐配装换算: 昔涟 基135(101+行迹9+鞋25, 无速度%套装)+8条≈158;
+# 风堇 基149×1.12(烈阳2pc+巨树2pc 各+6%)+6条≈186, 战斗甘霖+6%≈199。
+SPD_ROLL_CAP_CONFIG = {
+    'xilian': 8,
+    'fengjin': 6,
+}
+
 # v7.3: 击破定位显式配置（乱破 BE 行迹仅 13.3 不足 30 且纯空壳无文本信号）
 
 # 命途兜底角色定位（仅空壳角色使用）
@@ -1444,6 +1455,13 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
         cons = list(cons) + [Constraint(StatType.HP_PERCENT.value, "gte",
                                        float(hcc["threshold"]), {})]
 
+    # v8.6.3: 速度词条封顶（SPD_ROLL_CAP_CONFIG）——移除速度达标硬约束(mandatory 不再
+    # 无视上限冲阈值), SPD 词条上限压到配置值。
+    spd_roll_cap = SPD_ROLL_CAP_CONFIG.get(char.id)
+    if spd_roll_cap is not None:
+        cons = [c for c in cons
+                if not (c.stat == StatType.SPD_PERCENT.value and c.op in ("gte", "gt"))]
+
     mandatory, rewards = _solve_constraints(
         char, mains, cons, strict_lt=True,
         cap_fn=lambda s, m: _roll_cap(s, m, total_rolls), base_stats=base,
@@ -1464,6 +1482,8 @@ def recommend_substats_full(char: Character, lc=None, pieces=None, relic_sets=No
     # 不真实——银狼Lv.999"30 条全速度"问题）; mandatory 约束达标不受此限（配装需求）
     stat_caps = {s: min(_roll_cap(s, mains, total_rolls),
                         math.ceil(effective_rolls * SUBSTAT_SINGLE_SHARE)) for s in pool}
+    if spd_roll_cap is not None and 'SPD_percent' in stat_caps:
+        stat_caps['SPD_percent'] = min(stat_caps['SPD_percent'], spd_roll_cap)
     dist = _distribute_marginal(
         char, mains, pool, effective_rolls, mandatory, rewards, cons,
         profile=profile, base_stats=base, stat_caps=stat_caps,

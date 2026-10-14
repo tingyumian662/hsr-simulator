@@ -74,7 +74,7 @@ class TestMydeiBudget:
     def test_equipped_rebalance_no_overflow(self):
         char = load_character("mydei")
         r = recommend_substats_full(char, pieces=_mydei_pieces())["rolls"]
-        assert (r["CRIT_RATE"], r["CRIT_DMG"], r["HP_percent"]) == (7, 9, 14)
+        assert (r["CRIT_RATE"], r["CRIT_DMG"], r["HP_percent"]) == (10, 12, 8)  # v8.5.0 实机表重平衡
         base = compute_combat_stats(char, None, _mydei_pieces(), {})
         total = base.CRIT_RATE + 0.48 + r["CRIT_RATE"] * MID_CR / 100.0
         assert total <= 1.0 + 1e-6
@@ -85,8 +85,8 @@ class TestMydeiBudget:
         assert len(hp_cons) == 1
         assert hp_cons[0]["threshold"] == 4000.0
         assert hp_cons[0]["name"] == "HP≥4000"
-        # 面板 3439 → 缺口 561 点; HP% 条 = 2.75%×白值1552 ≈ 42.7 点 → 14 条
-        assert hp_cons[0]["suggest_rolls"] == 14
+        # v8.5.0 实机表: HP%条=4.32%×1.1×白值 ≈ 73.6 点 → 缺口561/73.6 → 8 条
+        assert hp_cons[0]["suggest_rolls"] == 8
 
 
 class TestConvertBoundaries:
@@ -135,7 +135,7 @@ class TestAnaxaTeamPassive:
 
     def test_solo_knowledge_team_gets_cd_passive(self):
         r = self._rolls(["智识", "毁灭", "丰饶", "巡猎"])
-        assert (r["CRIT_RATE"], r["CRIT_DMG"]) == (18, 4)
+        assert (r["CRIT_RATE"], r["CRIT_DMG"]) == (18, 0)  # v8.5.0 实机表: CD被动下CR追满后余量转攻
 
     def test_two_knowledge_or_no_context_unchanged(self):
         base = self._rolls()
@@ -166,4 +166,4 @@ class TestApiTeamContext:
         duo = _post([second_knowledge, "huohuo", "fengjin"])
         # API 构建头/手主词条装备上下文: 智识×1 → CD+140 生效(CR 追高); ×2 → 不生效
         assert solo["CRIT_RATE"] == 18
-        assert duo["CRIT_RATE"] == 16
+        assert duo["CRIT_RATE"] == 7  # v8.5.0 实机表: 被动不生效=无被动基态(7条追平)

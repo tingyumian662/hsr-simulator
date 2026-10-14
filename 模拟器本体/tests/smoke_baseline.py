@@ -42,7 +42,18 @@ MAIN_VALUES = {}
 for _pool in RELIC_MAIN_STAT_VALUES.values():
     for _st, _val in _pool.items():
         MAIN_VALUES.setdefault(_st.name, _val)
-MAIN_STAT_TYPE = {k: getattr(StatType, k, k) for k in MAIN_VALUES}
+        MAIN_VALUES.setdefault(_st.value, _val)  # v8.5.0: value形别名(HP_percent等)——
+        # 与 web/api.py v7.17.0 同款; 此前 HP_percent 主词条在此构造器被静默归零
+
+
+def _main_stat_of(key):
+    try:
+        return StatType(key)               # value 形（HP_percent）
+    except ValueError:
+        return getattr(StatType, key, key)  # name 形（HP_PERCENT）
+
+
+MAIN_STAT_TYPE = {k: _main_stat_of(k) for k in MAIN_VALUES}
 
 DEFAULT_ATTACKS = [{"name": "挥击", "element": "物理", "damage_type": "direct",
                     "multiplier": 100.0, "target_type": "single_enemy", "priority": 0}]

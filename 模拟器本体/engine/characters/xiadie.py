@@ -63,33 +63,41 @@ def _eid_xiadie_e6(u, state, **kw):
 
 
 def _xiadie_heal_to_xinrui(state, targets, heal_amt):
-    """行迹3·收容的暗潮: 除死龙外队友治疗→100%转化为新蕊。
-    死龙在场→转化为死龙HP。每人上限=新蕊上限12%(4080)，任意单位行动后重置。"""
-    if not targets:
+    """治疗→新蕊/龙血充能（"收容的暗潮"载体）。
+    口径演进: v8.6.0 治疗计入充能(名义量含溢出) → v8.7.0 项目主裁定——
+    ①风堇战技/终结技为全体治疗, 忆灵也算我方目标; ②对忆灵的治疗同样转化;
+    ③转化按 12%/人/动 逐目标独立计帽(每个受疗者含忆灵各享新蕊上限12%的预算,
+    名义治疗量含溢出部分照计), 任意单位行动后重置。"""
+    if not targets or heal_amt <= 0:
         return
-    total_heal = heal_amt * len(targets)  # 全队治疗总量
+    xiadie = next((x for x in state.units
+                   if x.is_alive and getattr(x.char, 'id', '') == 'xiadie'), None)
+    if xiadie is None:
+        return
+    cap = xiadie_xinrui_cap(xiadie)
+    per_cap = cap * 0.12
+    conv_map = state.extra.setdefault('xiadie_heal_conv', {})
+    total = 0.0
     for t in targets:
-        if not hasattr(t, 'char') or not hasattr(t.char, 'id') or t.char.id != 'xiadie':
+        key = id(t)
+        used = conv_map.get(key, 0.0)
+        amt = min(heal_amt, per_cap - used)  # 溢出照计, 但每人每动封顶12%
+        if amt <= 0:
             continue
-        # 每人累计转化上限 = 新蕊上限×12%（4080/8160），任意单位行动后重置
-        cap = xiadie_xinrui_cap(t)
-        conv_limit = cap * 0.12
-        conv = state.extra.setdefault('xiadie_heal_conv', 0.0)
-        if conv >= conv_limit:
-            continue
-        cap_amt = min(total_heal, conv_limit - conv)
-        conv += cap_amt
-        state.extra['xiadie_heal_conv'] = conv
-        dragon = t.memsprite_unit
-        if dragon and dragon.is_alive:
-            # 死龙在场: 治疗→死龙HP恢复
-            dragon.current_hp = min(dragon.max_hp, dragon.current_hp + cap_amt)
-            state.log.append(f'  收容的暗潮: 治疗→死龙回血+{cap_amt:.0f} (HP={dragon.current_hp:.0f}/{dragon.max_hp:.0f})')
-        else:
-            old_xr = t.xinrui
-            t.xinrui = min(cap, t.xinrui + cap_amt)
-            if t.xinrui - old_xr > 1:
-                state.log.append(f'  新蕊+{t.xinrui - old_xr:.0f} (治疗转化) → {t.xinrui:.0f}/{cap:.0f}')
+        conv_map[key] = used + amt
+        total += amt
+    if total <= 0:
+        return
+    dragon = xiadie.memsprite_unit
+    if dragon and dragon.is_alive:
+        dragon.current_hp = min(dragon.max_hp, dragon.current_hp + total)
+        state.log.append(f'  治疗充能: 死龙回血+{total:.0f} '
+                         f'(HP={dragon.current_hp:.0f}/{dragon.max_hp:.0f})')
+        return
+    old_xr = xiadie.xinrui
+    xiadie.xinrui = min(cap, xiadie.xinrui + total)
+    if xiadie.xinrui - old_xr > 1:
+        state.log.append(f'  治疗充能: 新蕊+{xiadie.xinrui - old_xr:.0f} → {xiadie.xinrui:.0f}/{cap:.0f}')
 
 
 def _tech_xiadie(state, u, is_opener):
@@ -287,21 +295,51 @@ def _xiadie_e1_mult(state, t):
     return 1.40 if ratio <= 0.50 else (1.20 if ratio <= 0.80 else 1.0)
 
 
+def _xd_dragon_stats(state, summoner, ms_unit):
+    """死龙伤害面板（2026-10-01 项目主裁定③: 队友增益覆盖）: 忆灵快照 + LC 条件修正
+    （_ms_effective_stats 原口径）再叠加召唤者战斗中的动态 TimedBuff——长夜月暴伤/
+    天赋增伤叠层/昔涟增益/战斗 buff 由此进龙伤（真实游戏忆灵继承召唤者动态面板）。"""
+    from engine.core.combat_engine import _apply_stat
+    from engine.systems.remembrance import _ms_effective_stats
+    s = _ms_effective_stats(ms_unit, state)
+    for b in getattr(summoner, 'buffs', []):
+        for attr, val in (b.attributes or {}).items():
+            _apply_stat(s, attr, val)
+    return s
+
+
+def _apply_nuxiao_roar(state):
+    """忆灵天赋·震彻寂壤的怒啸（v8.6.2, 游戏面板实证）: 死龙被召唤时,
+    我方全体造成的伤害提高10%, 持续3回合（同源刷新）。"""
+    from engine.runtime import TimedBuff
+    for eu in state.units:
+        if eu.is_alive:
+            pid = 'xiadie_nuxiao'
+            eu.buffs = [b for b in eu.buffs if getattr(b, 'param_id', '') != pid]
+            eu.buffs.append(TimedBuff(source_id='xiadie',
+                                      attributes={'DMG_BONUS_ALL': 10.0},
+                                      remaining_turns=3, param_id=pid,
+                                      source_name='震彻寂壤的怒啸'))
+    state.log.append('  震彻寂壤的怒啸: 全队伤害+10% (3回合)')
+
+
 def _calc_flame_damage(state, summoner, ms_unit, multiplier):
     """焰息伤害：遐蝶生命上限% × multiplier（用户确认: 死龙伤害倍率全部按遐蝶生命计算,
-    非死龙HP=34000; v5.6.1: 忆灵有效面板含暂存 buff）"""
+    非死龙HP=34000; v5.6.1: 忆灵有效面板含暂存 buff; v8.6.0 裁决③: 叠加召唤者动态buff）"""
     from engine.core.damage import calculate_damage
     from engine.core.combat_engine import _commit_enemy_damage
-    from engine.systems.remembrance import _ms_effective_stats
     alive = [e for e in state.enemies if e.HP > 0] or state.enemies
+    stats = _xd_dragon_stats(state, summoner, ms_unit)
     total = 0.0
     speed_boost = False
     for t in alive:
         mult = multiplier
         if summoner.eidolon_rank >= 1:
             mult = mult * _xiadie_e1_mult(state, t)
-        d = calculate_damage(_ms_effective_stats(ms_unit, state), t, summoner.max_hp, mult,
-                            "direct", "量子", 80, summoner.base_stats.CRIT_RATE >= 0.5, crit_mode="expected")
+        d = calculate_damage(stats, t, summoner.max_hp, mult,
+                            "direct", "量子", 80, stats.CRIT_RATE >= 0.5,
+                            crit_mode="expected",
+                            true_dmg_ratio=getattr(state, 'realm_true_dmg', 0.0))
         total += d.final_damage
         _, killed = _commit_enemy_damage(state, summoner, t, d.final_damage)
         if killed:
@@ -313,12 +351,14 @@ def _calc_flame_damage(state, summoner, ms_unit, multiplier):
 
 
 def _trigger_dragon_death(state, summoner, ms_unit):
-    """死龙消失→灼掠幽墟的晦翼：6次弹射(死龙HP×40%)+全队回血"""
+    """死龙消失→灼掠幽墟的晦翼：6次弹射(遐蝶生命上限40%)+全队回血
+    （v8.6.0 裁决③: 伤害面板叠加召唤者动态buff）"""
     from engine.core.damage import calculate_damage
     from engine.core.combat_engine import _commit_enemy_damage
-    from engine.systems.remembrance import RemembranceSystem, _ms_effective_stats
+    from engine.systems.remembrance import RemembranceSystem
     alive = state.alive_enemies() or state.enemies
     bounce_count = 9 if summoner.eidolon_rank >= 6 else 6  # E6: 弹射+3
+    stats = _xd_dragon_stats(state, summoner, ms_unit)
     total = 0.0
     # 献予「生死」之诗: 溢出消费的晦翼倍率加成
     huiyi_bonus = ms_unit.extra.get('huiyi_mult_bonus', 0.0)
@@ -330,8 +370,10 @@ def _trigger_dragon_death(state, summoner, ms_unit):
         mult = 40.0 + huiyi_bonus
         if summoner.eidolon_rank >= 1:
             mult = mult * _xiadie_e1_mult(state, t)
-        d = calculate_damage(_ms_effective_stats(ms_unit, state), t, summoner.max_hp, mult,
-                            "direct", "量子", 80, summoner.base_stats.CRIT_RATE >= 0.5, crit_mode="expected")
+        d = calculate_damage(stats, t, summoner.max_hp, mult,
+                            "direct", "量子", 80, stats.CRIT_RATE >= 0.5,
+                            crit_mode="expected",
+                            true_dmg_ratio=getattr(state, 'realm_true_dmg', 0.0))
         total += d.final_damage
         _commit_enemy_damage(state, summoner, t, d.final_damage)
     ms_unit.total_damage_dealt += total
@@ -411,6 +453,7 @@ def _xd_ms_build(u, state, ms_data, hp_override):
     ms_unit.runtime_is_backup = True  # v5.2: 后援单位（运行时标记, 不写配置）
     ms_unit.extra['flame_mult'] = 24.0  # 焰息倍率递增起点
     state.memsprites.append(ms_unit)
+    _apply_nuxiao_roar(state)  # v8.6.2: 震彻寂壤的怒啸——死龙召唤→全队伤害+10% 3回合
     u.memsprite_unit = ms_unit
     # 遐蝶E2: 召唤→+2炽意(抵扣焰息HP消耗), 行动提前100%, 下次强化战技+30%新蕊
     if u.eidolon_rank >= 2:

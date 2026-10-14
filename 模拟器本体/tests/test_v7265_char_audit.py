@@ -96,26 +96,26 @@ class TestYinlangFixes:
 
     def test_enhanced_basic_toughness(self):
         """奖励关削韧: 弹射每段0.2(0.2*100)+末击30 → 500韧性→370。"""
-        from engine.characters.yinlang import silver_enhanced_basic
+        from engine.characters.yinlang import yl_enhanced_basic
         u = _unit("yinlang")
         u.hidden_score = 60.0
         u.invincible_active = True
         e = _enemy(hp=10_000_000.0, toughness=500)
         st = _state(u, enemies=[e])
         random.seed(3)
-        silver_enhanced_basic(u, st)
+        yl_enhanced_basic(u, st)
         assert e.toughness == pytest.approx(500 - (100 * 0.2 + 30.0))
 
     def test_blindbox_interleaved_and_suspend(self):
         """弱敌中途全灭 → 暂停(记录剩余段/盲盒, 不计完成次数)。"""
-        from engine.characters.yinlang import silver_enhanced_basic
+        from engine.characters.yinlang import yl_enhanced_basic
         u = _unit("yinlang")
         u.hidden_score = 200.0
         u.invincible_active = True
         e = _enemy(hp=1.0, toughness=0)
         st = _state(u, enemies=[e])
         random.seed(3)
-        silver_enhanced_basic(u, st)
+        yl_enhanced_basic(u, st)
         seg, bb = u.extra["yinlang_reward_state"]
         assert 0 < seg < 100
         assert 1 <= bb <= 3

@@ -49,10 +49,11 @@ class TestRecommendBudget:
         assert self._total_crit_rate(rolls["CRIT_RATE"]) <= 1.0 + 1e-6
 
     def test_pinned_rebalanced_distribution(self):
-        """修复前口径: CR=15/CD=12/HP=3（总暴击 108.2%）→ 修复后溢出条转投暴伤。"""
+        """修复前口径: CR=15/CD=12/HP=3（总暴击 108.2%）→ 修复后溢出条转投暴伤。
+        v8.5.0 实机表重平衡: 每roll变大→暴击条数整体下调（CR 7/CD 15）。"""
         rolls = recommend_substats_full(load_character("changyeyue"))["rolls"]
-        assert rolls["CRIT_RATE"] == 12
-        assert rolls["CRIT_DMG"] == 18
+        assert rolls["CRIT_RATE"] == 7
+        assert rolls["CRIT_DMG"] == 15
         assert rolls["CRIT_RATE"] < 15  # 修复回归线: 回到 15 条即机制失效
 
     def test_weights_unchanged(self):

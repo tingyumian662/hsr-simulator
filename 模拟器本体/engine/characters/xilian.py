@@ -75,15 +75,13 @@ def _eid_xilian_e2(u, state, **kw):
 
 
 def _tech_xilian(state, u, is_opener):
-    """昔涟: 进战展开战技结界（真伤24% 2回合; 不获追忆——秘技非战技）（昔涟.txt 秘技·西风尽头）"""
-    from engine.runtime import SimState
-    if state.realm_owner and state.realm_owner != 'xilian':
-        state.log.append(f'  [WARN] 境界已被{state.realm_owner}占据, 昔涟秘技结界无法展开')
-        return
-    state.realm_owner = 'xilian'
-    state.realm_turns = 2
+    """昔涟: 进战展开战技结界（真伤24% 2回合; 不获追忆——秘技非战技）（昔涟.txt 秘技·西风尽头）
+    v8.6.3: 与战技同口径（v7.2.0 裁决A）——结界不读写 realm_owner、不参与境界互斥,
+    独立倒计时存 xilian_field_turns; 此前秘技路径仍写旧境界系统, 长期占境挡掉
+    遐蝶遗世冥域（速度对齐后时序变化暴露）。"""
+    state.extra['xilian_field_turns'] = 2
     state.realm_true_dmg = 0.24
-    state.log.append('[秘技] 西风尽头: 展开结界(真伤24% 2回合)')
+    state.log.append('[秘技] 西风尽头: 展开结界(真伤24% 2回合, 不占境界)')
 
 
 CHAR_ID = "xilian"
