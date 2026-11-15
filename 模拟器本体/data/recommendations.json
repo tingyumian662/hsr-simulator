@@ -1044,24 +1044,120 @@
       "ENERGY_REGEN",
       "ATK_percent"
     ]
-  }
-,
+  },
   "aventurine_waveflair": {
     "light_cone": "cast_summer_into_waves",
-    "set4": ["闪耀功勋的魔法少女"],
-    "set2": ["零号关卡朋克洛德"],
-    "body": ["CRIT_RATE"],
-    "feet": ["SPD_PERCENT"],
-    "sphere": ["DEF_percent", "HP_percent"],
-    "rope": ["ENERGY_REGEN"]
+    "set4": [
+      "闪耀功勋的魔法少女"
+    ],
+    "set2": [
+      "零号关卡朋克洛德"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DEF_percent",
+      "HP_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN"
+    ]
   },
   "zhenzhu": {
     "light_cone": "hues_devoted_to_tomorrow",
-    "set4": ["戏梦点星的伶人"],
-    "set2": ["生命的翁瓦克"],
-    "body": ["HEAL_BONUS", "DEF_percent"],
-    "feet": ["SPD_PERCENT"],
-    "sphere": ["DEF_percent"],
-    "rope": ["ENERGY_REGEN", "DEF_percent"]
+    "set4": [
+      "戏梦点星的伶人"
+    ],
+    "set2": [
+      "生命的翁瓦克"
+    ],
+    "body": [
+      "HEAL_BONUS",
+      "DEF_percent"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DEF_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "DEF_percent"
+    ]
+  },
+  "dan_heng_imbibitor_lunae": {
+    "light_cone": "brighter_than_the_sun",
+    "set4": [
+      "野穗伴行的快枪手"
+    ],
+    "set2": [
+      "繁星竞技场"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT",
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_IMAGINARY",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ENERGY_REGEN",
+      "ATK_percent"
+    ]
+  },
+  "jing_yuan": {
+    "light_cone": "before_dawn",
+    "set4": [
+      "毁烬焚骨的大公"
+    ],
+    "set2": [
+      "折断的龙骨",
+      "奇想蕉乐园"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "ATK_percent"
+    ],
+    "sphere": [
+      "DMG_BONUS_LIGHTNING",
+      "ATK_percent"
+    ],
+    "rope": [
+      "ATK_percent"
+    ]
+  },
+  "aha": {
+    "light_cone": "when_the_first_aha_rings_out",
+    "set4": [
+      "戏梦点星的伶人"
+    ],
+    "set2": [
+      "瞬息欢愉"
+    ],
+    "body": [
+      "CRIT_RATE"
+    ],
+    "feet": [
+      "SPD_PERCENT"
+    ],
+    "sphere": [
+      "DMG_BONUS_QUANTUM",
+      "HP_percent"
+    ],
+    "rope": [
+      "HP_percent",
+      "DEF_percent"
+    ]
   }
 }

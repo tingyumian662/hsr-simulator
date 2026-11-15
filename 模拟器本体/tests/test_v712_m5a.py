@@ -65,7 +65,8 @@ class TestZeroCharLiterals:
         """钉扎三函数剩余 characters 延迟导入数（M5b 拆段后按段分布, 合计不变）。"""
         expect = {  # (函数, 期望条数)——合计 _use_skill 系 17, 其余两函数 3/1
             '_use_skill': 0, '_us_resolve_skill': 0, '_us_pay_costs': 2,
-            '_us_hp_costs': 3, '_us_skill_hooks': 0, '_us_damage_loop': 8,
+            '_us_hp_costs': 3, '_us_skill_hooks': 0,
+            '_us_damage_loop': 9,  # v9.0.0: +1(黄泉奇缘星魂追击 _acheron_bond_on_ally_attack)
             '_us_heal_effects': 2, '_us_effects_and_tail': 3,  # v8.7.0: +1(治疗忆灵→遐蝶充能)
             '_begin_regular_turn': 3, '_apply_skill_effects': 1,
         }
@@ -84,10 +85,10 @@ class TestOrderLocks:
             'sunday', 'ruan_mei', 'robin', 'acheron', 'feixiao', 'anaxa',
             'jierjialameishi', 'archer', 'yuanbanlin')
         assert TURN_TICK_ZONE_ORDER['post_control'] == ('huohuo',)
-        assert TURN_TICK_ZONE_ORDER['late'] == ('xilian', 'mydei', 'aglaea')
+        assert TURN_TICK_ZONE_ORDER['late'] == ('xilian', 'mydei', 'aglaea', 'aha')  # v9.0.0
 
     def test_settle_pipeline_order_locked(self):
-        assert len(SETTLE_PIPELINE_ORDER) == 20
+        assert len(SETTLE_PIPELINE_ORDER) == 26  # v9.0.0: +饮月×3/+景元/+阿哈/+砂金升格
         assert SETTLE_PIPELINE_ORDER[0] == ('tribbie', 'settle_self')
         assert SETTLE_PIPELINE_ORDER[-1] == ('yuanbanlin', 'settle_self')
 

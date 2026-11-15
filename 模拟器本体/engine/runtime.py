@@ -86,6 +86,7 @@ class SimUnit:
     darkness_charges: int = 0          # 【至暗之谜】充能
     is_sovereign: bool = False         # 【至高之姿】状态（阿格莱雅）
     eidolon_rank: int = 0              # 已激活星魂数（0-6）
+    fate_bond_rank: int = 0            # v9.0.0 奇缘星魂档（0-1; 独立开关, 裁定①）
     last_target_id: str = ""           # 上次攻击目标(enemy.id)，用于忆灵自动选目标
     memsprite_unit: object = None      # 关联的忆灵 MemSpriteUnit
     marker: object = None              # 关联的行动条标记（v5.3: 浮元/完全燃烧倒计时）

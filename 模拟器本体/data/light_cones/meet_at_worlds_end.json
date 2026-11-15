@@ -1,0 +1,34 @@
+{
+  "id": "meet_at_worlds_end",
+  "name": "在世界尽头相会吧！",
+  "rarity": 4,
+  "path": "欢愉",
+  "base_HP": 846,
+  "base_ATK": 476,
+  "base_DEF": 396,
+  "effects": [
+    {
+      "type": "conditional_buff",
+      "condition": "队伍中每有1名「欢愉」命途的角色, 装备者暴击伤害提高6-10%(满4名)",
+      "attributes": {
+        "CRIT_DMG": 24.0
+      },
+      "condition_code": "count:elation_allies:4",
+      "target": "self",
+      "values": [24.0, 28.0, 32.0, 36.0, 40.0]
+    },
+    {
+      "type": "conditional_buff",
+      "condition": "星神★阿哈在场时, 装备者暴击伤害额外提高12-20%",
+      "attributes": {
+        "CRIT_DMG": 12.0
+      },
+      "condition_code": "state_worlds_end_aha",
+      "target": "self",
+      "values": [12.0, 14.0, 16.0, 18.0, 20.0]
+    }
+  ],
+  "default_rank": 1,
+  "_note": "v9.0.0 新四星欢愉光锥; S1: 每欢愉6%/阿哈在场额外12%; 首个按角色id判定的光锥条件",
+  "_source": "光锥技能介绍/四星/欢愉/在世界尽头相会吧！.txt (v9.0.0 批6)"
+}

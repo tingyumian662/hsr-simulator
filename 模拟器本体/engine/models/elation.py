@@ -141,11 +141,14 @@ class ElationBattleState:
 
 # ===== 独立计算函数 =====
 
-def calc_aha_speed(elation_speeds: list[float]) -> float:
-    """阿哈速度: 80 + x/5 + y/10 + z/20 + w/50（xyzw 降序排列）"""
+def calc_aha_speed(elation_speeds: list[float], base_speed: float = 80.0) -> float:
+    """阿哈速度: 80 + x/5 + y/10 + z/20 + w/50（xyzw 降序排列）
+
+    v9.0.0 星神★阿哈专属天赋·阿哈时刻在: 队内有阿哈时基础速度从 80 提高至
+    阿哈的基础速度（base_speed 由调用方传入）。"""
     sorted_speeds = sorted(elation_speeds, reverse=True)
     coefficients = [5.0, 10.0, 20.0, 50.0]
-    speed = 80.0
+    speed = base_speed
     for i, coef in enumerate(coefficients):
         spd = sorted_speeds[i] if i < len(sorted_speeds) else 0.0
         speed += spd / coef

@@ -273,6 +273,11 @@ def _eval_relic_condition(stats: CombatStats, condition: str,
         if _eff_spd >= 120:
             stats.ATK += stats._base_ATK * 0.08
 
+    elif condition == "spd_threshold_145_team_be":
+        # v9.0.0 亚空异容所 2pc: SPD≥145→全队击破特攻+18% (此处仅算自身, 队友在 _apply_team_static_relics)
+        if _eff_spd >= 145:
+            stats.BREAK_EFFECT += 0.18
+
     elif condition == "ehr_to_atk_capped":
         # 泛银河商业公司 2pc: ATK=25%×EHR, 上限25%
         bonus = min(stats.EFFECT_HIT_RATE * 0.25, 0.25)

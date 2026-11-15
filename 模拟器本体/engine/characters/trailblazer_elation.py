@@ -112,6 +112,21 @@ def _eid_tb_elation_e6(u, state, **kw):
 def _tb_ai(u, state, *, elation, **__):
     if u.current_energy >= u.char.max_energy:
         _use_skill(u, state, "ultimate")
+        # v9.0.0 升格(阿哈E2·开拓者线): 终结技暴击伤害提高效果额外+30%并对我方全体生效
+        # (JSON 已给指定单体 50%; 升格: 其余队友 +65, 原目标补增量 +15 → 全员等效65)
+        from engine.characters.aha import ascension_active
+        if ascension_active(state):
+            from engine.runtime import TimedBuff
+            tgt = u.extra.get('lc_last_skill_target')
+            for x in state.units:
+                if not x.is_alive:
+                    continue
+                val = 15.0 if (tgt is not None and x is tgt) else 65.0
+                x.buffs.append(TimedBuff(
+                    source_id='trailblazer_elation', attributes={'CRIT_DMG': val},
+                    remaining_turns=3, param_id='tb_asc_ult_cd',
+                    source_name='升格·终结技暴伤'))
+            state.log.append('  升格·开拓者终结技: 全队暴伤+65%×3回合(等效)')
         # v6.10.3 P1-4: 通用指定单体分支（此前硬编码银狼）
         target = u.extra.get('lc_last_skill_target')
         if target is None:
@@ -189,3 +204,64 @@ def _tb_tech_init(_u, state):
 
 
 OBSERVER_HOOKS['init_tb_tech'] = _tb_tech_init
+
+
+def _tb_pre_aha_cast(u, state, n=None, **kw):
+    """OBSERVER pre_aha_cast: 升格——阿哈欢愉技前先额外触发一次开拓者欢愉技,
+    倍率+300%(×4, 逐倍率整套复制: 弹射8段×20% + 全体60%), 基于我方最高绝活共赏
+    计算; 阿哈真伤改按其伤害的20%计算(aha 模块消费 tb_pre_cast_dmg)。"""
+    import random as _r
+    from engine.characters.aha import ascension_active
+    if not ascension_active(state):
+        return None
+    me = next((x for x in state.units
+               if x.char.id == 'trailblazer_elation' and x.is_alive), None)
+    if me is None:
+        return None
+    stats = _build_effective_stats(me, state)
+    laugh_n = max((state.elation_state.get_good_show_total(x.char.id)
+                   for x in state.units if x.is_alive and x.char.path == '欢愉'),
+                  default=0.0)
+    sk = me.char.skills.get('elation_skill')
+    if not sk or not sk.multipliers:
+        return None
+    alive = list(state.alive_enemies())
+    if not alive:
+        return None
+    total = 0.0
+    for m in sk.multipliers:
+        scale = m.scale * 4.0                       # +300% = ×4
+        mt = m.target or sk.target
+        if mt == 'bounce':
+            for _ in range(int(m.hits or 1)):
+                pool = [e for e in alive if e.HP > 0]
+                if not pool:
+                    break
+                t = _r.choice(pool)
+                d = calculate_damage(stats, _enemy_for_damage(t), 0, scale,
+                                     'elation', me.char.element, 80,
+                                     stats.CRIT_RATE >= 0.5, laugh_n=laugh_n,
+                                     crit_mode='expected')
+                _commit_enemy_damage(state, me, t, d.final_damage,
+                                     damage_type='elation')
+                total += d.final_damage
+        else:
+            tgt_list = alive if mt in ('all_enemies', '') else alive[:1]
+            per = scale / len(tgt_list) if (m.split and tgt_list) else scale
+            for e in list(tgt_list):
+                if e.HP <= 0:
+                    continue
+                d = calculate_damage(stats, _enemy_for_damage(e), 0, per,
+                                     'elation', me.char.element, 80,
+                                     stats.CRIT_RATE >= 0.5, laugh_n=laugh_n,
+                                     crit_mode='expected')
+                _commit_enemy_damage(state, me, e, d.final_damage,
+                                     damage_type='elation')
+                total += d.final_damage
+    me.total_damage_dealt += total
+    state.extra['tb_pre_cast_dmg'] = total
+    state.log.append(f'  升格·开拓者前置欢愉技(整套×4): {total:.0f}')
+    return None
+
+
+OBSERVER_HOOKS['pre_aha_cast'] = _tb_pre_aha_cast  # v9.0.0 升格

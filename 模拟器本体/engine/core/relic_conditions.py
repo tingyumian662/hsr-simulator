@@ -235,6 +235,50 @@ def _enter_combat_advance(u, state, **kw):
             )
         state.log.append('  翁瓦克·开局拉条40%')
 
+def _elation_40_advance(u, state, **kw):
+    """v9.0.0 瞬息欢愉 2pc: 欢愉度≥40%→进入战斗时行动提前40%（翁瓦克同型阈值）"""
+    from engine.core.combat_engine import _build_effective_stats, _effective_spd
+    if _build_effective_stats(u, state).ELATION_LEVEL >= 0.40:
+        AV_PER_TURN = 10000.0
+        advance = (AV_PER_TURN / _effective_spd(u, state)) * 0.40
+        navs = state.extra.get('navs', {})
+        for i, eu in enumerate(state.units):
+            if eu == u and i in navs:
+                navs[i] = max(0.0, navs[i] - advance)
+                break
+        else:
+            u.extra['initial_action_advance_ratio'] = max(
+                u.extra.get('initial_action_advance_ratio', 0.0), 0.40
+            )
+        state.log.append('  瞬息欢愉2pc·欢愉度≥40%→开局拉条40%')
+
+def _yakong_team_be_apply(u, state, **kw):
+    """v9.0.0 亚空异容所 2pc（裁定⑥B 2026-11-15 实时判定）:
+    佩戴者战斗有效速度≥145 → 全队击破特攻+18%（跨佩戴者不可叠加, 全局单一授予）;
+    生效后授予者速度跌破145或阵亡 → 撤除。任意佩戴者回合开始时检查。
+    （已生效期间若唯一佩戴者阵亡且无其他佩戴者, 残留至战斗结束——申报口径）"""
+    from engine.core.combat_engine import _effective_spd
+    owner_id = state.extra.get('yakong_be_owner')
+    if owner_id is not None:
+        owner = next((x for x in state.units if x.char.id == owner_id), None)
+        if owner is None or not owner.is_alive or _effective_spd(owner, state) < 145.0:
+            for x in state.units:
+                if x.char.id != owner_id:
+                    x.base_stats.BREAK_EFFECT = max(0.0, x.base_stats.BREAK_EFFECT - 0.18)
+            state.extra.pop('yakong_be_owner', None)
+            state.log.append('  亚空异容所2pc: 条件失效, 撤除全队击破特攻+18%')
+        return None
+    if u is None or getattr(u, 'char', None) is None or not u.is_alive:
+        return None
+    conds = getattr(u, '_active_relic_conditions', set()) or set()
+    if 'spd_threshold_145_team_be' in conds and _effective_spd(u, state) >= 145.0:
+        state.extra['yakong_be_owner'] = u.char.id
+        for x in state.units:
+            if x is not u:
+                x.base_stats.BREAK_EFFECT += 0.18
+        state.log.append('  亚空异容所2pc: 全队击破特攻+18%(实时判定, 不可叠加)')
+    return None
+
 def _weakness_break_energy(u, state, **kw):
     """流星追迹的怪盗 4pc: 击破弱点→回3能量"""
     u.current_energy = min(u.char.max_energy or 999, u.current_energy + 3)
@@ -397,6 +441,9 @@ DYNAMIC_RELIC_REGISTRY = {
     # G类: 一次性触发
     "enter_combat_sp_recovery":   {"trigger": "on_enter_battle",  "action": _enter_combat_sp,              "source_name": "过客·开局回SP"},
     "enter_combat_action_advance":{"trigger": "on_enter_battle",  "action": _enter_combat_advance,         "source_name": "翁瓦克·开局拉条"},
+    "elation_threshold_40_advance":{"trigger": "on_enter_battle", "action": _elation_40_advance,           "source_name": "瞬息欢愉·欢愉度开局拉条"},
+    # v9.0.0 亚空异容所(裁定⑥B): 阈值按战斗有效速度实时判定, 佩戴者回合开始检查
+    "spd_threshold_145_team_be":  {"trigger": "on_turn_start",    "action": _yakong_team_be_apply,          "source_name": "亚空异容所·SPD145→全队BE(实时)"},
     "on_weakness_break_energy":   {"trigger": "on_weakness_break","action": _weakness_break_energy,         "source_name": "怪盗·击破回能"},
     "first_elation_skill_buff":   {"trigger": "on_elation_skill", "action": _first_elation_skill_buff,     "source_name": "卜者4pc·首次欢愉技"},
     "on_kill_team_cd":            {"trigger": "on_kill",          "action": _on_kill_team_cd,              "source_name": "千星4pc·击杀CD"},

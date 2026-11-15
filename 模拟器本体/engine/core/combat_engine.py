@@ -194,6 +194,22 @@ def _commit_enemy_damage(state, u, target, amount, *, record_hit=True,
     before = target.HP
     target.HP = max(0.0, target.HP - amount)
     actual_damage = before - target.HP
+    # v9.0.0 阿哈时刻窗口累计: 我方非真伤总和(阿哈哈愉技真伤段消费)
+    if state is not None and state.extra.get('aha_running') \
+            and damage_type not in ('true', 'true_damage'):
+        state.extra['aha_window_dmg'] = state.extra.get('aha_window_dmg', 0.0) + actual_damage
+    # v9.0.0 星神权能·阿哈正传(模块 INIT 置 aha_debt_on 消费): 我方伤害→目标
+    # 【欢愉负债】累积(=损失生命25%, 常规上限10%目标生命上限;
+    # E6 底线比率 aha_debt_floor_ratio 为有意抬过常规上限的底线)。
+    # 项目主裁定(2026-11-14): 负债无消耗事件, "仅占用血条"——
+    # 目标实际生命降至负债线即死(等效于负债占用的血条部分不可用)
+    if state is not None and state.extra.get('aha_debt_on') and actual_damage > 0:
+        floor = state.extra.get('aha_debt_floor_ratio', 0.0) * target.max_hp
+        cur = target.extra.get('aha_debt', 0.0)
+        target.extra['aha_debt'] = max(min(target.max_hp * 0.10,
+                                           cur + actual_damage * 0.25), floor)
+        if target.HP > 0 and target.HP <= target.extra['aha_debt']:
+            target.HP = 0.0  # 占用血条: 生命≤负债线即死(击杀事件由下方统一记录)
     if state is not None and record_hit:
         _record_lc_attack_target(state, target)
         state.extra.setdefault('last_attack_targets', [])
@@ -332,6 +348,12 @@ def _multihit_damage(stats: CombatStats, targets: list, scaling_stat: float,
                              skill_type=skill_type, true_dmg_ratio=true_dmg_ratio,
                              attack_type=attack_type, laugh_n=laugh_n,
                              crit_mode="expected" if u is not None else "boolean")
+        # v9.0.0 批7(审核P1-1): 弹射段同样派发 damage_mod 相位(升格×2.2/×2.5 等覆盖)
+        if u is not None and state is not None:
+            dm = _char_phase(state, u, 'damage_mod', final=d.final_damage,
+                             st=skill_type)
+            if dm is not None:
+                d.final_damage = dm
         total += d.final_damage
         _, killed_by_hit = _commit_enemy_damage(
             state, u, t, d.final_damage, damage_type=dmg_type,
@@ -1022,6 +1044,8 @@ LC_EVENT_CODES = {
     "event_battle_start_energy_to_dmg": "on_battle_start",  # 今日亦是和平的一日
     "event_battle_start_energy_ultdmg": "on_battle_start",  # 别让世界静下来
     "event_elation_skill_luck_elation": "on_elation_skill",  # 今日好手气
+    # v9.0.0 新欢愉光锥
+    "event_first_aha_ally_skill": "on_ally_skill_targeted",  # 当第一声「阿哈」响起
     "event_elation_skill_break_defpen": "on_elation_skill",  # 放个短假
     "event_ult_after_team_elation": "on_ult",  # 未来，有我们一起
     "event_elation_skill": "on_elation_skill",  # v7.25.0 向浪花掷下盛夏
@@ -1369,7 +1393,39 @@ LC_EVENT_ACTIONS = {
     ("never_forget_her_flame", "on_battle_start"):
         lambda s, u: _lc5_flame_break_team(s, u),
     ("though_worlds_apart", "on_ult"): lambda s, u: _lc5_worlds_apart_ult(s, u),
+    # v9.0.0 新欢愉光锥（星神★阿哈专属）
+    ("when_the_first_aha_rings_out", "on_ally_skill_targeted"):
+        lambda s, u: _lc6_first_aha_ally_skill(s, u),
 }
+
+
+def _lc6_first_aha_ally_skill(s, u):
+    """v9.0.0 当第一声「阿哈」响起: 对我方其他单体施放战技时→获得笑点(每回合1次);
+    随后全队本场战斗无视敌方16-24%防御(一次性, 不可叠加)。裁决15管线: 笑点入池
+    经 gain_laugh 自动实时同步银狼隐藏分。"""
+    lc = getattr(u, 'lightcone', None)
+    if lc is None or lc.id != 'when_the_first_aha_rings_out':
+        return
+    tgt = u.extra.get('lc_last_skill_target')
+    if tgt is None or tgt is u:
+        return  # "对我方其他单体"——不含以自身为目标的施放
+    # 裁定⑤B 2026-11-15: "每间隔1回合"按佩戴者自身行动周期
+    # (action_counts 引擎在每次施放后自增——施放当次为 N-1, 下次自身行动为 N)
+    cur_act = s.action_counts.get(u.char.id, 0)
+    if u.extra.get('lc6_first_aha_act') == cur_act:
+        return
+    u.extra['lc6_first_aha_act'] = cur_act
+    from engine.systems.elation import gain_laugh
+    gain = _lc_rank_value(u, 10.0, code='lc_first_aha_laugh')
+    gain_laugh(s, gain)
+    s.log.append(f'  光锥[当第一声「阿哈」响起]: +{gain:.0f}笑点(1回合1次)')
+    if not s.extra.get('lc6_first_aha_defpen_done'):
+        s.extra['lc6_first_aha_defpen_done'] = True
+        pen = _lc_rank_value(u, 16.0, code='lc_first_aha_defpen')
+        for eu in s.units:
+            if eu.is_alive:
+                eu.base_stats.DEF_PEN += pen / 100.0
+        s.log.append(f'  光锥[当第一声「阿哈」响起]: 全队无视防御+{pen:.0f}%(本场, 不可叠加)')
 
 
 def _lc_heal_pct_atk(state, u, pct, tag):
@@ -1500,6 +1556,11 @@ def _lc_state_ehr_ge_80(u, state, target=None):
     return u.base_stats.EFFECT_HIT_RATE >= 0.8
 
 
+def _lc_state_aha_alive(u, state, target=None):
+    """v9.0.0: 星神★阿哈在场（角色 id 判定, 光锥侧角色条件先例）。"""
+    return any(x.char.id == 'aha' and x.is_alive for x in state.units)
+
+
 LC_STATE_EVALUATORS = {
     "state_enemies_ge_3": _lc_state_enemies_ge_3,
     "state_spd_threshold": _lc_state_spd_threshold,
@@ -1513,6 +1574,7 @@ LC_STATE_EVALUATORS = {
     "state_hp_below_50_target": _lc_state_hp50_target,
     "state_target_debuff_related": _lc_state_target_debuff,
     "state_ehr_ge_80": _lc_state_ehr_ge_80,
+    "state_worlds_end_aha": _lc_state_aha_alive,  # v9.0.0 在世界尽头相会吧！
 }
 # 目标相关码: 需伤害循环内按目标求值
 LC_TARGET_CODES = ("state_hp_below_50_target", "state_target_debuff_related",
@@ -1529,6 +1591,8 @@ def _lc_count_evaluate(state, u, source, target=None) -> int:
         if target is None:
             return 0
         return target.debuff_count()
+    if source == 'elation_allies':  # v9.0.0 在世界尽头相会吧！: 队内欢愉角色数
+        return len([x for x in state.units if x.is_alive and x.char.path == '欢愉'])
     return 0
 
 
@@ -3576,6 +3640,7 @@ def _us_damage_loop(u: SimUnit, state: SimState, skill, skill_key: str,
 
     返回 (total_dmg, effects_pre_applied)。
     """
+    from engine.characters.acheron import _acheron_bond_on_ally_attack
     from engine.characters.feixiao import _feixiao_count_attack, _feixiao_on_ally_attack
     from engine.characters.qianye import _qianye_on_ally_attack
     from engine.characters.robin import _robin_concert_extra
@@ -3620,6 +3685,10 @@ def _us_damage_loop(u: SimUnit, state: SimState, skill, skill_key: str,
                        else state.elation_state.get_good_show_total(u.char.id)))
                 if mult.damage_type == 'elation' else 0.0
             )
+            # v9.0.0 相位 laugh_n_bonus: 欢愉伤害 N 额外计入(阿哈E4=队友好活总和100%)
+            bn = _char_phase(state, u, 'laugh_n_bonus')
+            if bn:
+                laugh_n += bn
             # v7.26.1 项目主裁决6: 阿哈时刻内各欢愉技 N=本次窗口全局笑点快照
             # (aha_laugh_n; 额外阿哈=固定值); 正常状态欢愉伤害 N=施放者自身好活层数
             # v5.3: 逐倍率目标（忘归人强化普攻: 主目标/相邻目标分倍率）
@@ -3770,6 +3839,10 @@ def _us_damage_loop(u: SimUnit, state: SimState, skill, skill_key: str,
         if total_dmg > 0:
             _feixiao_count_attack(state, u, is_ult=(skill_key == 'ultimate'))
             _feixiao_on_ally_attack(state, u)
+        # v9.0.0 黄泉奇缘星魂1·虚隙一顾…枯骨眠霜: 队友攻击带【集真赤】目标后→
+        # 追加攻击(视为终结技; 每回合1次, 黄泉回合开始重置; 守卫在处理器内)
+        if total_dmg > 0:
+            _acheron_bond_on_ally_attack(state, u)
         # M5a 相位 post_attack_taunt: 攻击后嘲讽（千冶·刃煞火缠身）
         _char_phase(state, u, 'post_attack_taunt', skill_key=skill_key, total_dmg=total_dmg)
 
@@ -5497,6 +5570,8 @@ def _apply_team_static_relics(state):
                 if eu is not u:
                     eu.base_stats.ATK += eu.base_stats._base_ATK * 0.08
             state.log.append('  仙舟2pc: 全队ATK+8%')
+        # v9.0.0 亚空异容所 2pc 已迁动态路径(裁定⑥B 实时有效速度判定,
+        # 见 relic_conditions._yakong_team_be_apply / DYNAMIC_RELIC_REGISTRY)
         if 'effect_res_30_team_cd' in conds and u.base_stats.EFFECT_RES >= 0.30:
             for eu in state.units:
                 if eu is not u:
@@ -5704,6 +5779,7 @@ def _setup_battle(configs: list[dict], enemy_template: Enemy, max_av: float,
         else:
             u.current_energy = (char.max_energy or 1) * cfg.get("initial_energy_pct", 50.0) / 100.0
         u.eidolon_rank = cfg.get("eidolon", 0)
+        u.fate_bond_rank = cfg.get("fate_bond", 0)  # v9.0.0 奇缘星魂（独立开关, 裁定①）
         u._active_relic_conditions = _get_relic_conditions(relics, relic_sets)
         # v5.6: 单体技能目标优先级标记——船长4pc持有者需被队友选中叠Help
         # （数据驱动: 条件名来自 data/relics/126_恶海逐波的船长.json 复合条件; 未来嘲讽角色复用同标记）

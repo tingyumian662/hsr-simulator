@@ -36,6 +36,18 @@ def gain_laugh(state, n, source=""):
     return n
 
 
+def elation_ascended(state) -> bool:
+    """v9.0.0 升格判定: 星神★阿哈持有【欢愉万相】(param aha_wuxiang)期间,
+    我方「欢愉」命途升格——笑点/好活当赏强化为爽点/绝活共赏(阿哈E2)。
+    零角色字面量: 仅按 buff param_id 判定。"""
+    for x in state.units:
+        if x.is_alive:
+            for b in x.buffs:
+                if getattr(b, 'param_id', '') == 'aha_wuxiang':
+                    return True
+    return False
+
+
 class ElationSystem:
     """欢愉子系统协调器"""
 
@@ -61,7 +73,14 @@ class ElationSystem:
         _obs_phase(state, 'init_sparxie_tech', None)
 
         spds = [u.base_stats.SPD for u in elation_units]
-        state.aha_speed = calc_aha_speed(spds)
+        # v9.0.0 专属天赋·阿哈时刻在(数据驱动 aha_speed_takeover): 基础速度80→该角色白值
+        base = 80.0
+        takeover = next((u for u in elation_units
+                         if getattr(u.char, 'aha_speed_takeover', False)), None)
+        if takeover is not None:
+            base = takeover.char.base_SPD
+            log.append(f'[Init] 阿哈时刻在: 基础速度80→{base:.0f}')
+        state.aha_speed = calc_aha_speed(spds, base_speed=base)
         state.aha_next_av = 10000.0 / state.aha_speed
         log.append(f'[Init] Aha速度={state.aha_speed:.1f} 首次={state.aha_next_av:.0f}AV')
 
@@ -99,6 +118,8 @@ class ElationSystem:
             amount = min(amount, max(0.0, float(cap) - cur))
             if amount <= 0:
                 return None
+        # v9.0.0 观察相位 goodshow_gain: 好活/绝活共赏获得广播(银狼升格→隐藏分40%/绯英480累计)
+        _obs_phase(state, 'goodshow_gain', None, char_id=char_id, amount=amount)
         return state.elation_state.grant_good_show(
             char_id, amount, duration=duration, source=source)
 
@@ -157,14 +178,25 @@ class ElationSystem:
         elation_units = sorted(
             [u for u in state.units if u.char.cast_number > 0 and u.is_alive],
             key=lambda u: u.char.cast_number)
+        # v9.0.0 参演编号0+elation_always_last(数据驱动): 无视编号, 始终最后施放
+        elation_units += [u for u in state.units
+                          if u.is_alive
+                          and getattr(u.char, 'elation_always_last', False)
+                          and u not in elation_units]
 
         # v7.25.0 aha_running: 阿哈施放窗口标记（砂金 All in 形态判定消费）
         # v7.26.1 裁决6: aha_laugh_n=本次窗口的 N 快照(常规阿哈=全局笑点/额外阿哈=固定值),
         # 窗口内各欢愉技倍率一律用它(引擎 laugh_n 解析消费), 结束即清除
+        # v9.0.0: aha_window_dmg=窗口内我方非真伤总和(阿哈哈愉技真伤段消费)
         state.extra['aha_running'] = True
         state.extra['aha_laugh_n'] = n
+        state.extra['aha_window_dmg'] = 0.0
         try:
             for u in elation_units:
+                # v9.0.0 观察相位 pre_aha_cast: 始终最后施放者(阿哈位)出手前派发
+                # （开拓者升格E2: 先行额外欢愉技, 阿哈真伤改按其20%计算）
+                if getattr(u.char, 'elation_always_last', False):
+                    _obs_phase(state, 'pre_aha_cast', None, n=n)
                 _use_skill(u, state, "elation_skill")
                 # v7.15.0 相位 aha_trace: 阿哈时刻银狼特殊行迹（额外阿哈以固定值判档）
                 _char_phase(state, u, 'aha_trace', n=n)
@@ -182,6 +214,10 @@ class ElationSystem:
 
         # v7.15.0 观察相位 aha_sparxie_settle: 火花星魂（阿哈时刻结束时触发）
         _obs_phase(state, 'aha_sparxie_settle', None, n=n)
+        # v9.0.0 观察相位 aha_settle_ascension: 升格爽点返还(阿哈E2——消耗爽点的10%,
+        # 额外阿哈不动池故 consumed=0 不返)
+        _obs_phase(state, 'aha_settle_ascension', None,
+                   consumed=(float(n) if consume_pool else 0.0))
 
         state.extra.pop('yao_e4_aha', None)
 
@@ -201,12 +237,14 @@ class ElationSystem:
             return 0.0
         return ((base_cr + cr_from - CR_CAP) / HS_PER_CR) * HS_PER_CD
 
-    def gain_hidden_score(self, state, u, amount):
-        """统一隐藏分入口；银狼E2阈值消费经 hidden_score_e2 相位（处理器在角色包）。"""
+    def gain_hidden_score(self, state, u, amount, cap=None):
+        """统一隐藏分入口；银狼E2阈值消费经 hidden_score_e2 相位（处理器在角色包）。
+        v9.0.0: cap 可覆盖（升格态银狼上限 300→999, 由角色包传入, 机制层零字面量）。"""
         _ensure_phase_tables(state)
         amount = max(float(amount or 0.0), 0.0)
         before = u.hidden_score
-        u.hidden_score = min(HS_MAX, before + amount)
+        u.hidden_score = min(float(cap) if cap is not None else HS_MAX,
+                             before + amount)
         # v7.15.0 相位 hidden_score_e2: 银狼E2 120分阈值→额外回合（守卫在处理器内）
         _char_phase(state, u, 'hidden_score_e2', before=before)
         return amount
@@ -231,6 +269,18 @@ class ElationSystem:
         s2 = _char_phase(state, u, 'eff_stats_zz', s=s, effective_spd=effective_spd)
         if s2 is not None:
             s = s2
+        # v9.0.0 相位 eff_stats_aha: 星神★阿哈行迹3·盒中蕴藏的世界 速度阈值→欢愉度
+        s2 = _char_phase(state, u, 'eff_stats_aha', s=s, effective_spd=effective_spd)
+        if s2 is not None:
+            s = s2
+        # v9.0.0 相位 eff_stats_eva: 绯英升格无视防24%(DEF_PEN 精确通道, 裁定②B)
+        s2 = _char_phase(state, u, 'eff_stats_eva', s=s)
+        if s2 is not None:
+            s = s2
+        # v9.0.0 观察相位 team_defpen_bonus: 升格态全队无视防御加值(火花E2线 +20%)
+        dp = _obs_phase(state, 'team_defpen_bonus', u)
+        if dp is not None:
+            s.DEF_PEN += float(dp)
         # v8.0.0 欢迎来到银河城(项目主核实): 欢愉伤害无视防御(叠影档)——elation 专属
         lc = getattr(u, 'lightcone', None)
         if lc is not None and lc.id == 'welcome_to_galaxy_city' \

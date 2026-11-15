@@ -117,6 +117,7 @@ function renderTeam(){
       <div class="field-grid">
         <label class="field"><span>星魂</span><select id="eid${i}">${[0,1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>
         <label class="field"><span>叠影<span id="rank-note${i}"></span></span><select id="rank${i}" aria-label="光锥叠影${i+1}">${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}</select></label>
+        <label class="field" id="fb-div${i}" style="display:none" title="奇缘星魂（v9.0.0 独立开关，仅部分角色拥有）"><span>奇缘星魂</span><select id="fb${i}" aria-label="奇缘星魂${i+1}"><option value="0">无</option><option value="1">1</option></select></label>
       </div>
       <details><summary>遗器配置</summary>
         <div class="details-body">
@@ -367,6 +368,11 @@ function onCharChange(i){
     if(sp && elemVal && [...sp.options].some(o=>o.value===elemVal)) sp.value = elemVal;
   }
   applyRecommendedLoadout(i, char);
+  // v9.0.0 奇缘星魂: 仅对拥有 fate_bonds 的角色显示（独立开关, 裁定①）; 换角/清空时归零
+  const fbDiv = document.getElementById(`fb-div${i}`);
+  const fbSel = document.getElementById(`fb${i}`);
+  if(fbDiv) fbDiv.style.display = (char && char.has_fate_bond) ? '' : 'none';
+  if(fbSel && (!char || !char.has_fate_bond)) fbSel.value = '0';
 }
 
 // v6.8 角色推荐装备自动套用（data/recommendations.json）
@@ -475,6 +481,7 @@ function getConfig(i){
     lc_id: document.getElementById(`lc${i}`).value||null,
     lc_rank: parseInt(document.getElementById(`rank${i}`).value)||null,  // v7.20.0 叠影档
     eidolon: parseInt(document.getElementById(`eid${i}`).value),
+    fate_bond: parseInt(document.getElementById(`fb${i}`).value)||0,  // v9.0.0 奇缘星魂（独立开关）
     relics: {
       set4: document.getElementById(`set4_${i}`).value,
       set2: document.getElementById(`set2_${i}`).value,

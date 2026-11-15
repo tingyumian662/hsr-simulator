@@ -16,8 +16,8 @@ INDEX_HTML = ROOT / "web" / "templates" / "index.html"
 class TestVersionSource:
     def test_version_file_format(self):
         ver = VERSION_FILE.read_text(encoding="utf-8").strip()
-        # v8.0.0 起主版本8（此前 v7.\d+.\d+）
-        assert re.fullmatch(r"v[78]\.\d+\.\d+", ver), ver
+        # v9.0.0 大版本开窗后通用化（v8.3.0 轮 _build_exe 版本正则同款修正）
+        assert re.fullmatch(r"v\d+\.\d+\.\d+", ver), ver
 
     def test_api_list_exposes_version(self):
         from fastapi import FastAPI

@@ -273,16 +273,21 @@ def _zz_extra_turn_start(unit, state, kind=None, **kw):
 def _zz_extra_turn_end(unit, state, kind=None, **kw):
     if kind != "zz_base":
         return None
+    # v9.0.0 升格(阿哈E2·真珠线): 额外回合的绝活共赏/爽点结束时各保留20%
+    from engine.characters.aha import ascension_active
+    keep = 0.20 if ascension_active(state) else 0.0
     rec = state.extra.pop("zz_temp_gs", None)
     if rec is not None:
-        state.elation_state.consume_good_show(rec[0], rec[1])
+        state.elation_state.consume_good_show(rec[0], rec[1] * (1.0 - keep))
     lp = state.extra.pop("zz_temp_laugh", 0.0)
     if lp > 0:
         # 裁决5: 只扣发出的份额, 池内其余笑点不动; 绝不碰银狼隐藏分
-        state.laugh_points = max(0.0, state.laugh_points - lp)
+        state.laugh_points = max(0.0, state.laugh_points - lp * (1.0 - keep))
     if rec is not None or lp > 0:
         state.log.append(f"  【美学底本】{getattr(getattr(unit, 'char', None), 'name', '?')}"
-                         f"额外回合结束: 收回临时好活/笑点({lp:g}笑点)")
+                         f"额外回合结束: 收回临时好活/笑点"
+                         f"({lp * (1.0 - keep):g}笑点"
+                         f"{', 升格保留20%' if keep else ''})")
     return None
 
 
@@ -458,8 +463,12 @@ def _zz_goodshow_infinite(_u, state, char_id):
 
 
 def _zz_goodshow_cap(_u, state, char_id):
-    """OBSERVER goodshow_cap: 裁决9——真珠好活持有上限50, 获得瞬间截断(全路径)。"""
-    return GOODSHOW_CAP if char_id == CHAR_ID else None
+    """OBSERVER goodshow_cap: 裁决9——真珠好活持有上限50, 获得瞬间截断(全路径)。
+    v9.0.0 升格(阿哈E2·真珠线): 【绝活共赏】持有上限提高至75。"""
+    if char_id != CHAR_ID:
+        return None
+    from engine.characters.aha import ascension_active
+    return 75.0 if ascension_active(state) else GOODSHOW_CAP
 
 
 def _zz_ally_turn_start(unit, state, **kw):

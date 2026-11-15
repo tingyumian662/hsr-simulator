@@ -307,7 +307,7 @@ def test_complete_roster_emits_no_unregistered_effect_warnings():
         if "basic_attack" in (data.get("skills") or {}):
             complete_ids.append(path.stem)
 
-    assert len(complete_ids) == 46  # v7.26.0 真珠录入 45→46
+    assert len(complete_ids) == 49  # v9.0.0 阿哈录入 48→49
     for eidolon in (0, 6):
         for char_id in complete_ids:
             state = simulate(

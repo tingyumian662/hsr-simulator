@@ -246,13 +246,68 @@ def _acheron_ult(state, u):
 
 
 def _acheron_tick(state, u):
-    """黄泉回合开始: E2 +1残梦+集真赤(集真赤最多目标)"""
+    """黄泉回合开始: E2 +1残梦+集真赤(集真赤最多目标); 奇缘星魂1 追击次数重置"""
+    u.extra.pop('acheron_bond_used', None)  # v9.0.0 奇缘星魂1: 回合开始重置可触发次数
     if u.eidolon_rank >= 2:
         alive = state.alive_enemies() or state.enemies
         if alive:
             top = max(alive, key=lambda x: x.extra.get('acheron_jizhen', 0))
             _acheron_gain_dream(state, u, 1, jizhen_target=top)
             state.log.append('  黄泉E2: 回合开始+1残梦+集真赤')
+
+
+def _acheron_bond_on_ally_attack(state, attacker):
+    """v9.0.0 奇缘星魂1·虚隙一顾…枯骨眠霜: 队友攻击带有【集真赤】的敌方目标后,
+    黄泉发动追加攻击——对敌方全体300%ATK雷伤, 随后6次对随机单体80%ATK雷伤;
+    获得1点残梦并为【集真赤】最多者附1层。全部视为终结技伤害(奈落适用, txt明示);
+    每回合最多1次, 黄泉回合开始时重置(独立开关, 裁定①)。"""
+    acheron = next((x for x in state.units
+                    if x.char.id == 'acheron' and x.is_alive), None)
+    if acheron is None or getattr(acheron, 'fate_bond_rank', 0) < 1:
+        return
+    if attacker is None or attacker is acheron or attacker not in state.units:
+        return  # txt: 队友攻击触发（不含黄泉自身）
+    if acheron.extra.get('acheron_bond_used'):
+        return  # 每回合最多1次
+    targets = [t for t in state.extra.get('lc_attack_target_refs', []) if t is not None]
+    if not any(t.extra.get('acheron_jizhen', 0) > 0 for t in targets):
+        return  # 本次攻击未命中持有集真赤的目标
+
+    acheron.extra['acheron_bond_used'] = True
+    stats = copy.deepcopy(_build_effective_stats(acheron, state))
+    # 视为终结技伤害: E6 终结技抗穿同享（txt: 本次追加攻击造成伤害时被视为终结技伤害）
+    stats.RES_PEN_ALL += 0.20 if acheron.eidolon_rank >= 6 else 0.0
+    naluo = _acheron_original_damage_multiplier(acheron, state)
+    total = 0.0
+
+    def _bond_hit(target, scale):
+        nonlocal total
+        if target is None or getattr(target, 'HP', 0) <= 0:
+            return
+        d = calculate_damage(stats, _enemy_for_damage(target, 'ultimate'), stats.ATK, scale,
+                             'direct', '雷', 80, stats.CRIT_RATE >= 0.5,
+                             true_dmg_ratio=state.realm_true_dmg,
+                             skill_type='ultimate', crit_mode='expected')
+        d.final_damage *= naluo
+        _commit_enemy_damage(
+            state, acheron, target, d.final_damage,
+            cipher_record_amount=d.final_damage / (1.0 + state.realm_true_dmg))
+        total += d.final_damage
+
+    for e in list(state.alive_enemies()):
+        _bond_hit(e, 300.0)
+    for _ in range(6):
+        alive = state.alive_enemies()
+        if not alive:
+            break
+        _bond_hit(random.choice(alive), 80.0)
+    alive = state.alive_enemies() or state.enemies
+    top = max(alive, key=lambda x: x.extra.get('acheron_jizhen', 0)) if alive else None
+    _acheron_gain_dream(state, acheron, 1, jizhen_target=top)
+    acheron.total_damage_dealt += total
+    acheron.damage_log.append(('虚隙一顾…枯骨眠霜', total, 'follow_up'))
+    state.log.append(f'  奇缘星魂1·虚隙一顾…枯骨眠霜: 追击 {total:.0f} (300%全体+6×80%随机)')
+    state.hooks.trigger_all("on_attack_action", u=acheron, state=state, dealt=total > 0)  # FUA补气氛(大丽花先例)
 
 
 def _acheron_ai(u, state, *, elation=None, max_av=1000, navs=None, uidx=0, **__):

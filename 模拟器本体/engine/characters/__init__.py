@@ -7,6 +7,7 @@ CHAR_ID / SKILL_HOOKS / AI / TECHNIQUE / MARKERS；行迹与星魂处理器为�
 """
 from engine.characters import (  # noqa: F401
     acheron,
+    aha,
     aglaea,
     aventurine_waveflair,
     boothill,
@@ -15,6 +16,7 @@ from engine.characters import (  # noqa: F401
     cerydra,
     changyeyue,
     cipher,
+    dan_heng_imbibitor_lunae,
     dan_heng_permansor_terrae,
     evanescia,
     feixiao,
@@ -25,6 +27,7 @@ from engine.characters import (  # noqa: F401
     himeko_nova,
     huohuo,
     jierjialameishi,
+    jing_yuan,
     hysilens,
     lingsha,
     mydei,
@@ -57,6 +60,7 @@ from engine.characters import (  # noqa: F401
 )
 
 PILOTS = (acheron,
+          aha,
           aglaea,
           aventurine_waveflair,
           boothill,
@@ -65,6 +69,7 @@ PILOTS = (acheron,
           cerydra,
           changyeyue,
           cipher,
+          dan_heng_imbibitor_lunae,
           dan_heng_permansor_terrae,
           evanescia,
           feixiao,
@@ -75,6 +80,7 @@ PILOTS = (acheron,
           himeko_nova,
           huohuo,
           jierjialameishi,
+          jing_yuan,
           hysilens,
           lingsha,
           mydei,
@@ -105,7 +111,8 @@ PILOTS = (acheron,
           yinlang,
           zhenzhu)
 ELATION_PILOT_IDS = ("yinlang", "yaoguang", "trailblazer_elation", "huohuo",
-                     "evanescia", "sparxie", "aventurine_waveflair", "zhenzhu")
+                     "evanescia", "sparxie", "aventurine_waveflair", "zhenzhu",
+                     "aha")  # v9.0.0 星神★阿哈(参演编号0, 始终最后施放)
 
 
 def activate(state, team_ids, elation_active=False):
@@ -189,7 +196,7 @@ TURN_TICK_ZONE_ORDER = {
             'sunday', 'ruan_mei', 'robin', 'acheron', 'feixiao', 'anaxa',
             'jierjialameishi', 'archer', 'yuanbanlin'),
     'post_control': ('huohuo',),
-    'late': ('xilian', 'mydei', 'aglaea'),
+    'late': ('xilian', 'mydei', 'aglaea', 'aha'),  # v9.0.0: +阿哈(天赋40点再武装)
 }
 
 
@@ -200,6 +207,11 @@ SETTLE_PIPELINE_ORDER = (
     ('cerydra', 'settle_self'), ('cerydra', 'settle_jungong_attack'),
     ('cerydra', 'settle_jungong_qixi'), ('cerydra', 'settle_jungong_ult'),
     ('dan_heng_permansor_terrae', 'settle_self'), ('dan_heng_permansor_terrae', 'settle_tongpao'),
+    ('dan_heng_imbibitor_lunae', 'settle_self'), ('dan_heng_imbibitor_lunae', 'settle_ally_ult'),
+    ('dan_heng_imbibitor_lunae', 'settle_sp_watch'),
+    ('jing_yuan', 'settle_self'),
+    ('aha', 'settle_self'),
+    ('aventurine_waveflair', 'settle_ally_ult'),  # v9.0.0 升格·砂金线(审核P1-4)
     ('hysilens', 'settle_self'), ('hysilens', 'settle_dot'),
     ('anaxa', 'settle_self'), ('cipher', 'settle_self'),
     ('phainon', 'settle_self'), ('phainon', 'settle_named'),

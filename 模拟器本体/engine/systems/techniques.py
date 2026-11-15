@@ -36,7 +36,10 @@ from engine.characters import aglaea as _char_aglaea, changyeyue as _char_changy
     xiadie as _char_xiadie, xilian as _char_xilian, \
     firefly as _char_firefly, himeko_nova as _char_himeko_nova, \
     huohuo as _char_huohuo, lingsha as _char_lingsha, \
-    silver_wolf as _char_silver_wolf, yinlang as _char_yinlang
+    silver_wolf as _char_silver_wolf, yinlang as _char_yinlang, \
+    dan_heng_imbibitor_lunae as _char_dan_heng_imbibitor_lunae, \
+    jing_yuan as _char_jing_yuan, \
+    aha as _char_aha
 _PILOT_TECHNIQUES = {
     'sunday': _char_sunday.TECHNIQUE,
     'welt': _char_welt.TECHNIQUE,
@@ -76,6 +79,9 @@ _PILOT_TECHNIQUES = {
     'yinlang': _char_yinlang.TECHNIQUE,
     'huohuo': _char_huohuo.TECHNIQUE,
     'evanescia': _char_evanescia.TECHNIQUE,
+    'dan_heng_imbibitor_lunae': _char_dan_heng_imbibitor_lunae.TECHNIQUE,  # v9.0.0
+    'jing_yuan': _char_jing_yuan.TECHNIQUE,  # v9.0.0
+    'aha': _char_aha.TECHNIQUE,  # v9.0.0
 }
 
 

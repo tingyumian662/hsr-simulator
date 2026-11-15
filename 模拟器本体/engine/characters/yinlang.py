@@ -469,15 +469,32 @@ def _yl_reward_resume(state):
 
 def _yl_laugh_sync(_u, state, n):
     """OBSERVER laugh_gain: v7.26.0 裁决3 实时叠加——任何角色的笑点增长
-    即时同步银狼隐藏分（上限300, 不等阿哈结算; 阿哈结算路径已废除）。"""
+    即时同步银狼隐藏分（上限300, 不等阿哈结算; 阿哈结算路径已废除）。
+    v9.0.0 升格(阿哈E2·银狼线): 隐藏分达到上限后可溢出至999。"""
     me = next((x for x in state.units
                if x.char.id == 'yinlang' and x.is_alive), None)
     if me is not None and float(n) > 0:
-        _elation_sys(state).gain_hidden_score(state, me, float(n))
+        from engine.characters.aha import ascension_active
+        cap = 999.0 if ascension_active(state) else None
+        _elation_sys(state).gain_hidden_score(state, me, float(n), cap=cap)
     return None
 
 
-OBSERVER_HOOKS = {'laugh_gain': _yl_laugh_sync}
+def _yl_goodshow_ascension(_u, state, char_id=None, amount=0.0, **kw):
+    """OBSERVER goodshow_gain: 升格——每获得1点【绝活共赏】同时获得该点数40%的隐藏分。"""
+    from engine.characters.aha import ascension_active
+    if not ascension_active(state):
+        return None
+    me = next((x for x in state.units
+               if x.char.id == 'yinlang' and x.is_alive), None)
+    if me is None or float(amount) <= 0:
+        return None
+    _elation_sys(state).gain_hidden_score(state, me, float(amount) * 0.40, cap=999.0)
+    return None
+
+
+OBSERVER_HOOKS = {'laugh_gain': _yl_laugh_sync,
+                  'goodshow_gain': _yl_goodshow_ascension}
 
 
 def _yl_aha_trace(u, state, n):
@@ -509,12 +526,18 @@ def _yl_hidden_score_e2(u, state, before):
 def _yl_eff_stats(u, state, s, effective_spd):
     """PHASE eff_stats_yinlang: 行迹3·假结局速通攻略——有效速度160起欢愉度+50%,
     每超1点再+2%, 最多计入100点超出速度(=总+250%, 260速吃满)。
-    v7.26.5: 修正历史静默封顶 min(1.0,..)=+100%——原文/ARCHIVE档案卡均为此口径。"""
+    v7.26.5: 修正历史静默封顶 min(1.0,..)=+100%——原文/ARCHIVE档案卡均为此口径。
+    v9.0.0 升格(阿哈E2·银狼线): 暴击伤害+40%。"""
+    from engine.characters.aha import ascension_active
+    asc = False
+    if u.char.id == 'yinlang' and ascension_active(state):
+        s.CRIT_DMG += 0.40  # 升格暴伤+40%(面板小数单位)
+        asc = True
     if effective_spd >= 160:
         over = min(100.0, effective_spd - 160.0)
         s.ELATION_LEVEL += 0.50 + over * 0.02
         return s
-    return None
+    return s if asc else None
 
 
 PHASE_HOOKS['aha_trace'] = _yl_aha_trace

@@ -1,0 +1,11 @@
+{
+  "name": "瞬息欢愉",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "使装备者的速度提高6%。当装备者的欢愉度大于等于40%时，进入战斗时立刻使行动提前40%。",
+      "attributes": {"SPD_percent": 6.0},
+      "condition": "elation_threshold_40_advance"
+    }
+  ]
+}

@@ -5,9 +5,9 @@
   "path": "毁灭",
   "level": 80,
   "ascension": 6,
-  "base_HP": 1242,
-  "base_ATK": 699,
-  "base_DEF": 364,
+  "base_HP": 1241,
+  "base_ATK": 698,
+  "base_DEF": 363,
   "base_SPD": 102,
   "taunt": 125,
   "max_energy": 140,
@@ -16,9 +16,215 @@
     "DMG_BONUS_IMAGINARY": 22.4,
     "CRIT_RATE": 12.0
   },
-  "skills": {},
-  "traces": [],
-  "eidolons": [],
-  "_pending": "技能/行迹/星魂效果待补充（见 .ts 文件或 Wiki）",
-  "_source": "fribbels/hsr-optimizer (base stats verified)"
+  "skills": {
+    "basic_attack": {
+      "name": "泽芝",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 200.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy",
+          "_hits": 2
+        }
+      ],
+      "effects": [],
+      "_mechanism": "2段×100%ATK折算200%(满级); 恢复1SP; 能量20; 削韧10"
+    },
+    "skill": {
+      "name": "龙力自在",
+      "type": "skill",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "站姿强化(不单独施放): AI 按SP+逆鳞可付档直选强化普攻键; 强化普攻均视为普攻攻击类型且不恢复SP; 叱咤=天矢阴/盘拏耀跃第4段起每段攻击前+12%暴伤×层数≤4层至自身回合结束(E4延一回合)(引擎)"
+    },
+    "skill_hua": {
+      "name": "瞬华",
+      "type": "skill",
+      "cost": {
+        "skill_points": 1
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 780.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy",
+          "_hits": 3
+        }
+      ],
+      "effects": [],
+      "_mechanism": "强化普攻1: 3段×260%折算780%(满级); 能量恢复30; 削韧20; SP1可由逆鳞抵扣"
+    },
+    "skill_tian": {
+      "name": "天矢阴",
+      "type": "skill",
+      "cost": {
+        "skill_points": 2
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 1900.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy",
+          "_hits": 5
+        },
+        {
+          "stat": "ATK",
+          "scale": 120.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent",
+          "_hits": 2
+        }
+      ],
+      "effects": [],
+      "_mechanism": "强化普攻2: 5段×380%单体折算1900% + 第4段起2段×60%相邻折算120%(满级); 能量35; 削韧30; SP2可由逆鳞抵扣"
+    },
+    "skill_pan": {
+      "name": "盘拏耀跃",
+      "type": "skill",
+      "cost": {
+        "skill_points": 3
+      },
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 3500.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy",
+          "_hits": 7
+        },
+        {
+          "stat": "ATK",
+          "scale": 720.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent",
+          "_hits": 4
+        }
+      ],
+      "effects": [],
+      "_mechanism": "强化普攻3: 7段×500%单体折算3500% + 第4段起4段×180%相邻折算720%(满级); 能量40; 削韧40; SP3可由逆鳞抵扣; E6抗穿消耗点"
+    },
+    "ultimate": {
+      "name": "苍龙傲睨，劫水濯世",
+      "type": "ultimate",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {
+          "stat": "ATK",
+          "scale": 900.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "single_enemy",
+          "_hits": 3
+        },
+        {
+          "stat": "ATK",
+          "scale": 420.0,
+          "damageType": "direct",
+          "element": "虚数",
+          "target": "adjacent",
+          "_hits": 3
+        }
+      ],
+      "effects": [],
+      "_mechanism": "耗140能量; 3段×300%单体折算900%+3×140%相邻折算420%(满级); +2逆鳞; E2追加: 行动提前100%+1逆鳞(引擎)"
+    },
+    "technique": {
+      "name": "掣空如虹",
+      "type": "technique",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 120%ATK虚数全体+1逆鳞(引擎handler)"
+    }
+  },
+  "traces": [
+    {
+      "name": "伏辰",
+      "description": "战斗开始时，立即恢复15点能量",
+      "hook_name": "dhil_trace1"
+    },
+    {
+      "name": "修禹",
+      "description": "抵抗控制类负面状态的概率提高35%（模拟器敌方不施放控制, 暂无引擎消费点）",
+      "hook_name": "dhil_trace2"
+    },
+    {
+      "name": "起蛰",
+      "description": "对拥有虚数属性弱点的敌方目标造成伤害时，暴击伤害提高24%",
+      "hook_name": "dhil_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "虚数伤害+22.4%/暴击率+12%/生命+10%",
+      "hook_name": "dhil_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "萦天",
+      "description": "亢心可叠加层数+4(6→10), 每段攻击额外获得1层",
+      "hook_name": "dhil_e1"
+    },
+    {
+      "rank": 2,
+      "name": "九斿",
+      "description": "终结技后行动提前100%并额外获得1个逆鳞",
+      "hook_name": "dhil_e2"
+    },
+    {
+      "rank": 3,
+      "name": "云旂",
+      "description": "战技等级+2; 普攻等级+1",
+      "hook_name": "dhil_e3"
+    },
+    {
+      "rank": 4,
+      "name": "嘲风",
+      "description": "叱咤持续到下一个自身回合结束",
+      "hook_name": "dhil_e4"
+    },
+    {
+      "rank": 5,
+      "name": "偃蹇",
+      "description": "终结技等级+2; 天赋等级+2",
+      "hook_name": "dhil_e5"
+    },
+    {
+      "rank": 6,
+      "name": "见谯",
+      "description": "我方其他角色施放终结技后, 下一次盘拏耀跃虚数抗穿+20%, 最多叠加3层",
+      "hook_name": "dhil_e6"
+    }
+  ],
+  "fate_bonds": [
+    {
+      "rank": 1,
+      "name": "沧溟间，月落潮平",
+      "description": "逆鳞上限+1(3→4)。我方每消耗5个战技点(逆鳞抵扣同计), 饮月追加攻击: 自身伤害+240%×3回合, 6段各对敌方全体500%ATK虚数伤害(视为普攻伤害), 获得1个逆鳞（v9.0.0 独立开关, 裁定①）",
+      "hook_name": "dhil_bond1"
+    }
+  ],
+  "_pending": "",
+  "_source": "角色技能介绍/毁灭/丹恒·饮月.txt (v9.0.0 批2; 白值以txt为准: 壳fribbels 1242/699/364→1241/698/363)"
 }

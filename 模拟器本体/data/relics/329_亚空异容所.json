@@ -1,0 +1,11 @@
+{
+  "name": "亚空异容所",
+  "effects": [
+    {
+      "pieces_required": 2,
+      "description": "使装备者的速度提高6%。当装备者的速度大于等于145时，进入战斗后使我方全体击破特攻提高18%，该效果无法叠加。",
+      "attributes": {"SPD_percent": 6.0},
+      "condition": "spd_threshold_145_team_be"
+    }
+  ]
+}

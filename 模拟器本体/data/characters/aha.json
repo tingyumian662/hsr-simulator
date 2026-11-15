@@ -1,0 +1,153 @@
+{
+  "id": "aha",
+  "name": "星神★阿哈",
+  "element": "量子",
+  "path": "欢愉",
+  "level": 80,
+  "ascension": 6,
+  "base_HP": 1047,
+  "base_ATK": 679,
+  "base_DEF": 509,
+  "base_SPD": 94,
+  "taunt": 100,
+  "max_energy": 10,
+  "energy_type": "special",
+  "cast_number": 0,
+  "elation_always_last": true,
+  "aha_speed_takeover": true,
+  "elation_stats": {},
+  "trace_stats": {
+    "CRIT_DMG": 37.3,
+    "CRIT_RATE": 12.0,
+    "SPD_percent": 5.0
+  },
+  "_trace_stats_note": "速度提高5为固定值, 按管线口径记 SPD_percent",
+  "_energy_note": "【愿力】特殊能量: 上限10, 8点激活终结技(可溢出至10)。获取: 施放普攻/战技/欢愉技后+1; 令使目标回合开始+1; 我方笑点达40+1(阿哈回合结束后可再触发); 行迹1受疗/受盾+1(1次, 施放终结技后重置); E1开局+5; E6首次终结技后另见。终结技耗8。通用能量回复不适用(引擎 energy_gain_override 归零——txt 普攻/战技'能量恢复'行系模板文案, 愿力走专属通道)",
+  "skills": {
+    "basic_attack": {
+      "name": "点星，开幕！",
+      "type": "basic_attack",
+      "cost": {},
+      "target": "single_enemy",
+      "multipliers": [
+        {"stat": "NONE", "scale": 50.0, "damageType": "elation", "element": "量子", "target": "single_enemy"}
+      ],
+      "effects": [],
+      "_mechanism": "单体50%量子属性欢愉伤害; 施放后+1愿力(引擎)"
+    },
+    "skill": {
+      "name": "此乃令使，阿哈认证™",
+      "type": "skill",
+      "cost": {"skill_points": 1},
+      "target": "single_ally",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "令使点名(指定我方单体获得【「欢愉」令使】: 欢愉度+20%+其回合开始阿哈+1愿力; 复唱转移) + 立即追击50%全体量子欢愉伤害 + 行迹2: 令使目标对应属性额外20%欢愉伤害+恢复1SP(引擎)"
+    },
+    "ultimate": {
+      "name": "啊哈！宇宙笑点大爆炸",
+      "type": "ultimate",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {"stat": "NONE", "scale": 200.0, "damageType": "elation", "element": "量子", "target": "all_enemies"},
+        {"stat": "NONE", "scale": 60.0, "damageType": "elation", "element": "量子", "target": "bounce", "_hits": 5}
+      ],
+      "effects": [],
+      "_mechanism": "耗8愿力; 200%全体+5×60%随机单体量子欢愉伤害; 阿哈行动提前20%; 获得【欢愉万相】3回合(引擎)"
+    },
+    "talent": {
+      "name": "与祂共演，奇迹新篇",
+      "type": "talent",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "_mechanism": "愿力8点激活终结技(上限10溢出); 施放普攻/战技/欢愉技后+1愿力; 我方笑点首达40→+1愿力+全队暴伤40%×3回合(阿哈回合结束可再触发)(引擎)"
+    },
+    "elation_skill": {
+      "name": "满月，是神在的时间",
+      "type": "elation_skill",
+      "cost": {},
+      "target": "all_enemies",
+      "multipliers": [
+        {"stat": "NONE", "scale": 60.0, "damageType": "elation", "element": "量子", "target": "all_enemies"}
+      ],
+      "effects": [],
+      "_mechanism": "参演编号0=无视编号, 始终在阿哈时刻最后施放(专属天赋); 60%全体量子欢愉伤害 + 基于本次阿哈时刻非真伤总和20%的真伤均分(E4: 真伤倍率+25%)(引擎)"
+    },
+    "technique": {
+      "name": "ABRACADABRA！",
+      "type": "technique",
+      "cost": {},
+      "target": "self",
+      "multipliers": [],
+      "effects": [],
+      "technique_category": "battle_start",
+      "_mechanism": "进战: 阿哈获得1个固定计入20笑点的额外回合(不消耗笑点池, 走额外阿哈通道)(引擎)"
+    }
+  },
+  "traces": [
+    {
+      "name": "戏中人的异想国",
+      "description": "受到队友提供的治疗效果或护盾时获得1点愿力(1次, 施放终结技后重置)",
+      "hook_name": "aha_trace1"
+    },
+    {
+      "name": "愚弄众神的玩笑",
+      "description": "战技追击额外造成令使目标对应属性20%欢愉伤害并恢复1战技点(项目主裁定 2026-11-14)",
+      "hook_name": "aha_trace2"
+    },
+    {
+      "name": "盒中蕴藏的世界",
+      "description": "速度≥125/150时欢愉度+20%/50%; 战斗开始时行动提前30%(项目主裁定 2026-11-14 补数值, txt已同步)",
+      "hook_name": "aha_trace3"
+    },
+    {
+      "name": "基础行迹",
+      "description": "暴击伤害+37.3%/暴击率+12%/速度+5",
+      "hook_name": "aha_base"
+    }
+  ],
+  "eidolons": [
+    {
+      "rank": 1,
+      "name": "谁在太初噤声时笑场",
+      "description": "进入战斗时立即获得5点愿力; 阿哈在场时我方全体欢愉伤害增笑15%(增笑=LAUGH_BOOST独立乘区, 口径既有定义)",
+      "hook_name": "aha_e1"
+    },
+    {
+      "rank": 2,
+      "name": "在祂的眼睛和你之间",
+      "description": "使「欢愉」命途升格效果获得加强(爽点/绝活共赏体系+银狼Lv.999/绯英/火花/爻光/真珠/砂金·戏浪/开拓者/阿哈自身共8条强化)——升格=持有【欢愉万相】期间我方欢愉命途升格(v9.0.0 批5全量实现, 全文见 角色技能介绍/欢愉/星神·啊哈.txt)",
+      "hook_name": "aha_e2"
+    },
+    {
+      "rank": 3,
+      "name": "牌叠起，令悲喜轮回",
+      "description": "终结技等级+2; 普攻等级+1; 欢愉技等级+1",
+      "hook_name": "aha_e3"
+    },
+    {
+      "rank": 4,
+      "name": "黑箱一个玩笑的命运",
+      "description": "欢愉技真伤倍率+25%; 阿哈的欢愉伤害额外计入队友好活当赏总和的100%",
+      "hook_name": "aha_e4"
+    },
+    {
+      "rank": 5,
+      "name": "台前幕后，是我非我",
+      "description": "战技等级+2; 天赋等级+2; 欢愉技等级+1",
+      "hook_name": "aha_e5"
+    },
+    {
+      "rank": 6,
+      "name": "因为神说：你就是欢愉",
+      "description": "敌方始终拥有至少20%生命上限的【欢愉负债】; 首次施放终结技后阿哈行动提前100%并获得100笑点",
+      "hook_name": "aha_e6"
+    }
+  ],
+  "fate_bonds": [],
+  "_pending": "",
+  "_source": "角色技能介绍/欢愉/星神·啊哈.txt (v9.0.0 批4; 显示名裁定④=星神★阿哈)"
+}

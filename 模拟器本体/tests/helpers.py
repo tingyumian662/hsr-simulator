@@ -38,5 +38,6 @@ def _unit(cid, position=1, eidolon=0, lc_id=None, **extra):
     u = SimUnit(char=c, base_stats=stats, position=position, lightcone=lc)
     u.max_hp = u.current_hp = stats.HP
     u.eidolon_rank = eidolon
+    u.fate_bond_rank = extra.pop('fate_bond', 0)  # v9.0.0 奇缘星魂（便利参数, 不占 extra）
     u.extra.update(extra)
     return u

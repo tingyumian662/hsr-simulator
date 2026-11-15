@@ -105,6 +105,12 @@ def _evanescia_goodshow_extra(state, u, skill_key):
             _commit_enemy_damage(state, u, t, d.final_damage)
             total += d.final_damage
         state.log.append(f'  绯英持好活: 终结技追加23%全体+28%随机 {total:.0f}')
+    # v9.0.0 升格(审核P1-1): 480终结技增幅同样作用于天赋欢愉伤害段(txt 明示)
+    boost = u.extra.get('_eva_boost_shot')
+    if boost and skill_key == 'ultimate' and total > 0:
+        u.total_damage_dealt -= total
+        total *= boost
+        state.log.append(f'  升格·绯英: 天赋欢愉伤害段×{boost:g}')
     u.total_damage_dealt += total
 
 
@@ -120,6 +126,13 @@ def _trace_evanescia_energy_convert(u, state, amount=0, **kw):
     if amt > 0:
         elation.grant_good_show(state, 'evanescia', amt, duration=2,
                                 source='evanescia_talent')
+    # v9.0.0 升格(阿哈E2·绯英线): 满能量时的获得计入溢出能量银行(≤240,
+    # 终结技后清空恢复, 见 ult_cast_post)
+    from engine.characters.aha import ascension_active
+    if ascension_active(state) and u.current_energy >= u.char.max_energy \
+            and float(amount) > 0:
+        bank = min(240.0, u.extra.get('eva_asc_bank', 0.0) + float(amount))
+        u.extra['eva_asc_bank'] = bank
     # 240累计（FUA触发点; v7.26.5: 单次最多计入240——原文"单次获得能量时最多获得
     # 240点累计值", 大额回能不再全额入账）
     bank = u.extra.get('evanescia_energy_bank', 0.0) + min(float(amount), 240.0)
@@ -240,7 +253,9 @@ TECHNIQUE = _tech_evanescia
 # ---- M5a: 技能相位处理器（原引擎 _use_skill 内联, verbatim 迁入）----
 
 def _evanescia_ult_cast_post(u, state):
-    """PHASE ult_cast_post: E6 首终结技回120能量（每再施放4次触发1次）。"""
+    """PHASE ult_cast_post: E6 首终结技回120能量（每再施放4次触发1次）。
+    v9.0.0 升格(阿哈E2·绯英线): 施放终结技后清空溢出能量银行并恢复相应的能量值
+    (本次恢复不触发天赋方向1的好活转化——锁内恢复)。"""
     # v6.7 绯英E6: 首终结技回120能量（每再施放4次触发1次）
     if u.eidolon_rank >= 6:
         cnt = u.extra.get('evanescia_ult_count', 0) + 1
@@ -248,7 +263,68 @@ def _evanescia_ult_cast_post(u, state):
         if cnt % 4 == 1:
             _gain_energy(u, 120.0, state=state)
             state.log.append(f'  绯英E6: 首终结技回120能量(第{cnt}次, 每4次触发)')
+    bank = u.extra.pop('eva_asc_bank', 0.0)
+    if bank > 0:
+        state.extra['_eva_convert_lock'] = True
+        try:
+            _gain_energy(u, bank, state=state)
+        finally:
+            state.extra.pop('_eva_convert_lock', None)
+        state.log.append(f'  升格·绯英: 终结技后清空溢出能量银行 → 恢复{bank:.0f}')
+    u.extra.pop('_eva_boost_shot', None)  # 升格480终结技增幅旗(整次终结技消费完)
     return None
+
+
+def _eva_goodshow_ascension(_u, state, char_id=None, amount=0.0, **kw):
+    """OBSERVER goodshow_gain: 升格——每累计获得480点绝活共赏→下一次终结技
+    伤害倍率及天赋欢愉伤害倍率提高原倍率的150%(×2.5)。"""
+    from engine.characters.aha import ascension_active
+    if char_id != 'evanescia' or not ascension_active(state):
+        return None
+    me = next((x for x in state.units
+               if x.char.id == 'evanescia' and x.is_alive), None)
+    if me is None or float(amount) <= 0:
+        return None
+    total = me.extra.get('eva_gs_total', 0.0) + float(amount)
+    while total >= 480.0:
+        total -= 480.0
+        me.extra['eva_ult_boost'] = True
+        state.log.append('  升格·绯英: 累计480绝活共赏→下次终结技倍率×2.5')
+    me.extra['eva_gs_total'] = total
+    return None
+
+
+def _eva_asc_ult_arm(u, state, skill_key):
+    """SKILL_HOOKS(S4): 升格480旗→本次终结技伤害增幅×2.5(damage_mod 消费,
+    ult_cast_post 清旗)。"""
+    if u.char.id != 'evanescia' or skill_key != 'ultimate':
+        return
+    if u.extra.pop('eva_ult_boost', None):
+        u.extra['_eva_boost_shot'] = 2.5
+
+
+def _eva_asc_damage_mod(u, state, final, st):
+    """PHASE damage_mod: 升格480终结技增幅 ×2.5。
+    （无视防24%已移 eff_stats_eva DEF_PEN 精确通道——裁定②B 2026-11-15）"""
+    if u.char.id != 'evanescia':
+        return None
+    boost = u.extra.get('_eva_boost_shot')
+    if boost:
+        return final * boost
+    return None
+
+
+def _eva_asc_eff_stats(u, state, s=None, **kw):
+    """PHASE eff_stats_eva: 升格——造成的伤害无视敌方24%防御力（DEF_PEN 精确通道,
+    裁定②B 2026-11-15, 与火花线 team_defpen_bonus 通道对称）。"""
+    if u.char.id != 'evanescia':
+        return None
+    from engine.characters.aha import ascension_active
+    if s is None or not ascension_active(state):
+        return None
+    ns = copy.deepcopy(s)
+    ns.DEF_PEN += 0.24
+    return ns
 
 
 # v7.26.2 裁决7: _evanescia_energy_gain_override(欢愉技回能5)移除——
@@ -329,3 +405,7 @@ def _eva_goodshow_expire(unit, state, lost):
 
 OBSERVER_HOOKS['goodshow_eva'] = _eva_goodshow
 OBSERVER_HOOKS['goodshow_expire'] = _eva_goodshow_expire
+OBSERVER_HOOKS['goodshow_gain'] = _eva_goodshow_ascension  # v9.0.0 升格
+PHASE_HOOKS['damage_mod'] = _eva_asc_damage_mod  # v9.0.0 升格
+PHASE_HOOKS['eff_stats_eva'] = _eva_asc_eff_stats  # v9.0.0 升格·无视防(裁定②B)
+SKILL_HOOKS.append(_eva_asc_ult_arm)  # v9.0.0 升格(S4 在定义之后追加)

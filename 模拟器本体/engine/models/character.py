@@ -112,9 +112,17 @@ class Character:
     skills: dict = field(default_factory=dict)  # {"basic_attack": Skill, "skill": Skill, ...}
     traces: list = field(default_factory=list)  # list[Trace]
     eidolons: list = field(default_factory=list)  # list[Eidolon]
+    # v9.0.0 奇缘星魂（项目主裁定①: 独立开关, 无队伍条件）——结构复用 Eidolon,
+    # 档位走 fate_bond_rank 通路（不占 eidolon_rank 的 0-6 档）
+    fate_bonds: list = field(default_factory=list)  # list[Eidolon]
 
     # 欢愉
     cast_number: int = 0           # 参演编号（0 表示非欢愉角色）
+    # v9.0.0 星神★阿哈（数据驱动, 机制层零角色字面量铁律）:
+    # 参演编号0+本标志=无视编号, 始终在阿哈时刻最后施放（专属天赋·阿哈时刻在）
+    elation_always_last: bool = False
+    # 本标志=阿哈时刻基础速度80→该角色基础速度(白值, 专属天赋·阿哈时刻在)
+    aha_speed_takeover: bool = False
     # v5.0 P8: 废弃预留 — 引擎无消费点（欢愉加成走 elation.py 专属面板）, 保留防 JSON 兼容风险
     elation_stats: dict = field(default_factory=dict)  # 欢愉角色额外属性 {StatType: value}
 
@@ -190,6 +198,10 @@ class Character:
             Eidolon(rank=e.get("rank", i+1), name=e.get("name", ""), description=e.get("description", ""), hook_name=e.get("hook_name", ""))
             for i, e in enumerate(data.get("eidolons", []))
         ]
+        fate_bonds = [
+            Eidolon(rank=e.get("rank", i+1), name=e.get("name", ""), description=e.get("description", ""), hook_name=e.get("hook_name", ""))
+            for i, e in enumerate(data.get("fate_bonds", []))
+        ]
 
         return Character(
             id=data["id"],
@@ -212,7 +224,10 @@ class Character:
             skills=skills,
             traces=traces,
             eidolons=eidolons,
+            fate_bonds=fate_bonds,
             cast_number=data.get("cast_number", 0),
+            elation_always_last=data.get("elation_always_last", False),
+            aha_speed_takeover=data.get("aha_speed_takeover", False),
             elation_stats=data.get("elation_stats", {}),
             memsprite=_load_memsprite(data.get("memsprite")),
             gold_offspring=data.get("gold_offspring"),

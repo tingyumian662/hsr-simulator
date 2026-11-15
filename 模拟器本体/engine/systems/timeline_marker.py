@@ -45,6 +45,11 @@ MARKER_REGISTRY = {
         "name": "Fever倒计时",
         "base_SPD": 140.0,
     },
+    # v9.0.0 景元: 神君（60速入场, 段数驱动变速 60+10×(段-3), 行动后重置; 模块内调度）
+    "jingyuan_shenjun": {
+        "name": "神君",
+        "base_SPD": 60.0,
+    },
 
 }
 

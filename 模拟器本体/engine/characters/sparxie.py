@@ -43,6 +43,13 @@ def _sparxie_trap_chain_adjust(u, state, skill=None, skill_key=None, **kw):
         if random.random() < 0.5:
             gain_laugh(state, 2)
             _gain_skill_points(state, 2)
+            # v9.0.0 升格(阿哈E2·火花线): 每持有10点绝活共赏→红红火火额外+1爽点, 最多+12
+            from engine.characters.aha import ascension_active
+            if ascension_active(state):
+                extra = min(12, int(state.elation_state.get_good_show_total('sparxie') // 10))
+                if extra > 0:
+                    gain_laugh(state, extra)
+                    state.log.append(f'  升格·红红火火: 额外+{extra}爽点(≤12)')
             state.log.append('  互动陷阱: 红红火火(+2笑点+2战技点)')
         else:
             gain_laugh(state, 1)
@@ -149,11 +156,41 @@ def _sparxie_skill_live(u, state, skill_key):
 
 
 def _sparxie_elation_burst(u, state, skill_key):
-    """火花欢愉技: 额外+2爆点（v6.7, 弹射段数见 _bounce_hits E6）"""
+    """火花欢愉技: 额外+2爆点（v6.7, 弹射段数见 _bounce_hits E6）
+    v9.0.0 升格(阿哈E2·火花线): 欢愉技伤害倍率+原倍率120%(×2.2, damage_mod 单段消费)。"""
     if u.char.id == "sparxie" and skill_key == "elation_skill":
         state.extra['sparxie_burst_points'] = \
             state.extra.get('sparxie_burst_points', 0.0) + 2
         state.log.append('  火花欢愉技: +2爆点')
+        from engine.characters.aha import ascension_active
+        if ascension_active(state):
+            u.extra['_spx_asc_shot'] = 2.2
+            state.log.append('  升格: 欢愉技倍率×2.2')
+
+
+def _spx_asc_damage_mod(u, state, final, st):
+    """PHASE damage_mod: 升格欢愉技倍率 ×2.2（本次施放全程, aha 窗口结束清旗）。"""
+    mult = u.extra.get('_spx_asc_shot') if u.char.id == "sparxie" else None
+    if mult:
+        return final * mult
+    return None
+
+
+def _spx_clear_asc_shot(u, state, **kw):
+    """OBSERVER aha_sparxie_settle: 阿哈时刻结束→清升格倍率旗。"""
+    if u is not None and getattr(u, 'char', None) is not None:
+        u.extra.pop('_spx_asc_shot', None)
+    return None
+
+
+def _spx_team_defpen(u, state, **kw):
+    """OBSERVER team_defpen_bonus: 升格——我方目标造成伤害时无视敌方20%防御力。"""
+    from engine.characters.aha import ascension_active
+    me = next((x for x in state.units
+               if x.char.id == 'sparxie' and x.is_alive), None)
+    if me is not None and ascension_active(state):
+        return 0.20
+    return None
 
 
 CHAR_ID = "sparxie"
@@ -291,6 +328,15 @@ def _spx_eff_stats(u, state, s):
     return None
 
 
+def _spx_asc_clear_wrap(u, state, **kw):
+    """v9.0.0: 原结算 + 升格倍率旗清理（审核P1-1: 全段覆盖后须在窗口尾清旗）。"""
+    _spx_aha_settle(None, state, n=kw.get('n'))
+    _spx_clear_asc_shot(u, state)
+    return None
+
+
 OBSERVER_HOOKS['init_sparxie_tech'] = _spx_tech_init
-OBSERVER_HOOKS['aha_sparxie_settle'] = _spx_aha_settle
+OBSERVER_HOOKS['aha_sparxie_settle'] = _spx_asc_clear_wrap
 OBSERVER_HOOKS['eff_stats_sparxie'] = _spx_eff_stats
+OBSERVER_HOOKS['team_defpen_bonus'] = _spx_team_defpen  # v9.0.0 升格
+PHASE_HOOKS['damage_mod'] = _spx_asc_damage_mod  # v9.0.0 升格

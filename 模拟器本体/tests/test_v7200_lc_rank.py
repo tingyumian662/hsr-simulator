@@ -68,8 +68,9 @@ class TestRankInfoListing:
         lcs = self._lcs()
         scaled = [l for l in lcs.values() if l["rank_scaled"]]
         # v7.22.1: 原 8 + 回填 7 把; v7.25.0 向浪花掷下盛夏 +1; v7.26.0 献给明日的色彩 +1;
-        # v8.0.0 三把; v8.1.0 智识十把; v8.2.0 乙组59把; v8.2.2 丙组54+新3把+尾4把=全量145
-        assert len(scaled) == 145
+        # v8.0.0 三把; v8.1.0 智识十把; v8.2.0 乙组59把; v8.2.2 丙组54+新3把+尾4把=全量145;
+        # v9.0.0 双新欢愉光锥(当第一声「阿哈」响起/在世界尽头相会吧！) 145→147
+        assert len(scaled) == 147
         assert lcs["landaus_choice"]["rank_scaled"] is True
         assert lcs["cast_summer_into_waves"]["rank_scaled"] is True
         assert lcs["hues_devoted_to_tomorrow"]["rank_scaled"] is True

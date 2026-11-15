@@ -1,0 +1,30 @@
+{
+  "id": "when_the_first_aha_rings_out",
+  "name": "当第一声「阿哈」响起",
+  "rarity": 5,
+  "rank": 1,
+  "path": "欢愉",
+  "base_HP": 952,
+  "base_ATK": 582,
+  "base_DEF": 529,
+  "effects": [
+    {
+      "type": "permanent_buff",
+      "condition": "使装备者的基础速度提高12-20点",
+      "attributes": {
+        "_base_SPD": 12.0
+      },
+      "values": [12.0, 14.0, 16.0, 18.0, 20.0]
+    },
+    {
+      "type": "trigger_effect",
+      "condition": "对我方其他单体施放战技时, 获得10-18个笑点(每间隔1回合最多1次); 随后全队本场无视16-24%防御(不可叠加)",
+      "attributes": {},
+      "condition_code": "event_first_aha_ally_skill",
+      "target": "self"
+    }
+  ],
+  "default_rank": 1,
+  "_note": "星神★阿哈专属光锥(v9.0.0); S1: 速度+12/笑点10/无视防16%",
+  "_source": "光锥技能介绍/五星/欢愉/当第一声「阿哈」响起.txt (v9.0.0 批6)"
+}

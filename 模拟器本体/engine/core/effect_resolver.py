@@ -801,6 +801,21 @@ TRACE_REGISTRY: dict[str, dict] = {
     "feixiao_trace2": {"trigger": None, "action": None, "source_name": "行迹·解形(终结技视为FUA, ult内联)"},
     "feixiao_trace3": {"trigger": None, "action": None, "source_name": "行迹·电举(战技ATK+48%, skill内联)"},
     "feixiao_base": {"trigger": None, "action": None, "source_name": "基础行迹"},
+    # ── v9.0.0 丹恒•饮月 ──
+    "dhil_trace1": {"trigger": None, "action": None, "source_name": "行迹·伏辰(开局+15能量, INIT内联)"},
+    "dhil_trace2": {"trigger": None, "action": None, "source_name": "行迹·修禹(控制抵抗35%, 无引擎消费点)"},
+    "dhil_trace3": {"trigger": None, "action": None, "source_name": "行迹·起蛰(虚数弱点暴伤+24%, target_stats_mod内联)"},
+    "dhil_base": {"trigger": None, "action": None, "source_name": "基础行迹"},
+    # ── v9.0.0 景元 ──
+    "jy_trace1": {"trigger": None, "action": None, "source_name": "行迹·破阵(神君段数≥6暴伤+25%, 神君行动内联)"},
+    "jy_trace2": {"trigger": None, "action": None, "source_name": "行迹·绸缪(开局+15能量, INIT内联)"},
+    "jy_trace3": {"trigger": None, "action": None, "source_name": "行迹·遣将(战技后暴击率+10%×2回合, settle内联)"},
+    "jy_base": {"trigger": None, "action": None, "source_name": "基础行迹"},
+    # ── v9.0.0 星神★阿哈 ──
+    "aha_trace1": {"trigger": None, "action": None, "source_name": "行迹·戏中人的异想国(受疗受盾+1愿力, on_heal/on_shield内联)"},
+    "aha_trace2": {"trigger": None, "action": None, "source_name": "行迹·愚弄众神的玩笑(令使属性20%追击+回SP, 战技内联; 裁定2026-11-14)"},
+    "aha_trace3": {"trigger": None, "action": None, "source_name": "行迹·盒中蕴藏的世界(速度125/150→欢愉度20/50%+开战提前30%, eff_stats_aha内联; 裁定2026-11-14)"},
+    "aha_base": {"trigger": None, "action": None, "source_name": "基础行迹"},
 }
 
 
@@ -1195,6 +1210,9 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "acheron_e4": {"trigger": "on_enter_battle", "action": None, "source_name": "黄泉E4"},  # 入场敌终结技易伤8%内联
     "acheron_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "黄泉E5"},
     "acheron_e6": {"trigger": "on_enter_battle", "action": None, "source_name": "黄泉E6"},  # 抗穿20%+普攻战技视为终结技内联
+    # v9.0.0 奇缘星魂1: 队友攻击集真赤目标→追击(视为终结技), 模块内联
+    # (_acheron_bond_on_ally_attack; 每回合1次/黄泉回合开始重置/奈落适用)
+    "acheron_bond1": {"trigger": "on_enter_battle", "action": None, "source_name": "黄泉奇缘星魂1"},
     # ── v6.10 飞霄 ──
     "feixiao_e1": {"trigger": "on_enter_battle", "action": None, "source_name": "飞霄E1"},  # 终结技伤害+10%×5层内联
     "feixiao_e2": {"trigger": "on_enter_battle", "action": None, "source_name": "飞霄E2"},  # 每FUA+1飞黄内联
@@ -1202,6 +1220,29 @@ EIDOLON_REGISTRY: dict[str, dict] = {
     "feixiao_e4": {"trigger": "on_enter_battle", "action": None, "source_name": "飞霄E4"},  # FUA削韧+100%+速度+8%内联
     "feixiao_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "飞霄E5"},
     "feixiao_e6": {"trigger": "on_enter_battle", "action": None, "source_name": "飞霄E6"},  # 抗穿20%+FUA视为终结技+倍率+140%内联
+    # ── v9.0.0 丹恒•饮月 ──
+    "dhil_e1": {"trigger": "on_enter_battle", "action": None, "source_name": "饮月E1"},  # 亢心上限6→10+每段2层(模块爬坡/满层buff内联)
+    "dhil_e2": {"trigger": "on_enter_battle", "action": None, "source_name": "饮月E2"},  # 终结技后行动提前100%+1逆鳞(模块ult钩子内联)
+    "dhil_e3": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "饮月E3"},
+    "dhil_e4": {"trigger": "on_enter_battle", "action": None, "source_name": "饮月E4"},  # 叱咤延一回合(模块settle内联)
+    "dhil_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "饮月E5"},
+    "dhil_e6": {"trigger": "on_enter_battle", "action": None, "source_name": "饮月E6"},  # 队友终结技→盘拏耀跃抗穿层(settle_ally_ult内联)
+    "dhil_bond1": {"trigger": "on_enter_battle", "action": None, "source_name": "饮月奇缘星魂1"},  # 每5SP追击(settle_sp_watch内联)
+    # ── v9.0.0 景元 ──
+    "jy_e1": {"trigger": "on_enter_battle", "action": None, "source_name": "景元E1"},  # 神君相邻倍率25%→50%(神君行动内联)
+    "jy_e2": {"trigger": "on_enter_battle", "action": None, "source_name": "景元E2"},  # 神君行动后增伤20%×2回合(内联)
+    "jy_e3": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "景元E3"},
+    "jy_e4": {"trigger": "on_enter_battle", "action": None, "source_name": "景元E4"},  # 神君每段+2能量(内联)
+    "jy_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "景元E5"},
+    "jy_e6": {"trigger": "on_enter_battle", "action": None, "source_name": "景元E6"},  # 神君每段易伤12%≤3层(内联)
+    "jy_bond1": {"trigger": "on_enter_battle", "action": None, "source_name": "景元奇缘星魂1"},  # 段数上限+20/满段立即行动/强化(内联)
+    # ── v9.0.0 星神★阿哈 ──
+    "aha_e1": {"trigger": "on_enter_battle", "action": None, "source_name": "阿哈E1"},  # 开局+5愿力+全队增笑(INIT内联)
+    "aha_e2": {"trigger": "on_enter_battle", "action": None, "source_name": "阿哈E2"},  # 命途升格强化(v9.0.0 批5)
+    "aha_e3": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "阿哈E3"},
+    "aha_e4": {"trigger": "on_enter_battle", "action": None, "source_name": "阿哈E4"},  # 真伤+25%+N计队友好活(引擎laugh_n/模块内联)
+    "aha_e5": {"trigger": "on_enter_battle", "action": _eid_skill_levels, "source_name": "阿哈E5"},
+    "aha_e6": {"trigger": "on_enter_battle", "action": None, "source_name": "阿哈E6"},  # 负债底线20%+首次终结技(内联)
 }
 
 
@@ -1216,6 +1257,7 @@ def resolve_character_effects(
     relic_sets: dict[str, RelicSet] | None = None,
     eidolon_rank: int = 0,
     registry: HookRegistry | None = None,
+    fate_bond_rank: int = 0,
 ) -> list[ResolvedEffect]:
     """解析角色的所有行迹/星魂/光锥/遗器效果
 
@@ -1253,6 +1295,24 @@ def resolve_character_effects(
             effects.append(ResolvedEffect(
                 source="eidolon",
                 source_name=tmpl.get("source_name", eidolon.name),
+                char_id=cid,
+                trigger=tmpl["trigger"],
+                action=tmpl["action"],
+                condition=tmpl.get("condition"),
+            ))
+
+    # ── 2b. 奇缘星魂（v9.0.0 独立开关, 裁定①; 复用 EIDOLON_REGISTRY 模板表）──
+    for bond in getattr(character, "fate_bonds", []):
+        if bond.rank > fate_bond_rank:
+            continue
+        hn = bond.hook_name
+        if not hn or hn not in EIDOLON_REGISTRY:
+            continue
+        tmpl = EIDOLON_REGISTRY[hn]
+        if tmpl.get("trigger") and tmpl.get("action"):
+            effects.append(ResolvedEffect(
+                source="fate_bond",
+                source_name=tmpl.get("source_name", bond.name),
                 char_id=cid,
                 trigger=tmpl["trigger"],
                 action=tmpl["action"],
@@ -1313,8 +1373,10 @@ def register_team_effects(configs: list[dict], registry: HookRegistry) -> None:
         relics = cfg.get("relics")
         relic_sets = cfg.get("relic_sets")
         eidolon_rank = cfg.get("eidolon", 0)
+        fate_bond_rank = cfg.get("fate_bond", 0)
         effects = resolve_character_effects(
-            char, lc, relics, relic_sets, eidolon_rank, registry=registry
+            char, lc, relics, relic_sets, eidolon_rank, registry=registry,
+            fate_bond_rank=fate_bond_rank,
         )
         for effect in effects:
             registry.register_effect(effect)

@@ -224,6 +224,8 @@ async def list_data():
             "rarity": c.get("rarity", 5), "max_energy": c.get("max_energy", 0),
             # v5.2 问题7: 完成度暴露（full=有技能数据, shell=空壳）
             "completeness": "full" if c.get("skills") else "shell",
+            # v9.0.0: 奇缘星魂在选（前端据此显示/隐藏奇缘下拉）
+            "has_fate_bond": bool(c.get("fate_bonds")),
         })
 
     lcs = []
@@ -322,6 +324,8 @@ class TeamMember(BaseModel):
     # v7.20.0: 光锥叠影档 1-5; None=JSON 默认档（不传字段零行为变化, smoke 口径不变）
     lc_rank: Optional[int] = Field(None, ge=1, le=5)
     eidolon: int = Field(0, ge=0, le=6)
+    # v9.0.0 奇缘星魂（项目主裁定①: 独立开关, 无队伍条件; 仅对有 fate_bonds 数据的角色生效）
+    fate_bond: int = Field(0, ge=0, le=1)
     relics: dict = {}
     substats: dict = {}
     # v7.3.1（项目主纠正）: 总词条固定 50; 可调值为有效词条数（默认 30, 上限 50=无非有效词条）
@@ -458,7 +462,7 @@ async def run_simulation(req: SimRequest):
         eidolon = member.eidolon
         configs.append({
             "char": char, "lightcone": lc, "relics": pieces, "relic_sets": relic_sets,
-            "position": i + 1, "eidolon": eidolon,
+            "position": i + 1, "eidolon": eidolon, "fate_bond": member.fate_bond,
         })
 
     # 敌方攻击数据（默认单目标普攻; 可通过请求覆盖 spd/atk/attacks）

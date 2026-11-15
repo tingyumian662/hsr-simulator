@@ -59,10 +59,13 @@ def _yaoguang_dajidali(state, u, skill_key, spent_skill_points=None):
         spent_skill_points = ((skill.cost or {}).get('skill_points', 0)
                               if skill is not None else 0)
     times = 2 if spent_skill_points > 0 else 1
+    # v9.0.0 升格(阿哈E2·爻光线): 大吉大利伤害倍率提高原倍率的40%(×1.4)
+    from engine.characters.aha import ascension_active
+    asc_mult = 1.4 if ascension_active(state) else 1.0
     total = 0.0
     for _ in range(times):
         t = random.choice(hits)
-        talent_scale = 20.0 * _skill_level_factor(yao, 'talent')
+        talent_scale = 20.0 * _skill_level_factor(yao, 'talent') * asc_mult
         d = calculate_damage(stats, _enemy_for_damage(t), 0, talent_scale, 'elation',
                              u.char.element, 80, stats.CRIT_RATE >= 0.5,
                              laugh_n=laugh_n, crit_mode='expected')
@@ -142,6 +145,21 @@ def _yaoguang_energy(u, state, skill_key):
 CHAR_ID = "yaoguang"
 ELATION_GATED = True  # AI/SKILL_HOOKS 仅欢愉队激活（M3 语义保持）
 SKILL_HOOKS = [_laugh_gen, _yaoguang_field, _yaoguang_energy]
+
+
+def _yg_asc_ult(u, state, skill_key):
+    """v9.0.0 升格(阿哈E2·爻光线): 爻光施放终结技后固定恢复30点能量并获得10爽点。"""
+    if u.char.id != 'yaoguang' or skill_key != 'ultimate':
+        return
+    from engine.characters.aha import ascension_active
+    if not ascension_active(state):
+        return
+    _gain_energy(u, 30.0, state=state)
+    gain_laugh(state, 10.0)
+    state.log.append('  升格·爻光终结技: +30能量 +10爽点')
+
+
+SKILL_HOOKS.append(_yg_asc_ult)
 AI = _yg_ai
 
 

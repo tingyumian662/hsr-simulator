@@ -212,6 +212,13 @@ def _avw_on_attack(u, state, dealt=True, **ctx):
         return
     gain_laugh(state, 1)
     _avw_gain_heat(me, state, 1, cause="天赋·队友攻击")
+    # v9.0.0 升格(阿哈E2·砂金线): 阿哈独狼分支加强——队友施放攻击后+2热意+2爽点
+    if me.extra.get("avw_aha_solo"):
+        from engine.characters.aha import ascension_active
+        if ascension_active(state):
+            _avw_gain_heat(me, state, 2, cause="升格·纵享惊涛")
+            gain_laugh(state, 2)
+            state.log.append("  升格·纵享惊涛: 队友攻击→砂金+2热意+2爽点")
     if me.extra.get("avw_solo") and _has_trace(me, TRACE3):
         el = state.extra.get("_elation")
         if el is not None:
@@ -238,6 +245,30 @@ def _avw_on_attack(u, state, dealt=True, **ctx):
                 _avw_gain_heat(me, state, 2, cause="行迹2·队友技能")
 
 
+def _avw_settle_ally_ult(u, state, skill, skill_key, total_dmg):
+    """SETTLE settle_ally_ult: 升格(阿哈E2·砂金线)——阿哈施放终结技(欢愉万相开)
+    期间, 全队速度+25%(随万相同步 3 回合, 每次升格开窗刷新; 审核P1-4 动态化)。"""
+    if skill_key != 'ultimate':
+        return
+    me = next((x for x in state.units
+               if x.char.id == CHAR_ID and x.is_alive
+               and x.extra.get('avw_aha_solo')), None)
+    if me is None or u is me:
+        return
+    aha = next((x for x in state.units if x.char.id == 'aha' and x.is_alive), None)
+    if aha is None or aha is not u or aha.eidolon_rank < 2:
+        return  # 触发者须为持E2的阿哈
+    for x in state.units:
+        if x.is_alive:
+            x.buffs = [b for b in x.buffs
+                       if getattr(b, 'param_id', '') != 'avw_asc_spd']
+            x.buffs.append(TimedBuff(
+                source_id=CHAR_ID, attributes={'SPD_PERCENT': 25.0},
+                remaining_turns=3, param_id='avw_asc_spd',
+                source_name='升格·纵享惊涛'))
+    state.log.append('  升格·纵享惊涛: 全队速度+25%×3回合(随欢愉万相)')
+
+
 # ---- 入场 / 秘技 ----
 
 def _init_battle(state):
@@ -254,7 +285,13 @@ def _init_battle(state):
         if _has_trace(u, TRACE3):
             others = [x for x in state.units
                       if x is not u and x.is_alive and x.char.path == "欢愉"]
-            if others:
+            # v9.0.0 升格(阿哈E2·砂金线): 欢愉队友仅星神★阿哈1位时,
+            # "只存在砂金1名欢愉角色"的独狼分支也会生效且获得加强
+            # (全队速度+25%随升格期动态生效, 见 settle_ally_ult——审核P1-4 改动态;
+            #  攻击后+2热意+2爽点走升格动态判定)
+            aha_only = (len(others) == 1 and others[0].char.id == 'aha'
+                        and others[0].eidolon_rank >= 2)
+            if others and not aha_only:
                 for x in state.units:
                     if x.is_alive:
                         x.base_stats.ELATION_LEVEL += 0.20
@@ -262,6 +299,10 @@ def _init_battle(state):
                 state.log.append("  行迹3·纵享惊涛: 全队欢愉度+20%, 砂金额外+80%")
             else:
                 u.extra["avw_solo"] = True
+                if aha_only:
+                    u.extra["avw_aha_solo"] = True
+                    state.log.append("  升格·纵享惊涛(阿哈独狼): 独狼分支生效"
+                                     "(升格期全队速度+25%)")
         state.hooks.register(CHAR_ID, "on_attack_action", _avw_on_attack,
                              source_name="砂金·队友攻击行动")
 
@@ -295,5 +336,6 @@ PHASE_HOOKS = {
     "eff_stats_avw": _avw_eff_stats,
 }
 OBSERVER_HOOKS = {"goodshow_avw": _avw_goodshow_extend}
+SETTLE_HANDLERS = {"settle_ally_ult": _avw_settle_ally_ult}  # v9.0.0 升格(审核P1-4)
 INIT = _init_battle
 TECHNIQUE = _tech
